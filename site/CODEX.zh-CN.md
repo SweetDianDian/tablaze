@@ -310,11 +310,34 @@ Tablaze 跟踪自己创建的页面及其弹出页面；清理时只关闭这些
 
 `tab_extract_structured` 按命名字段计划读取内容，并用 JSON Schema draft-07 校验输出。每个值附带来源 URL、选择器、匹配序号和转换前原文。支持文字、属性、当前非敏感表单值、带类型的标量和数组；最多 30 个字段，每字段 20 个匹配，总计 100 个。缺少必填字段、敏感值、类型不符或证据截断都会报错。完整示例和依据边界见[结构化提取指南](https://github.com/SweetDianDian/tablaze/blob/main/docs/EXTRACTION.md)；引用原文存在不等于已经证明事实真实。
 
+## 为 `run` 选择规划器
+
+`run` 是可选的独立 Agent 循环。每个提供方都必须显式传入 `--model`；Tablaze 不选择模型，也不会悄悄替换它。为了兼容旧命令，提供方默认是 `openai-compatible`。
+
+| `--provider` | 端点与认证 | 提供方参数 |
+| --- | --- | --- |
+| `openai-compatible`（默认） | 必须提供完整 chat-completions 路由的 `--endpoint`；可从 `TABLAZE_API_KEY` 或 `--api-key-env` 指定变量读取凭据。 | 端点必须支持函数工具调用。 |
+| `codex` | 使用本机 Codex CLI 和已有登录；无需 Tablaze 端点或 API Key 参数。 | `--codex-command` 指定可执行程序，默认 `codex`；可指定 `--reasoning-effort`。 |
+| `anthropic` | 默认 `https://api.anthropic.com/v1/messages`；可用 `--endpoint` 指向兼容代理。服务所需凭据从 `TABLAZE_API_KEY` 读取，也可用 `--api-key-env` 选择变量。 | `--max-output-tokens` 对应 `max_tokens`，默认 4096。 |
+| `ollama` | 默认 `http://localhost:11434/api/chat`；可用 `--endpoint` 指向另一服务。若配置凭据，则作为 Bearer token 发送。 | 可选 `--max-output-tokens` 对应 `options.num_predict`；默认不发送。 |
+
+Codex 尚未登录时先执行 `codex login`，通过 `codex login status` 检查当前认证方式。Tablaze 复用 CLI 认证，不复制登录文件或配置模型接口；账号权限、用量额度和可能的计费遵循当前 Codex 认证。[官方认证说明](https://learn.chatgpt.com/docs/auth)
+
+```sh
+node dist/cli.js run --provider codex --model "<你的Codex模型>" --task "<已授权的任务>" --start-url "https://<你的网站>/" --channel chrome
+node dist/cli.js run --provider anthropic --model "<你的Anthropic模型>" --api-key-env ANTHROPIC_API_KEY --max-output-tokens 4096 --task "<已授权的任务>" --channel chrome
+node dist/cli.js run --provider ollama --model "<本机已安装的模型>" --task "<已授权的任务>" --channel chrome
+```
+
+Codex 推理参数接受 `none`、`minimal`、`low`、`medium`、`high`、`xhigh`、`max`、`ultra`，具体支持取决于你明确选定的模型和 CLI；不传时保留 Codex 的设置。其他提供方不能使用 `--codex-command` 或 `--reasoning-effort`；Codex 不能使用 `--endpoint`、`--api-key-env`、`--max-output-tokens`。输出 token 参数仅用于 Anthropic 和 Ollama，本地范围为 1–1,000,000，服务可以执行更小的模型上限。响应字节上限不等于 token 预算；工具和图片支持也取决于模型。
+
+`model_usage` 仅记录提供方实际报告的计数，缺失的计数保持缺失，不推算货币费用。Codex 另返回固定的 `provider_diagnostics` 字段，包括退出状态、终态事件、错误通知数量和耗时，不包含原始 stderr 或提供方错误文本。CLI 会等待 Codex 子进程清理后再输出报告，以记录取消期间实际返回的用量。各提供方沿用相同任务预算、取消、验收和清理规则。Codex 规划会调用本机可执行程序，但不会把任意 CLI 能力作为 Tablaze 浏览器工具开放。
+
 ## 保存任务与恢复浏览器
 
-首次执行可指定 `run --start-url <HTTP(S)网址>`，在第一轮模型规划前打开这个明确网址，不从页面或工具内容猜测入口。导航使用同一工具执行链，计入调用和时间预算；恢复不会自动重复已经尝试的初始化，也不能给已有任务追加或更换起始网址。Agent 检查点版本 2 保存该状态，并支持读取迁移有效的版本 1 文件。workspace 同时保存弹窗策略，旧文件没有策略字段时使用 `stay`；恢复时明确指定不同策略会被拒绝。
+首次执行可指定 `run --start-url <HTTP(S)网址>`，在第一轮模型规划前打开这个明确网址，不从页面或工具内容猜测入口。导航使用同一工具执行链，计入调用和时间预算；恢复不会自动重复已经尝试的初始化，也不能给已有任务追加或更换起始网址。当前 Agent 检查点保存该状态，并支持迁移有效的旧格式。workspace 同时保存弹窗策略，旧文件没有策略字段时使用 `stay`；恢复时明确指定不同策略会被拒绝。
 
-可选自主任务循环在 [Agent 指南](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md) 中单独配置，与 MCP 模式分开。使用自己的模型端点，凭据通过配置的环境变量提供：
+可选自主任务循环在 [Agent 指南](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md) 中单独配置，与 MCP 模式分开。下面使用默认兼容提供方创建和恢复私有 checkpoint，凭据通过配置的环境变量提供；使用其他提供方时，每次调用都显式传入上文相应的 provider/model 参数：
 
 ```sh
 node dist/cli.js run --task "<已授权的任务>" --model "<model-id>" --endpoint "https://<provider>/v1/chat/completions" --channel chrome --checkpoint "/absolute/path/private-run.json"

@@ -5,7 +5,11 @@ export { runAgent, connectAgentTools, createMcpToolClient, createOpenAICompatibl
 export { parseAgentCheckpoint, AGENT_CHECKPOINT_VERSION } from "./checkpoint.js";
 export type { AgentCheckpoint } from "./checkpoint.js";
 export type { AgentOptions, AgentResult, AgentFailure, AgentPlanner, AgentDecision, AgentTool, AgentToolCall, AgentToolClient, AgentToolCatalog, AgentToolExecutionIdentity, AgentToolDispatchResult, AgentMessage, AgentEvent, AgentEvidence, AgentPlannerMetric, AgentModelUsage, OpenAICompatiblePlannerOptions } from "./agent.js";
+export { createAnthropicPlanner, createOllamaPlanner } from "./providers.js";
+export type { NativePlannerOptions, AnthropicPlannerOptions, OllamaPlannerOptions } from "./providers.js";
 export { defineTool, createToolRegistry, ToolRegistryError } from "./custom-tools.js";
 export type { CustomTool, CustomToolDefinition, CustomToolEffect, CustomToolExecutionContext, ToolRegistryOptions, ToolRegistryErrorCode } from "./custom-tools.js";
 export { extractWithProvenance, validateProvenance, assembleDOMExtraction, validateDOMFieldPlan, ExtractionError } from "./extraction.js";
 export type { ExtractionSchema, ExtractionSource, ExtractionCandidate, ProvenanceExtraction, ProvenanceExtractionOptions, DOMFieldPlan, DOMExtraction } from "./extraction.js";
+export { createCodexPlanner, CODEX_TESTED_CLI_VERSION } from "./codex.js";
+export type { CodexPlanner, CodexPlannerOptions, CodexPlannerDiagnostic, CodexReasoningEffort, CodexFailureCode } from "./codex.js";

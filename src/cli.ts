@@ -10,7 +10,9 @@ import { chromium } from "playwright";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { BrowserError, type BrowserOptions, type BrowserWorkspace } from "./browser.js";
 import { createServer, SERVER_VERSION } from "./server.js";
-import { connectAgentTools, createOpenAICompatiblePlanner, runAgent } from "./agent.js";
+import { connectAgentTools, createOpenAICompatiblePlanner, runAgent, type AgentModelUsage } from "./agent.js";
+import { createCodexPlanner, type CodexReasoningEffort } from "./codex.js";
+import { createAnthropicPlanner, createOllamaPlanner } from "./providers.js";
 import { normalizeStartUrl, parseAgentCheckpoint, type AgentCheckpoint } from "./checkpoint.js";
 
 const require = createRequire(import.meta.url);
@@ -37,8 +39,12 @@ Agent run options / 任务执行选项:
   --task <text>             Requested task / 任务描述
   --start-url <url>         Open this explicit URL once before planning / 首次规划前打开指定网址
   --model <id>              Model supporting tools / 支持工具的模型
-  --endpoint <url>          Full chat-completions endpoint / 完整模型接口地址
+  --provider <name>         openai-compatible (default), codex, anthropic, ollama
+  --endpoint <url>          Full HTTP model endpoint; required for openai-compatible
   --api-key-env <name>      Read key from this env var (default TABLAZE_API_KEY)
+  --codex-command <path>    Codex executable (default codex); codex only
+  --reasoning-effort <id>   Explicit Codex reasoning effort; model support varies
+  --max-output-tokens <n>   Anthropic max_tokens / Ollama num_predict (1-1000000)
   --max-steps <1-1000>      Planning limit (default 30) / 规划步数上限
   --max-calls <1-10000>     Tool limit (default 100) / 工具调用上限
   --run-timeout-ms <ms>    Task deadline (default 300000) / 任务总时限
@@ -53,10 +59,17 @@ The browser is launched lazily. Startup never downloads a browser.
 
 const CHANNELS = new Set(["chromium", "chrome", "chrome-beta", "chrome-dev", "chrome-canary", "msedge", "msedge-beta", "msedge-dev", "msedge-canary"]);
 
-interface RunOptions { task?: string; startUrl?: string; model: string; endpoint: string; apiKey?: string; maxSteps?: number; maxToolCalls?: number; timeoutMs?: number; checkpointPath?: string; resumePath?: string; reconciled?: string }
+type RunProvider = "openai-compatible" | "codex" | "anthropic" | "ollama";
+interface RunOptions {
+  task?: string; startUrl?: string; provider: RunProvider; model: string; endpoint?: string; apiKey?: string;
+  codexCommand?: string; reasoningEffort?: CodexReasoningEffort; maxOutputTokens?: number;
+  maxSteps?: number; maxToolCalls?: number; timeoutMs?: number; checkpointPath?: string; resumePath?: string; reconciled?: string;
+}
+const PROVIDERS = new Set<RunProvider>(["openai-compatible", "codex", "anthropic", "ollama"]);
+const REASONING_EFFORTS = new Set<CodexReasoningEffort>(["none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"]);
 function parseOptions(): { command: string; options: BrowserOptions; run?: RunOptions } {
   const { values, positionals } = parseArgs({
-    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, model: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
+    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
     allowPositionals: true, strict: true,
   });
   if (values.help) return { command: "help", options: {} };
@@ -80,9 +93,21 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
   let popupPolicy: BrowserOptions["popupPolicy"];
   if (values["popup-policy"] !== undefined && values["popup-policy"] !== "stay" && values["popup-policy"] !== "follow-single") throw new Error("--popup-policy must be stay or follow-single.");
   popupPolicy = values["popup-policy"];
-  const runKeys = ["task", "start-url", "model", "endpoint", "api-key-env", "max-steps", "max-calls", "run-timeout-ms", "checkpoint", "resume", "reconciled"] as const;
+  const runKeys = ["task", "start-url", "model", "provider", "endpoint", "api-key-env", "codex-command", "reasoning-effort", "max-output-tokens", "max-steps", "max-calls", "run-timeout-ms", "checkpoint", "resume", "reconciled"] as const;
   if (positionals[0] === "run") {
-    if ((!values.task?.trim() && !values.resume) || !values.model?.trim() || !values.endpoint) throw new Error("run requires --task (or --resume), --model and --endpoint. The endpoint must support chat-completions tool calls.");
+    const provider = (values.provider ?? "openai-compatible") as RunProvider;
+    if (!PROVIDERS.has(provider)) throw new Error("--provider must be openai-compatible, codex, anthropic, or ollama.");
+    if ((!values.task?.trim() && !values.resume) || !values.model?.trim() || (provider === "openai-compatible" && !values.endpoint?.trim())) {
+      throw new Error(provider === "openai-compatible" ? "run requires --task (or --resume), --model and --endpoint. The endpoint must support chat-completions tool calls." : "run requires --task (or --resume) and an explicit --model.");
+    }
+    if (provider === "codex" && ["endpoint", "api-key-env", "max-output-tokens"].some(key => values[key as keyof typeof values] !== undefined)) throw new Error("--endpoint, --api-key-env and --max-output-tokens do not apply to --provider codex; use the existing Codex login.");
+    if (provider !== "codex" && (values["codex-command"] !== undefined || values["reasoning-effort"] !== undefined)) throw new Error("--codex-command and --reasoning-effort require --provider codex.");
+    if (provider === "openai-compatible" && values["max-output-tokens"] !== undefined) throw new Error("--max-output-tokens applies only to --provider anthropic or ollama.");
+    if (values["codex-command"] !== undefined && !values["codex-command"].trim()) throw new Error("--codex-command must be a nonempty executable name or path.");
+    const reasoningEffort = values["reasoning-effort"] as CodexReasoningEffort | undefined;
+    if (reasoningEffort !== undefined && !REASONING_EFFORTS.has(reasoningEffort)) throw new Error("--reasoning-effort must be none, minimal, low, medium, high, xhigh, max, or ultra; support depends on the selected model.");
+    const maxOutputTokens = values["max-output-tokens"] === undefined ? undefined : Number(values["max-output-tokens"]);
+    if (maxOutputTokens !== undefined && (!Number.isInteger(maxOutputTokens) || maxOutputTokens < 1 || maxOutputTokens > 1_000_000)) throw new Error("--max-output-tokens must be an integer from 1 to 1000000.");
     if (values.reconciled !== undefined && (!values.resume || !values.reconciled.trim())) throw new Error("--reconciled requires --resume and an explicit note describing the checked business state.");
     if (values.resume && cdpUrl) throw new Error("--resume restores isolated contexts and cannot use --cdp-url.");
     const envName = values["api-key-env"] ?? "TABLAZE_API_KEY";
@@ -93,7 +118,7 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
       if (!Number.isInteger(value) || value < 1 || value > max) throw new Error(`--${key} must be an integer from 1 to ${max}.`);
       return value;
     };
-    run = { task: values.task, startUrl: values["start-url"] === undefined ? undefined : normalizeStartUrl(values["start-url"]), model: values.model, endpoint: values.endpoint, apiKey: process.env[envName], maxSteps: limit("max-steps", 30, 1000), maxToolCalls: limit("max-calls", 100, 10000), timeoutMs: limit("run-timeout-ms", 300000, 86400000), checkpointPath: values.checkpoint ? resolve(values.checkpoint) : undefined, resumePath: values.resume ? resolve(values.resume) : undefined, reconciled: values.reconciled };
+    run = { task: values.task, startUrl: values["start-url"] === undefined ? undefined : normalizeStartUrl(values["start-url"]), provider, model: values.model, endpoint: values.endpoint, apiKey: provider === "codex" ? undefined : process.env[envName] || undefined, codexCommand: values["codex-command"], reasoningEffort, maxOutputTokens, maxSteps: limit("max-steps", 30, 1000), maxToolCalls: limit("max-calls", 100, 10000), timeoutMs: limit("run-timeout-ms", 300000, 86400000), checkpointPath: values.checkpoint ? resolve(values.checkpoint) : undefined, resumePath: values.resume ? resolve(values.resume) : undefined, reconciled: values.reconciled };
   } else if (runKeys.some(key => values[key] !== undefined)) throw new Error("Agent options require the run command.");
   return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, timeoutMs, popupPolicy }, run };
 }
@@ -204,15 +229,24 @@ async function main(): Promise<void> {
       process.exitCode = 2; return;
     }
     const usage: Record<string, unknown>[] = [];
-    const planner = createOpenAICompatiblePlanner({ endpoint: run.endpoint, model: run.model, apiKey: run.apiKey, onUsage: entry => { usage.push({ ...entry }); } });
+    const providerDiagnostics: Record<string, unknown>[] = [];
+    const onUsage = (entry: AgentModelUsage) => { usage.push({ ...entry }); };
+    const httpPlannerOptions = { endpoint: run.endpoint, model: run.model, apiKey: run.apiKey, maxOutputTokens: run.maxOutputTokens, onUsage };
+    const codexPlanner = run.provider === "codex" ? createCodexPlanner({
+      model: run.model, codexCommand: run.codexCommand, reasoningEffort: run.reasoningEffort, onUsage,
+      onDiagnostic: diagnostic => { providerDiagnostics.push({ ...diagnostic }); },
+    }) : undefined;
+    const planner = codexPlanner ?? (run.provider === "anthropic" ? createAnthropicPlanner(httpPlannerOptions)
+      : run.provider === "ollama" ? createOllamaPlanner(httpPlannerOptions)
+      : createOpenAICompatiblePlanner({ ...httpPlannerOptions, endpoint: run.endpoint! }));
     const { server, engine, dispose } = createServer(options);
     const connection = await connectAgentTools(server);
     const controller = new AbortController();
     let report: Record<string, unknown> | undefined;
     let cleanupFailure: { code: string; message: string } | undefined;
-    const recordCleanupFailure = (error: unknown) => {
+    const recordCleanupFailure = (error: unknown, fixed?: { code: string; message: string }) => {
       if (!cleanupFailure) {
-        cleanupFailure = error instanceof BrowserError ? { code: error.code, message: error.message } : { code: "CLEANUP_FAILED", message: "Browser or MCP resource cleanup failed." };
+        cleanupFailure = fixed ?? (error instanceof BrowserError ? { code: error.code, message: error.message } : { code: "CLEANUP_FAILED", message: "Browser or MCP resource cleanup failed." });
         process.stderr.write(`Tablaze cleanup failed (${cleanupFailure.code}): ${cleanupFailure.message}\n`);
       }
       process.exitCode = 1;
@@ -248,12 +282,16 @@ async function main(): Promise<void> {
         onEvent: event => { if (event.type === "planning") process.stderr.write(`Tablaze: planning step ${event.step}\n`); },
       });
       // Default CLI output omits raw prompts, tool arguments and page history.
-      report = { status: result.status, reason: result.reason, ...(result.failure ? { failure: result.failure } : {}), summary: result.summary, question: result.question, steps: result.steps, tool_calls: result.toolCalls, planner_calls: result.plannerCalls, checkpoint: checkpointPath, model_usage: usage, verification: result.evidence.map(item => ({ tool_call_id: item.toolCallId, session_id: item.sessionId, checks: item.checks })) };
+      report = { status: result.status, reason: result.reason, ...(result.failure ? { failure: result.failure } : {}), summary: result.summary, question: result.question, steps: result.steps, tool_calls: result.toolCalls, planner_calls: result.plannerCalls, checkpoint: checkpointPath, model_usage: usage, ...(codexPlanner ? { provider_diagnostics: providerDiagnostics } : {}), verification: result.evidence.map(item => ({ tool_call_id: item.toolCallId, session_id: item.sessionId, checks: item.checks })) };
       if (result.status !== "succeeded") process.exitCode = result.status === "needs_input" ? 2 : 1;
     } finally {
       process.removeListener("SIGINT", abort); process.removeListener("SIGTERM", abort);
       try { await dispose(); } catch (error) { recordCleanupFailure(error); }
       try { await connection.close(); } catch (error) { recordCleanupFailure(error); }
+      // Cancellation can return before the local inference child flushes its
+      // final usage. Drain it before serializing the report, including failures.
+      try { await codexPlanner?.close(); }
+      catch { recordCleanupFailure(undefined, { code: "CODEX_CLEANUP_FAILED", message: "Codex planner cleanup did not complete." }); }
       if (cleanupFailure) {
         process.exitCode = 1;
         if (report) report = { ...report, agent_status: report.status, agent_reason: report.reason, status: "failed", reason: "Resource cleanup did not complete; inspect the cleanup error.", cleanup: { status: "incomplete", ...cleanupFailure } };

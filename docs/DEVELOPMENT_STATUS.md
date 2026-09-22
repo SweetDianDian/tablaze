@@ -10,7 +10,8 @@ The active objective remains **Tablaze functionality exceeding Browser Use**. It
 - **Complex pages:** scoped/viewport snapshots, shared composed DOM traversal across open shadow roots and slots, selected frames, horizontal/vertical container scrolling, labeled drag targets, hover/double-click, coordinate actions and screenshot coordinate metadata.
 - **File and state workflows:** visible-input/hidden-chooser uploads, actual download artifacts, private PDFs with source/digest, isolated cookies/localStorage/IndexedDB restoration, owned tab URLs and active-tab reconstruction.
 - **Structured extraction:** draft-7 JSON schema validation and typed DOM fields with source citations; a provider-neutral multi-source extraction API requires exact source quotes and per-leaf coverage. Quote presence does not itself prove semantic support; applications can require their own support validator.
-- **Agent execution:** provider-neutral planner, real MCP transport, configurable model endpoint, images, sequential feedback, explicit verification evidence, task-specific acceptance, cancellation and cumulative budgets.
+- **Agent execution:** provider-neutral planner, real MCP transport, images, sequential feedback, explicit verification evidence, task-specific acceptance, cancellation and cumulative budgets.
+- **Provider entry points:** SDK factories and CLI selection for Codex, native Anthropic Messages, native Ollama chat and compatible HTTP. Models stay explicit; protocol-specific authentication, tool/image mapping and real usage counters are documented in [provider contracts](PROVIDERS.md). Codex has explicit process/file cleanup and fixed diagnostics; the CLI drains its final reported usage before output. This implementation does not imply live validation of every provider/model.
 - **Typed custom tools:** the SDK's `defineTool` and `createToolRegistry` validate Zod input/output contracts, expose JSON Schema to planners, and supply trusted application context outside model arguments. Exact-origin availability is refreshed per decision; trusted read/write effects and unknown write outcomes control recovery. Custom handlers do not replace browser verification or the application acceptance policy. See [custom-tool contracts](CUSTOM_TOOLS.md).
 - **Execution context continuity:** browser guards check the main document, navigation and tab-activation history. Private `contextKey` changes invalidate old observations and verification across planning catalogs, including switching away and back. Confirmed closure of an already-verified session preserves verify–close–finish; any subsequent mutation still invalidates that evidence.
 - **Failure diagnostics:** unrecovered planner, catalog, application-hook and persistence failures expose fixed codes and safe metadata through the Agent result and CLI. Original exceptions and provider bodies are omitted; retry eligibility is reported without adding automatic retries.
@@ -23,7 +24,9 @@ The active objective remains **Tablaze functionality exceeding Browser Use**. It
 
 ## Verification and limits
 
-`TABLAZE_BROWSER_CHANNEL=chrome npm test`: **264 passed, 0 failed, 0 skipped, 0 cancelled**; exit 0, duration 133,081.4225 ms. The [validation manifest](evidence/development-validation.json) records exact source hashes and environment. The [raw test log](evidence/development-tests.txt) includes local real-Chrome, MCP, cross-process CLI, extraction, lifecycle, drag, ref-verification races, typed custom-tool/context recovery and model-transport regressions. Scripted model responses and fake process tests validate mechanisms, not general model ability.
+`TABLAZE_BROWSER_CHANNEL=chrome npm test`: **318 passed, 0 failed, 0 skipped, 0 cancelled**; exit 0, duration 132,849.306292 ms. The [validation manifest](evidence/development-validation.json) records exact source hashes and environment. The [raw test log](evidence/development-tests.txt) includes local real-Chrome, MCP, cross-process CLI, extraction, lifecycle, drag, ref-verification races, typed custom-tool/context recovery and model-transport regressions. Scripted model responses and fake process tests validate mechanisms, not general model ability.
+
+The [new production Codex CLI smoke](CODEX_PROVIDER_SMOKE.md) passed two visible tasks with independent server acceptance and complete Agent success (2/2), zero duplicate writes, and unchanged measured source hashes. Form took 64.030 s (43,391 input / 462 output tokens); duplicate-write took 78.943 s (59,401 / 710). This independently verifies the new provider and is not a matched Browser Use comparison.
 
 Real Codex inference uses the existing CLI-managed ChatGPT login. The first Tablaze form smoke passed independent server-side judging: one correct submission, zero duplicate writes, five model calls and four tool calls. It reported 76,451 input tokens and 973 output tokens, taking 102.268 seconds. These include Codex CLI prompt overhead; they are not raw-model API cost or evidence of superior speed. Its full report is retained locally at `artifacts/comparison/codex-tablaze-form-v1/results.json`.
 
@@ -35,7 +38,9 @@ The earlier five-round local engine benchmark is retained as [historical increme
 
 Storage restoration does not restore live DOM, form drafts, sessionStorage, extensions, browser history or interrupted downloads. DOM guards cannot make webpage scripts atomic. PDF export requires Chromium printing support. Extraction source URLs must be HTTP(S); closed shadow roots remain outside DOM observation. Authentication state and full checkpoints contain sensitive data even with file mode 0600.
 
-npm publication remains pending. Historical Linux/Node 20/22 release evidence covers its recorded earlier archive, not all current additions. Package version remains 0.1.0 pending release preparation.
+npm publication remains pending. Historical Linux/Node 20/22 release evidence covers its recorded earlier archive. A later [Ubuntu Node 20/22 CI run](https://github.com/SweetDianDian/tablaze/actions/runs/35731475966) passed both jobs for commit `924491d7d12780559c88c09ed0e2a677b69c4302`; that source state predates this provider increment. A fresh CI run for the provider changes has not been recorded here. Package version remains 0.1.0 pending release preparation.
+
+The new provider entry points have local HTTP, fake-process and CLI/Chrome fixture coverage. Anthropic/Ollama live inference has not been run; a production-Codex smoke requires a separate recorded result. None of those missing results is filled from historical harness runs.
 
 The first [matched Codex smoke](CODEX_COMPARISON_RESULTS.md) is complete: normal Agent completion plus independent business acceptance was Tablaze 1/2 and Browser Use 2/2. Both reached the intended business state twice, but Tablaze hit the form deadline before final completion and took more time/tokens in both tasks. This exposes work to do; it does not establish a general ranking.
 
@@ -47,12 +52,12 @@ The independent [terminal-handling follow-up](CODEX_TERMINAL_FOLLOWUP.md) reran 
 
 ## Remaining work toward the full goal
 
-The complete capability and evaluation contract is in [Browser Use comparison](BROWSER_USE_COMPARISON.md). Current gaps include:
+The capability and evaluation contract is in [Browser Use comparison](BROWSER_USE_COMPARISON.md), supplemented by the [Agent/MCP/Harness/Pi/cloud variants audit](BROWSER_USE_VARIANTS.md). The audit identifies distinct comparison tracks rather than a measured whole-product ranking. Current gaps include:
 
 1. Broader unknown long-running tasks, virtualized applications, authentication/popup return flows and repeated recovery under real models.
-2. Direct provider integrations, durable run/usage aggregation, configurable policies and trace/replay debugging.
+2. Broader service/model coverage and live validation of the new provider integrations, durable run/usage aggregation, configurable policies and trace/replay debugging.
 3. Broader advanced-site extensions and real-model evaluation of custom-tool workflows. Typed registration, exact-origin filtering, trusted application context and recovery binding are implemented; this does not establish extensibility parity across Browser Use's broader ecosystem.
 4. Configurable network/domain/file limits and full persistent-profile behavior.
 5. A frozen broader task set, matched repeated runs, failure analysis and uncertainty reporting. Small smoke results cannot establish a cross-product win.
 6. Broader platform verification for the expanded release and appropriate distribution; the current macOS clean-install check has passed.
-7. Resolve official variant/cloud-service scope before any product-wide superiority claim.
+7. Execute the additional official MCP, Harness, Pi and cloud comparison tracks under disclosed controls before any product-wide superiority claim.

@@ -1,0 +1,339 @@
+{
+  "schema_version": 1,
+  "kind": "production-codex-provider-live-smoke",
+  "started_at": "2026-09-22T13:48:11.714Z",
+  "comparison": false,
+  "purpose": "Verify the public production CLI with genuine Codex inference and independent server-side outcomes. Two visible development tasks, one attempt each; not a Browser Use ranking.",
+  "base_commit": "924491d7d12780559c88c09ed0e2a677b69c4302",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "ultra",
+  "codex_version": "codex-cli 0.155.0-alpha.9.2",
+  "doctor": {
+    "tablaze_version": "0.1.0",
+    "node_version": "v25.9.0",
+    "platform": "darwin",
+    "architecture": "arm64",
+    "playwright_version": "1.63.0",
+    "mode": "isolated",
+    "browser": {
+      "source": "chrome",
+      "installed": true,
+      "detected_version": "153.0.8010.53",
+      "expected_managed_version": null,
+      "expected_managed_revision": null
+    },
+    "headless": true,
+    "timeout_ms": 10000,
+    "popup_policy": "stay",
+    "ready": true,
+    "next_step": "The browser executable exists. Run an MCP smoke test to verify launch permissions."
+  },
+  "source_sha256": {
+    "bench/codex-provider-smoke.mjs": "5dd4eeccfd9c1f82f3aad4f25453b44a44cdb1b38023ccf84a20987642d4aa58",
+    "bench/comparison/fixture.mjs": "962a868b7703e70f200385c8127fd71b4629be072135409bd6d8eb80f1d66054",
+    "dist/agent.d.ts": "62b46cc89719cd58a583c12b0e9c5051a559adc0a9bfd0a42318708cc27cd50e",
+    "dist/agent.js": "a82919ae552619acd083faae0b0fa2e622956b2d1b1c6523e87e06caa3e7f814",
+    "dist/browser.d.ts": "5209904e80315a6e5ae74d0c18f31185c6f781a2a0d33be831b84a11e6a5b9cd",
+    "dist/browser.js": "522fe67ef11044250b269598a14a521fbdd0187fcf6b5e259c70adb1f20304ff",
+    "dist/checkpoint.d.ts": "03c707f77c2f597c00a91fb36fb258fa670cd4d7aa844aab6fcc72f4a837e166",
+    "dist/checkpoint.js": "51f4f8a2626cfabfecbf7d11a8b87b43fa6bb995b4d8b6462193cc27dc78fd8d",
+    "dist/cli.d.ts": "43e818adf60173644896298637f47b01d5819b17eda46eaa32d0c7d64724d012",
+    "dist/cli.js": "a5c838b937c53844cc69029ede961692d4051e6a64bd82eaf429f65165653c99",
+    "dist/codex.d.ts": "bdabf481185afdcef926f80c8de5b574ebaf7a5b050641a8a400c9ca3303cd81",
+    "dist/codex.js": "8d4c71b82203e7d00a7275f94b6edf9339754750448b479ed524562c31dddc2f",
+    "dist/custom-tools.d.ts": "ce5a41f212dabb5f9928ac3fabac167f03d68b6fa4b81fec20abbad22824c05b",
+    "dist/custom-tools.js": "414246ad8b92567d0a7ffeba51f073d13c1ff2f9b03abf9afb65e488edd44841",
+    "dist/extraction.d.ts": "ba6117d5c79028379ceb9a35cd012f4b390a9e0eb921b70f7cfbccb5b0f32291",
+    "dist/extraction.js": "1a998c281523ef934d1a227e87dcbc07c9d2276be8b9734938cf812f97206971",
+    "dist/index.d.ts": "87542ed143e9043f8f0fc28aa9e38e8d422abc431ab8e810e7e703b92ba3a0c1",
+    "dist/index.js": "f68d6d44c6f1c68fab0f4ea03d875b3a04f0d74beb9bf7c86e1d0803908d2c43",
+    "dist/providers.d.ts": "4d1fd472724c9b43d84ce2732d2a793ae62dc25a13792471e0d58b45e38fd339",
+    "dist/providers.js": "316d182ebd152e07049f38d858e24aee189dadc0010eeb3d35443bd8023f1b4c",
+    "dist/server.d.ts": "16162652b632823808704b0bd39d2138c4243e6e814f3a91defea007c2c7b9ea",
+    "dist/server.js": "ca1868e3a02ac86220ecd3dce541ca5b8c6d588f18cc7d8c0c3204c38c0ee058",
+    "dist/snapshot.d.ts": "0f7580a71e8a2ed01161f3cd39210720208869f2db2c7f346a8201941f440144",
+    "dist/snapshot.js": "bb0675169765265ed5178863c7d19f7afcae3fe98c619136a71b243cfb4bb042",
+    "package-lock.json": "4e791e06aba07f85c67385346ec57253b07c9070220dfd02b4996ef426f7bca7",
+    "package.json": "69d7c446effd14f8fd024989bde7f77a6b9cfbb9fa02aa7ad505d7f557864a96",
+    "src/agent.ts": "89ba3b29d102fb32688bc79d117dce346b34a2a90ed82c562918b9015e645fce",
+    "src/browser.ts": "a1948cf4524a6f584156e33382b75d61a75ce36ec66d46b530a7a3934d7d6835",
+    "src/checkpoint.ts": "07a979b9bbff344a3c5814b1b727061233ada8ed24c180d9e5477c3243a5aac7",
+    "src/cli.ts": "680c7c23e673dde14951b2a575c2693b6fe16944e2d7e3938d9fcdc3a8977e0c",
+    "src/codex.ts": "a60744b322aab629350e58522f6a5b1c52eb48f446fe8750b2789512c329116b",
+    "src/custom-tools.ts": "d9244e369b874436b2e26d0057b9821d0ba400b7cd86e9af20b8090fc78fa71f",
+    "src/extraction.ts": "8647fbab7d6e5d8e42fe63b5e3baabd0a5de8fa0bb3f5e41d524a4809032f329",
+    "src/index.ts": "87542ed143e9043f8f0fc28aa9e38e8d422abc431ab8e810e7e703b92ba3a0c1",
+    "src/providers.ts": "3b09a9532f54475cce74c916d1692eb00a026b26cf2cada45bc660276e898a01",
+    "src/server.ts": "79c0f09b73052bdd941dc3840ba7ccf842ce9555eb642a53063a2734cde9d88b",
+    "src/snapshot.ts": "0753753c143408074d03ce7834c230b6e8f555a0c79eca1bcdee8d0ef722ab40",
+    "tsconfig.json": "77b7f663cdcb5bf93d71b14db756d04f5405bca98479df9cbff4b743be8237e6"
+  },
+  "attempts": [
+    {
+      "task_id": "form",
+      "seed": 23,
+      "canonical_prompt": "Save a contact named Ada with city Lisbon.\nStart at {{TASK_URL}}.",
+      "task_sha256": "d421362f24f52651841fbdeb7e481361608b2b4124d1499973b9c179961ca70e",
+      "exit_code": 0,
+      "signal": null,
+      "whole_run_ms": 64029.979417,
+      "deadline_exceeded": false,
+      "output_within_limit": true,
+      "stdout_bytes": 2110,
+      "stderr_bytes": 75,
+      "cli": {
+        "status": "succeeded",
+        "reason": "Explicit verification passed.",
+        "summary": "Saved contact Ada with city Lisbon.",
+        "steps": 3,
+        "tool_calls": 3,
+        "planner_calls": 3,
+        "model_usage": [
+          {
+            "step": 1,
+            "model": "gpt-6-astra",
+            "latencyMs": 24155.406,
+            "promptTokens": 13822,
+            "completionTokens": 193,
+            "cachedPromptTokens": 0,
+            "cacheCreationPromptTokens": 0,
+            "reasoningTokens": 58
+          },
+          {
+            "step": 2,
+            "model": "gpt-6-astra",
+            "latencyMs": 20556.951,
+            "promptTokens": 14598,
+            "completionTokens": 167,
+            "cachedPromptTokens": 0,
+            "cacheCreationPromptTokens": 0,
+            "reasoningTokens": 37
+          },
+          {
+            "step": 3,
+            "model": "gpt-6-astra",
+            "latencyMs": 17864.366,
+            "promptTokens": 14971,
+            "completionTokens": 102,
+            "cachedPromptTokens": 0,
+            "cacheCreationPromptTokens": 0,
+            "reasoningTokens": 29
+          }
+        ],
+        "provider_diagnostics": [
+          {
+            "step": 1,
+            "status": "completed",
+            "exitCode": 0,
+            "terminalEvent": "turn.completed",
+            "errorNotifications": 0,
+            "latencyMs": 24155.406
+          },
+          {
+            "step": 2,
+            "status": "completed",
+            "exitCode": 0,
+            "terminalEvent": "turn.completed",
+            "errorNotifications": 0,
+            "latencyMs": 20556.951
+          },
+          {
+            "step": 3,
+            "status": "completed",
+            "exitCode": 0,
+            "terminalEvent": "turn.completed",
+            "errorNotifications": 0,
+            "latencyMs": 17864.366
+          }
+        ],
+        "verification": [
+          {
+            "tool_call_id": "f95d8534-addb-48c9-b04f-7c56d8100a2e_call_3",
+            "session_id": "a91eeba0-93d6-4ec4-844d-67cded34acd3",
+            "checks": [
+              {
+                "index": 0,
+                "kind": "value",
+                "pass": true,
+                "actual": "Ada"
+              },
+              {
+                "index": 1,
+                "kind": "value",
+                "pass": true,
+                "actual": "Lisbon"
+              },
+              {
+                "index": 2,
+                "kind": "text",
+                "pass": true,
+                "actual": "Name City Save contact Saved successfully"
+              }
+            ]
+          }
+        ]
+      },
+      "independent_judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "name": "Ada",
+              "city": "Lisbon"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "complete_success": true
+    },
+    {
+      "task_id": "duplicate-write",
+      "seed": 23,
+      "canonical_prompt": "Create exactly one order. The server may report an interrupted response after saving. Inspect the receipt before retrying; do not create a second order.\nStart at {{TASK_URL}}.",
+      "task_sha256": "8f128f60486a61c6999643d6405580d121c58d0970eddef7d701c6fc722ca05c",
+      "exit_code": 0,
+      "signal": null,
+      "whole_run_ms": 78943.249708,
+      "deadline_exceeded": false,
+      "output_within_limit": true,
+      "stdout_bytes": 2554,
+      "stderr_bytes": 100,
+      "cli": {
+        "status": "succeeded",
+        "reason": "Explicit verification passed.",
+        "summary": "Created exactly one order. Verified the receipt shows ‘Orders recorded: 1’ and ‘Order receipt ready’. No retry was needed.",
+        "steps": 4,
+        "tool_calls": 4,
+        "planner_calls": 4,
+        "model_usage": [
+          {
+            "step": 1,
+            "model": "gpt-6-astra",
+            "latencyMs": 11971.736,
+            "promptTokens": 13874,
+            "completionTokens": 161,
+            "cachedPromptTokens": 0,
+            "cacheCreationPromptTokens": 0,
+            "reasoningTokens": 55
+          },
+          {
+            "step": 2,
+            "model": "gpt-6-astra",
+            "latencyMs": 23663.169,
+            "promptTokens": 14620,
+            "completionTokens": 163,
+            "cachedPromptTokens": 0,
+            "cacheCreationPromptTokens": 0,
+            "reasoningTokens": 57
+          },
+          {
+            "step": 3,
+            "model": "gpt-6-astra",
+            "latencyMs": 18268.024,
+            "promptTokens": 15291,
+            "completionTokens": 240,
+            "cachedPromptTokens": 0,
+            "cacheCreationPromptTokens": 0,
+            "reasoningTokens": 124
+          },
+          {
+            "step": 4,
+            "model": "gpt-6-astra",
+            "latencyMs": 23276.382,
+            "promptTokens": 15616,
+            "completionTokens": 146,
+            "cachedPromptTokens": 0,
+            "cacheCreationPromptTokens": 0,
+            "reasoningTokens": 53
+          }
+        ],
+        "provider_diagnostics": [
+          {
+            "step": 1,
+            "status": "completed",
+            "exitCode": 0,
+            "terminalEvent": "turn.completed",
+            "errorNotifications": 0,
+            "latencyMs": 11971.736
+          },
+          {
+            "step": 2,
+            "status": "completed",
+            "exitCode": 0,
+            "terminalEvent": "turn.completed",
+            "errorNotifications": 0,
+            "latencyMs": 23663.169
+          },
+          {
+            "step": 3,
+            "status": "completed",
+            "exitCode": 0,
+            "terminalEvent": "turn.completed",
+            "errorNotifications": 0,
+            "latencyMs": 18268.024
+          },
+          {
+            "step": 4,
+            "status": "completed",
+            "exitCode": 0,
+            "terminalEvent": "turn.completed",
+            "errorNotifications": 0,
+            "latencyMs": 23276.382
+          }
+        ],
+        "verification": [
+          {
+            "tool_call_id": "5e871ca9-41d1-4da2-8327-09b32b957a48_call_4",
+            "session_id": "a7fb4107-6b88-4ba4-9ea8-a04eb9cedf88",
+            "checks": [
+              {
+                "index": 0,
+                "kind": "text",
+                "pass": true,
+                "actual": "Orders recorded: 1 Order receipt ready Ready"
+              },
+              {
+                "index": 1,
+                "kind": "text",
+                "pass": true,
+                "actual": "Orders recorded: 1 Order receipt ready Ready"
+              }
+            ]
+          }
+        ]
+      },
+      "independent_judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "order": "one"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "complete_success": true
+    }
+  ],
+  "policies": {
+    "start_url": "executor initialization",
+    "task_timeout_ms": 180000,
+    "max_steps": 12,
+    "max_tool_calls": 30,
+    "automatic_retries": false,
+    "popup_policy": "follow-single",
+    "usage": "Only actual CLI-reported counters; missing values stay unknown. CLI prompt overhead is included. No API pricing estimate."
+  },
+  "finished_at": "2026-09-22T13:50:34.923Z",
+  "source_unchanged": true
+}

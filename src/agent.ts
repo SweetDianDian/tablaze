@@ -59,7 +59,7 @@ export interface AgentEvidence {
 export interface AgentFailure {
   phase: "planner" | "catalog" | "application" | "persistence" | "executor";
   code: "PLANNER_FAILED" | "PLANNER_TRANSPORT_FAILED" | "PLANNER_HTTP_ERROR" | "PLANNER_INVALID_RESPONSE" | "PLANNER_RESPONSE_TOO_LARGE" | "PLANNER_RESPONSE_READ_FAILED" | "PLANNER_TOOL_NAME_CONFLICT"
-    | "TOOL_CATALOG_FAILED" | "TOOL_CATALOG_INVALID" | "TOOL_NAMES_DUPLICATED" | "INITIALIZATION_TOOL_MISSING"
+    | "PLANNER_PROCESS_FAILED" | "TOOL_CATALOG_FAILED" | "TOOL_CATALOG_INVALID" | "TOOL_NAMES_DUPLICATED" | "INITIALIZATION_TOOL_MISSING"
     | "EXECUTION_IDENTITY_INVALID" | "EXECUTION_IDENTITY_MISMATCH" | "TOOL_CATALOG_CLOSE_FAILED"
     | "EVENT_HOOK_FAILED" | "METRICS_HOOK_FAILED" | "COMPLETION_HOOK_FAILED" | "RETRY_POLICY_FAILED" | "USAGE_HOOK_FAILED"
     | "CHECKPOINT_PERSISTENCE_FAILED" | "CHECKPOINT_PERSISTENCE_TIMEOUT" | "EXECUTOR_FAILED";
@@ -84,12 +84,14 @@ class AgentOperationError extends Error {
   constructor(readonly diagnostic: AgentFailure, original: unknown) { super("Agent operation failed."); operationErrors.set(this, original); }
 }
 const plannerDiagnostics = new WeakMap<AgentPlannerError, AgentFailure>();
-function plannerError(code: AgentFailure["code"], message: string, retryable = false, httpStatus?: number): AgentPlannerError {
+/** @internal Shared by the built-in planner adapters; not a package entry point. */
+export function plannerError(code: AgentFailure["code"], message: string, retryable = false, httpStatus?: number): AgentPlannerError {
   const error = new AgentPlannerError(message, retryable);
   plannerDiagnostics.set(error, { phase: "planner", code, retryable, ...(Number.isInteger(httpStatus) && httpStatus! >= 100 && httpStatus! <= 599 ? { httpStatus } : {}) });
   return error;
 }
-function applicationHook<T>(code: AgentFailure["code"], callback: () => T): T {
+/** @internal Preserve application-hook diagnostics across built-in adapters. */
+export function applicationHook<T>(code: AgentFailure["code"], callback: () => T): T {
   try { return callback(); }
   catch (error) { throw new AgentOperationError({ phase: "application", code, retryable: false }, error); }
 }
@@ -622,6 +624,9 @@ export interface AgentModelUsage {
   completionTokens?: number;
   totalTokens?: number;
   cachedPromptTokens?: number;
+  /** Separate native-provider counters; absence is not zero. */
+  uncachedPromptTokens?: number;
+  cacheCreationPromptTokens?: number;
   reasoningTokens?: number;
 }
 
@@ -688,7 +693,11 @@ export function createOpenAICompatiblePlanner(options: OpenAICompatiblePlannerOp
       const usage: AgentModelUsage = { step, model: typeof data.model === "string" ? data.model : options.model, ...(typeof data.id === "string" ? { responseId: data.id } : {}), latencyMs: Math.round((performance.now() - started) * 1000) / 1000 };
       const assign = (key: keyof AgentModelUsage, value: unknown) => { if (typeof value === "number" && Number.isSafeInteger(value) && value >= 0) (usage as unknown as Record<string, unknown>)[key] = value; };
       assign("promptTokens", data.usage.prompt_tokens); assign("completionTokens", data.usage.completion_tokens); assign("totalTokens", data.usage.total_tokens);
-      if (object(data.usage.prompt_tokens_details)) assign("cachedPromptTokens", data.usage.prompt_tokens_details.cached_tokens);
+      if (object(data.usage.prompt_tokens_details)) {
+        assign("cachedPromptTokens", data.usage.prompt_tokens_details.cached_tokens);
+        assign("uncachedPromptTokens", data.usage.prompt_tokens_details.uncached_tokens);
+        assign("cacheCreationPromptTokens", data.usage.prompt_tokens_details.cache_creation_tokens);
+      }
       if (object(data.usage.completion_tokens_details)) assign("reasoningTokens", data.usage.completion_tokens_details.reasoning_tokens);
       applicationHook("USAGE_HOOK_FAILED", () => options.onUsage?.(usage));
     }

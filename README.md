@@ -19,7 +19,7 @@
 
 **Give your agent a browser it can work with.** Tablaze connects Codex and other MCP clients to Chromium through fifteen focused tools. Inspect a page, fill a form, extract a result, and check that the task actually succeeded.
 
-Built with Playwright. Browser sessions stay running between calls; your MCP client supplies the reasoning. No additional model API key required.
+Built with Playwright. Browser sessions stay running between calls; your MCP client supplies the reasoning. The MCP browser tools require no additional model API key. The optional standalone Agent loop uses an explicitly configured planner.
 
 ## See it work
 
@@ -86,6 +86,19 @@ Then ask Codex:
 
 [Complete Codex setup](docs/CODEX.md) covers desktop configuration, browser selection and troubleshooting. Other MCP clients can launch the same `node /absolute/path/to/tablaze/dist/cli.js` command over stdio.
 
+### Run a standalone task
+
+The optional `run` command supports `codex`, `anthropic`, `ollama`, and `openai-compatible` planners. Always specify a model. Codex reuses the installed CLI and its existing login:
+
+```sh
+node dist/cli.js run --provider codex --model "<your-codex-model>" \
+  --task "<authorized task>" --channel chrome
+```
+
+The default compatible provider still requires `--endpoint`. Native Anthropic and Ollama use their own protocols and default endpoints; authentication, output settings, and model capabilities differ. See [provider setup and boundaries](docs/PROVIDERS.md), [CLI examples](docs/CODEX.md#choose-a-planner-for-run), and [Agent verification and recovery](docs/AGENT.md). Local protocol/process tests do not establish live Anthropic/Ollama quality or new production-Codex performance; the earlier comparison results above retain their original runtime hashes.
+
+The new production Codex path also has a [separate live smoke](docs/CODEX_PROVIDER_SMOKE.md): two visible tasks passed independent business checks and completed successfully (2/2), with zero duplicate writes. This is not a new matched Browser Use comparison.
+
 ## A small loop, with useful controls
 
 | Capability | What it gives your agent |
@@ -123,12 +136,14 @@ Then ask Codex:
 | [Codex integration](docs/CODEX.md) | Copyable configuration, tool arguments and troubleshooting. |
 | [Runtime reference](docs/RUNTIME.md#english) | Reference lifetime, batch semantics, browser modes and current limits. |
 | [Typed custom tools](docs/CUSTOM_TOOLS.md) | SDK schemas, trusted application context, browser bindings and recovery contracts. |
+| [Model providers](docs/PROVIDERS.md) | Codex CLI, native Anthropic/Ollama and compatible HTTP contracts, authentication and usage. |
+| [Browser Use variants audit](docs/BROWSER_USE_VARIANTS.md) | Distinguish Agent, MCP, Harness, Pi and cloud comparison targets; source audit, not a benchmark. |
 | [Benchmark](bench/README.md) | Reproduce the local workload and inspect every raw sample. |
 | [Validation evidence](docs/VALIDATION.md) | Real browser, SDK and Codex results, with their measured scope. |
 | [Security](SECURITY.md) | Data handling, resource ownership and private reporting. |
 | [Release packaging](docs/RELEASE.md) | Build the npm tarball and source archive. |
 
-The [historical 0.1.0 Ubuntu CI run on Node 20 and 22](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909) passed its build, browser/MCP tests and package inspection. Current development validation is recorded [separately](docs/DEVELOPMENT_STATUS.md). To check a source checkout yourself, run `npm test`; use `npm run bench` for the separate local benchmark.
+The [historical 0.1.0 Ubuntu CI run on Node 20 and 22](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909) passed its build, browser/MCP tests and package inspection. A later [Ubuntu Node 20/22 run for commit `924491d`](https://github.com/SweetDianDian/tablaze/actions/runs/35731475966) also passed both jobs. That commit predates the new provider adapters; it does not certify their current changes. Current development validation is recorded [separately](docs/DEVELOPMENT_STATUS.md). To check a source checkout yourself, run `npm test`; use `npm run bench` for the separate local benchmark.
 
 ## Contribute
 

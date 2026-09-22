@@ -1,17 +1,18 @@
 # Optional agent runner
 
-Tablaze can execute a bounded observe–act–verify loop in addition to exposing browser MCP tools. `runAgent` accepts an injected planner and an MCP-compatible tool client. The planner decides the next action; browser tools remain responsible for schema validation, reference guards, and execution. There is no default model or provider and no model call at startup.
+Tablaze can execute a bounded observe–act–verify loop in addition to exposing browser MCP tools. `runAgent` accepts an injected planner and an MCP-compatible tool client. The planner decides the next action; browser tools remain responsible for schema validation, reference guards, and execution. The library requires a supplied planner and has no default model. The CLI defaults to the OpenAI-compatible protocol for backward compatibility, requires an explicit model, and makes no model call during MCP startup.
 
 ## Running with a model
 
-Supply a complete OpenAI-compatible **Chat Completions** endpoint and a model that supports function tool calls. This adapter does not implement the separate Responses or Anthropic protocols. It does not infer a provider from the model name.
+Choose `--provider openai-compatible|codex|anthropic|ollama` and an explicit `--model`. The default `openai-compatible` accepts a complete **Chat Completions** endpoint; it does not infer a provider from the model name or implement native Anthropic/Responses protocols. Native Anthropic Messages and Ollama chat have separate adapters. Codex uses the installed CLI and its existing login. See [provider contracts and usage mappings](PROVIDERS.md) and [CLI options](CODEX.md#choose-a-planner-for-run).
 
-The CLI accepts the same task and model configuration. Set `TABLAZE_API_KEY` in your environment, then run:
+For a compatible endpoint, set `TABLAZE_API_KEY` in your environment if required, then run:
 
 ```sh
 tablaze run \
   --task "Open https://example.com and verify its title contains Example Domain." \
   --start-url https://example.com \
+  --provider openai-compatible \
   --model "$TABLAZE_MODEL" \
   --endpoint "$TABLAZE_MODEL_ENDPOINT" \
   --channel chrome \
@@ -20,7 +21,16 @@ tablaze run \
   --run-timeout-ms 300000
 ```
 
-`--endpoint` is the complete chat-completions URL. `--api-key-env MY_MODEL_KEY` reads credentials from a different environment variable; there is no API-key command-line flag. Agent-specific options require the `run` command. Standard browser options remain available. `--timeout-ms` controls browser actions; `--run-timeout-ms` bounds the whole agent run. The CLI emits planning progress on stderr and one JSON report on stdout. Exit status is `0` for verified success, `2` for required human input, and `1` for failure, cancellation, budget exhaustion, or incomplete resource cleanup. It attempts browser and MCP cleanup before publishing the report.
+`--endpoint` is required only for the compatible provider. Native Anthropic and Ollama use their documented defaults unless a full endpoint is supplied. HTTP credentials come from `TABLAZE_API_KEY` or `--api-key-env MY_MODEL_KEY`; there is no API-key value flag. Codex rejects both endpoint and API-key flags and instead reuses CLI authentication. Agent-specific options require the `run` command. Standard browser options remain available. `--timeout-ms` controls browser actions; `--run-timeout-ms` bounds the whole agent run. The CLI emits planning progress on stderr and one JSON report on stdout. Exit status is `0` for verified success, `2` for required human input, and `1` for failure, cancellation, budget exhaustion, or incomplete resource cleanup. It attempts browser and MCP cleanup before publishing the report, and also awaits Codex planner cleanup when that provider is selected.
+
+For Codex, select the model without configuring an HTTP endpoint:
+
+```sh
+node dist/cli.js run --provider codex --model "<your-codex-model>" \
+  --task "<authorized task>" --channel chrome
+```
+
+Anthropic's `--max-output-tokens` maps to `max_tokens` and defaults to 4096. Ollama sends `options.num_predict` only when the flag is supplied. Codex's `--codex-command` defaults to `codex`; `--reasoning-effort` is optional and must be supported by the selected model/CLI. Inapplicable provider flags are rejected. These settings are independent of byte, time, and tool-call budgets. No adapter silently substitutes a model.
 
 If cleanup fails after the Agent returns, the CLI reports `status: "failed"`, preserves the original result in `agent_status` and `agent_reason`, and adds `cleanup: { status: "incomplete", code, message }`. Verification evidence is retained; a cleanup error does not erase a verified business result or count as successful disposal. Cleanup errors also appear on stderr, including when browser restoration was interrupted before an Agent result existed. Browser disposal reports `CLEANUP_INCOMPLETE` when cleanup cannot be confirmed within two seconds. An attached CDP connection may remain alive to clean up a late owned page, so this bounded result does not guarantee that the CLI process has exited. See [runtime cancellation and ownership](RUNTIME.md) for the resource boundary.
 
@@ -61,6 +71,20 @@ try {
 }
 ```
 
+With the Codex SDK factory, always close the caller-owned planner after `runAgent`, including when the Agent returns cancellation before its subprocess exits:
+
+```ts
+const planner = createCodexPlanner({ model: configuredModel });
+try {
+  const result = await runAgent({ task, planner, tools });
+  inspectResult(result);
+} finally {
+  await planner.close();
+}
+```
+
+Import `createCodexPlanner` from `tablaze`. Its `close()` cancels outstanding requests, waits for process/file cleanup and reported-usage callbacks, and prevents new calls. Incomplete planner cleanup produces `CODEX_CLEANUP_FAILED`; the CLI preserves the original Agent outcome separately from this cleanup failure. See [Codex lifecycle and authentication](PROVIDERS.md#codex-cli-planner).
+
 The application supplies the task and retains responsibility for authorization. A website cannot authorize a task change. Page text and images are marked as untrusted inputs in the model instructions; this is a prompt-level defense, not a guarantee against prompt injection. Do not enable tools or accounts outside the intended task scope.
 
 ## Provider-independent planning
@@ -86,7 +110,7 @@ Supported decisions:
 | `human_input` | `question` | Return `needs_input`; no further actions execute. |
 | `fail` | `reason` | Return `failed`; no further actions execute. |
 
-The built-in HTTP planner exposes those terminal decisions as `agent_finish`, `agent_request_input`, and `agent_fail` function tools. A terminal decision must appear alone. Normal calls receive executor-generated IDs containing a persistent run ID and increasing call sequence; cite those IDs for verification. Malformed injected planner decisions produce feedback and consume a planning step. By default an HTTP/provider exception or malformed HTTP response fails the run. Optional planner recovery is described below; tool execution is never automatically retried.
+The built-in planners expose those terminal decisions as `agent_finish`, `agent_request_input`, and `agent_fail` function tools. A terminal decision must appear alone. Normal calls receive executor-generated IDs containing a persistent run ID and increasing call sequence; cite those IDs for verification. Malformed injected planner decisions produce feedback and consume a planning step. By default an HTTP/provider exception or malformed HTTP response fails the run. Optional planner recovery is described below; tool execution is never automatically retried.
 
 Use `createMcpToolClient(client)` with an already-connected SDK `Client` for stdio or remote MCP. Use `connectAgentTools(server)` with a fresh `McpServer` for the same protocol and validation over in-memory transport. Its `close()` is explicit. `runAgent` does not close a caller-owned client or browser automatically, so an application can inspect a failure or continue after human input. Dispose resources in `finally` when finished.
 
@@ -142,7 +166,7 @@ An unrecovered infrastructure or application exception also produces an optional
 
 | Phase | Diagnostic codes |
 | --- | --- |
-| `planner` | `PLANNER_FAILED`, `PLANNER_TRANSPORT_FAILED`, `PLANNER_HTTP_ERROR`, `PLANNER_INVALID_RESPONSE`, `PLANNER_RESPONSE_TOO_LARGE`, `PLANNER_RESPONSE_READ_FAILED`, `PLANNER_TOOL_NAME_CONFLICT` |
+| `planner` | `PLANNER_FAILED`, `PLANNER_PROCESS_FAILED`, `PLANNER_TRANSPORT_FAILED`, `PLANNER_HTTP_ERROR`, `PLANNER_INVALID_RESPONSE`, `PLANNER_RESPONSE_TOO_LARGE`, `PLANNER_RESPONSE_READ_FAILED`, `PLANNER_TOOL_NAME_CONFLICT` |
 | `catalog` | `TOOL_CATALOG_FAILED`, `TOOL_CATALOG_INVALID`, `TOOL_NAMES_DUPLICATED`, `INITIALIZATION_TOOL_MISSING`, `EXECUTION_IDENTITY_INVALID`, `EXECUTION_IDENTITY_MISMATCH`, `TOOL_CATALOG_CLOSE_FAILED` |
 | `application` | `EVENT_HOOK_FAILED`, `METRICS_HOOK_FAILED`, `COMPLETION_HOOK_FAILED`, `RETRY_POLICY_FAILED`, `USAGE_HOOK_FAILED` |
 | `persistence` | `CHECKPOINT_PERSISTENCE_FAILED`, `CHECKPOINT_PERSISTENCE_TIMEOUT` |
@@ -180,7 +204,7 @@ tablaze run --resume ./private-run.json \
   --channel chrome
 ```
 
-The checkpoint file is written via a private temporary file and atomic rename. It contains full history and browser cookies, localStorage, and IndexedDB and must be treated as a credential-bearing file. Browser restoration creates fresh isolated contexts and tabs from stored URLs and storage. It does not restore DOM, form drafts, sessionStorage, unfinished downloads, or in-flight network transactions. Observing restored pages is required. Browser state is refreshed at settled decision/terminal boundaries; write-ahead checkpoints may still carry the previous browser-state snapshot. Model credentials are read again from the environment.
+The checkpoint file is written via a private temporary file and atomic rename. It contains full history and browser cookies, localStorage, and IndexedDB and must be treated as a credential-bearing file. Browser restoration creates fresh isolated contexts and tabs from stored URLs and storage. It does not restore DOM, form drafts, sessionStorage, unfinished downloads, or in-flight network transactions. Observing restored pages is required. Browser state is refreshed at settled decision/terminal boundaries; write-ahead checkpoints may still carry the previous browser-state snapshot. HTTP model credentials are read again from the configured environment; Codex reuses its current CLI login. Provider/model options must be supplied on each CLI invocation.
 
 The browser workspace also records its popup policy. Resume inherits it; older workspaces default to `stay`. An explicit CLI `--popup-policy` that differs from the saved policy is rejected before browser restoration. Restoring a saved tab reloads its URL as part of workspace restoration, independently of the at-most-once initialization call; neither mechanism rolls back remote effects or makes page-load side effects idempotent.
 
@@ -192,7 +216,7 @@ Repeated actual read results or errors can indicate a loop. The detector hashes 
 
 `plannerRecovery: { maxRetries, retryDelayMs, fallback, shouldRetry }` is optional. By default there are zero retries and no fallback. When enabled, only retryable planner failures are retried, then at most one fallback planner attempt runs for that step. The HTTP adapter marks network `TypeError`s and HTTP `408`, `429`, and `5xx` as retryable. Invalid responses and authentication errors are not automatically retried. Custom planners can throw `AgentPlannerError(message, true)` or an application can supply `shouldRetry`. Retries consume planner calls, wall time, and potentially provider charges, but never repeat tool dispatch. Step limits count decisions; `plannerCalls` and metrics count every attempt.
 
-The HTTP adapter's `onUsage` callback reports `step`, model, optional response ID, measured response latency, and only token fields actually present in the provider response: prompt, completion, total, cached prompt, and reasoning tokens. Missing counters stay absent; no total or price is invented. A provider response can report usage even when its subsequent decision is invalid. Missing/error responses can still incur charges that are not observable through this callback. CLI JSON includes reported `model_usage` records for the current invocation; it is not a billing ledger across all resumptions.
+The planners' `onUsage` callback reports `step`, model, optional response ID, measured latency, and only supported counters actually returned by their provider. The compatible adapter preserves reported prompt/completion/total/cache/reasoning counters. Anthropic separately retains uncached, cached and cache-creation input counts and normalizes `promptTokens` only when all three are present. Ollama maps its native evaluation counters. Codex aggregates a counter only when every retained completed-turn event supplied it. Missing counters stay absent; no total or price is invented. See [exact usage mappings](PROVIDERS.md). A provider response can report usage even when its subsequent decision is invalid. Missing/error responses can still incur charges that are not observable through this callback. CLI JSON includes reported `model_usage` records for the current invocation; it is not a billing ledger across all resumptions. Codex additionally emits fixed `provider_diagnostics` with process exit, terminal-event kind, error-notification count and latency. Raw stderr, provider errors and reasoning text are omitted. The CLI drains Codex cleanup before serializing these records, including usage received during cancellation.
 
 ## Budgets and cancellation
 
@@ -202,13 +226,17 @@ Opt into `historyCompaction: { keepRecentGroups: 6 }` to retain the task, recent
 
 An `AbortSignal` propagates to the planner and MCP request. A race also bounds waiting when a planner or tool ignores its signal. A cancelled result can contain `inFlightToolCall`, identifying an action whose effects remain uncertain. Cancellation does not undo completed actions, forcibly stop a noncooperating external tool, or guarantee that all browser operations are interrupted. In particular, individual browser tools differ in cancellation support; `tab_open` and `tab_act` handle cancellation directly. Applications that own the runtime can call `dispose()` to release it after cancellation. Never replay a cancelled mutation without examining the current state.
 
-The HTTP adapter sends one nonstreaming request per planner attempt, propagates the signal, rejects redirects, and caps response size at 8 MiB by default. Tool images become multimodal user content immediately after their associated assistant/tool-result group; the textual tool result retains image metadata. Set `supportsImages: false` for a text-only model. Responses containing only plain assistant text do not implicitly mark a task complete.
+The compatible HTTP adapter sends one nonstreaming request per attempt, propagates the signal, rejects redirects, and caps its response at 8 MiB by default. The native Anthropic/Ollama adapters also default to 8 MiB and bound both the original native body and its converted response. Codex uses a separate ephemeral CLI process, defaults to a 120-second per-request deadline and a 4 MiB final-response cap; the overall Agent deadline still applies. Byte limits are not output-token budgets.
 
-For model requests only, the HTTP adapter omits an MCP text block when its text exactly equals `JSON.stringify(structuredContent)` and the block has no properties other than `type` and `text`. Structured output, errors, call IDs, distinct or annotated text, and image ordering are retained. Text-only tool results remain intact. This removes redundant serialization without changing audit history, checkpoints, or completion evidence; it does not establish a measured token or latency reduction.
+Image projection follows each protocol: compatible requests place images after the matching assistant/tool-result group; Anthropic embeds images in their corresponding tool results; Ollama attaches an ordered native image array with tool labels; Codex passes private temporary image files with message associations. `supportsImages: false` disables image forwarding for a text-only model. Tool calling and vision remain model-dependent. Plain assistant text without a valid tool/control decision does not complete a run.
+
+For model requests only, the shared projection omits an MCP text block when its text exactly equals `JSON.stringify(structuredContent)` and the block has no properties other than `type` and `text`. Structured output, errors, call IDs, distinct or annotated text, and image ordering are retained. Text-only tool results remain intact. This removes redundant serialization without changing audit history, checkpoints, or completion evidence; it does not establish a measured token or latency reduction.
 
 ## Data handling and verification scope
 
-No trace file is written unless an application installs `onCheckpoint` or the CLI uses `--checkpoint`/`--resume`. In-memory history and events include arguments, page text, URLs, structured results, and screenshots, and therefore may contain sensitive data. Model requests send retained history to the configured endpoint. API keys are used only as authorization headers by the built-in adapter and are not added to history; do not put credentials in prompts, endpoint URLs, or custom headers that you log. Treat `onEvent` output and any exported trace as sensitive. Endpoint error response bodies are not surfaced in run results.
+No trace file is written unless an application installs `onCheckpoint` or the CLI uses `--checkpoint`/`--resume`. In-memory history and events include arguments, page text, URLs, structured results, and screenshots, and therefore may contain sensitive data. HTTP requests send retained history to the configured endpoint; Codex sends it through the separately authenticated local CLI. Compatible and configured Ollama keys use Bearer authorization, while Anthropic uses `x-api-key`; these keys are not added to history. Codex uses its existing login rather than a Tablaze API key, and its request-scoped private files can contain screenshots and model output until cleanup. Do not put credentials in prompts, endpoint URLs, or custom headers that you log. Treat `onEvent` output and any exported trace as sensitive. Endpoint error response bodies are not surfaced in run results.
+
+`tests/providers.test.mjs` uses local native HTTP fixtures and in-memory MCP. `tests/provider-cli.test.mjs` exercises provider flags, reported usage, fake Codex executables, cancellation cleanup, checkpoint preflight and a real isolated Chrome verification. Codex process fixtures test JSONL termination, output/schema checks and safe diagnostics. These are protocol and lifecycle checks; native Anthropic/Ollama inference remains untested. The new production Codex planner has a [separately recorded two-task live smoke](CODEX_PROVIDER_SMOKE.md). Earlier model comparison reports retain their original adapters and source hashes. The [Browser Use variants audit](BROWSER_USE_VARIANTS.md) distinguishes Agent, MCP, Harness, Pi and cloud comparison targets; it is not a measured result against all those entry points.
 
 `tests/agent-start-url.test.mjs` covers explicit initialization through actual MCP, step-zero accounting, cancellation and ambiguity, at-most-once resume, strict checkpoint migration, compaction, and decision interruption. It also starts real Chrome through separate CLI processes against a local scripted model endpoint, checking initialization history and inherited popup policy across restoration.
 
@@ -217,3 +245,5 @@ No trace file is written unless an application installs `onCheckpoint` or the CL
 `tests/agent-bound-tools.test.mjs` uses real in-memory MCP dispatch with a deterministic execution-lease fixture. It verifies changing catalogs, private-metadata projection, context changes during planning and write-ahead persistence, uncertain writes, completion rechecks, identity-bound resume and migration, pending-effect validation, initialization, and lease release. These fixtures test the generic runner contract; the execution provider must independently implement and validate its context guards and output schemas.
 
 `tests/agent.test.mjs` uses deterministic planners, the actual in-memory MCP protocol, a real isolated-browser form workflow, local HTTP model-protocol fixtures, failure cases, and cancellation tests. `tests/agent-cli.test.mjs` adds a spawned CLI with a local scripted Chat Completions endpoint and a real Chrome form, plus status/exit-code, argument validation, and report-content checks. `tests/agent-recovery.test.mjs` tests write-ahead uncertainty, safe resume, counters, compaction, stalls, retry/fallback, and usage accounting through MCP and scripted model responses. `tests/agent-resume-cli.test.mjs` verifies storage restoration across actual CLI processes, unique fresh sessions, no replay of completed effects, explicit reconciliation after interruption, and exhausted-budget preflight. Independent recovery-review tests cover policy continuity and cancellation during final persistence. `tests/planner-projection.test.mjs` checks exact duplicate removal, preservation of distinct text/errors/images, and unchanged audit results and checkpoints using scripted HTTP responses. These prove control-flow and protocol behavior under those fixtures. They do **not** measure live model planning quality, real-world task success, prompt-injection resistance, or superiority to another browser agent. No paid model request is needed for the test suite. A meaningful comparison requires a disclosed live-model task benchmark with matched models, tasks, budgets, and repeated runs.
+
+The new production Codex path also has a [separate live smoke](CODEX_PROVIDER_SMOKE.md): two visible tasks passed independent business checks and completed successfully (2/2), with zero duplicate writes. This is not a new matched Browser Use comparison.

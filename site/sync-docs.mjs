@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const site = dirname(fileURLToPath(import.meta.url));
 const root = dirname(site);
 const repository = 'https://github.com/SweetDianDian/tablaze/blob/main/';
-for (const [source, target] of [['docs/CODEX.md', 'CODEX.md'], ['docs/CODEX.zh-CN.md', 'CODEX.zh-CN.md'], ['SECURITY.md', 'SECURITY.md']]) {
+for (const [source, target] of [['docs/PROVIDERS.md', 'PROVIDERS.md'], ['docs/CODEX.md', 'CODEX.md'], ['docs/CODEX.zh-CN.md', 'CODEX.zh-CN.md'], ['SECURITY.md', 'SECURITY.md']]) {
   const original = await readFile(join(root, source), 'utf8');
   const text = original.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, label, link) => {
     if (/^(https?:|#)/.test(link)) return match;
@@ -20,6 +20,6 @@ for (const [source, target] of [['docs/CODEX.md', 'CODEX.md'], ['docs/CODEX.zh-C
   });
   await writeFile(join(site, target), text);
 }
-for (const name of ['CODEX_COMPARISON_RESULTS_V3.md', 'CODEX_TERMINAL_FOLLOWUP.md']) await copyFile(join(root, 'docs', name), join(site, name));
-for (const name of ['codex-e2e.json', 'codex-matched-smoke-v3.json', 'codex-matched-smoke-v3-analysis.json', 'codex-terminal-followup-v1.json', 'codex-terminal-followup-v1-analysis.json']) await copyFile(join(root, 'docs/evidence', name), join(site, 'evidence', name));
+for (const name of ['CODEX_COMPARISON_RESULTS_V3.md', 'CODEX_TERMINAL_FOLLOWUP.md', 'CODEX_PROVIDER_SMOKE.md']) await copyFile(join(root, 'docs', name), join(site, name));
+for (const name of ['codex-provider-smoke-v1.json', 'codex-e2e.json', 'codex-matched-smoke-v3.json', 'codex-matched-smoke-v3-analysis.json', 'codex-terminal-followup-v1.json', 'codex-terminal-followup-v1-analysis.json']) await copyFile(join(root, 'docs/evidence', name), join(site, 'evidence', name));
 console.log('Synchronized public guides, comparison reports, and their fixed evidence files. Historical benchmark.json is unchanged.');

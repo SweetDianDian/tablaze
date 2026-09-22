@@ -302,11 +302,34 @@ Before an action opens a native dialog, call `tab_dialog` with action `accept` o
 
 `tab_extract_structured` reads a named field plan and validates its output against JSON Schema draft-07. It returns a source URL, selector, match index, and raw quote for every extracted value. Plans support text, attributes, current non-sensitive form values, typed scalars, and arrays; limits are 30 fields, 20 matches per field, and 100 matches total. Missing required fields, unsafe values, type failures, and truncated evidence produce errors. See the [schema extraction examples and provenance limits](EXTRACTION.md); a quotation's presence is not proof of a claim's truth.
 
+## Choose a planner for `run`
+
+`run` is the optional standalone Agent loop. Every provider requires an explicit `--model`; Tablaze does not select or silently replace it. The provider defaults to `openai-compatible` for existing commands.
+
+| `--provider` | Endpoint and authentication | Provider options |
+| --- | --- | --- |
+| `openai-compatible` (default) | Required full `--endpoint` ending at the provider's chat-completions route; optional key from `TABLAZE_API_KEY` or `--api-key-env`. | The endpoint must support function tools. |
+| `codex` | Uses the installed Codex CLI and its existing login; no Tablaze endpoint or API key flag. | `--codex-command` selects an executable, default `codex`; optional `--reasoning-effort`. |
+| `anthropic` | Defaults to `https://api.anthropic.com/v1/messages`; `--endpoint` can select a compatible proxy. Read the required service credential from `TABLAZE_API_KEY`, or choose its environment variable with `--api-key-env`. | `--max-output-tokens` maps to `max_tokens`, default 4096. |
+| `ollama` | Defaults to `http://localhost:11434/api/chat`; `--endpoint` can select another server. A configured key is sent as a Bearer token. | Optional `--max-output-tokens` maps to `options.num_predict`; omitted by default. |
+
+For Codex, complete `codex login` if needed and use `codex login status` to inspect the current authentication method. Tablaze reuses that CLI authentication; it does not copy login files or configure an API endpoint. Account access, limits, and any billing follow the selected Codex authentication. [Official authentication guide](https://learn.chatgpt.com/docs/auth)
+
+```sh
+node dist/cli.js run --provider codex --model "<your-codex-model>" --task "<authorized task>" --start-url "https://<your-site>/" --channel chrome
+node dist/cli.js run --provider anthropic --model "<your-anthropic-model>" --api-key-env ANTHROPIC_API_KEY --max-output-tokens 4096 --task "<authorized task>" --channel chrome
+node dist/cli.js run --provider ollama --model "<your-installed-model>" --task "<authorized task>" --channel chrome
+```
+
+Codex reasoning values are `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`, and `ultra`; support depends on the explicitly chosen model and CLI. Omitting the flag leaves its setting to Codex. `--codex-command` and `--reasoning-effort` are rejected for other providers; Codex rejects `--endpoint`, `--api-key-env`, and `--max-output-tokens`. Output-token flags apply only to Anthropic and Ollama, with a local range of 1–1,000,000; the service can enforce a smaller model-specific maximum. A response byte cap is not a token budget. Tool and image support also depend on the chosen model.
+
+Planner usage is reported in `model_usage` only from actual provider counters. Missing counters remain absent; no monetary cost is inferred. Codex also reports fixed `provider_diagnostics` fields for process exit, terminal event, error-notification count and latency; raw stderr and provider error text are omitted. The CLI waits for Codex child cleanup before printing, so usage flushed during cancellation can still be recorded. The same run limits, cancellation, verification requirements, and cleanup apply to each provider. Codex planning invokes the local executable; it does not make arbitrary CLI capabilities available as Tablaze browser tools.
+
 ## Saved tasks and browser restoration
 
-The optional autonomous loop is configured separately from MCP in the [Agent guide](AGENT.md). On a new run, `run --start-url <HTTP(S) URL>` can open an explicitly supplied starting page before the first model decision. The normal tool dispatcher accounts for this navigation in tool and time budgets. Version 2 checkpoints retain this initialization state and migrate valid version 1 files; resume does not automatically replay an attempted initializer or let an existing run add or change its URL. Workspaces also retain popup policy, defaulting to `stay` for older files; an explicitly conflicting policy is rejected on resume.
+The optional autonomous loop is configured separately from MCP in the [Agent guide](AGENT.md). On a new run, `run --start-url <HTTP(S) URL>` can open an explicitly supplied starting page before the first model decision. The normal tool dispatcher accounts for this navigation in tool and time budgets. Current checkpoints retain this initialization state and migrate valid earlier formats; resume does not automatically replay an attempted initializer or let an existing run add or change its URL. Workspaces also retain popup policy, defaulting to `stay` for older files; an explicitly conflicting policy is rejected on resume.
 
-To create and resume a private run checkpoint, choose your own model endpoint and supply credentials through the configured environment variable:
+To create and resume a private run checkpoint with the default compatible provider, choose your model endpoint and supply credentials through the configured environment variable. For another provider, pass the same explicit provider/model options described above on each invocation:
 
 ```sh
 node dist/cli.js run --task "<authorized task>" --model "<model-id>" --endpoint "https://<provider>/v1/chat/completions" --channel chrome --checkpoint "/absolute/path/private-run.json"

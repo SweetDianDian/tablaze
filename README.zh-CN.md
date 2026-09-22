@@ -19,7 +19,7 @@
 
 **让 Agent 真正操作浏览器。** Tablaze / 闪页通过十五个 MCP 工具，让 Codex 等客户端连接 Chromium：观察页面、填写表单、提取结果，再检查任务是否完成。
 
-基于 Playwright，浏览器会话在调用之间持续运行，推理由你的 MCP 客户端完成，无需额外模型 API Key。
+基于 Playwright，浏览器会话在调用之间持续运行，推理由你的 MCP 客户端完成。MCP 浏览器工具无需额外模型 API Key；可选独立 Agent 循环使用显式配置的规划器。
 
 ## 看它完成一次任务
 
@@ -86,6 +86,19 @@ codex mcp get tablaze
 
 [完整接入指南](docs/CODEX.zh-CN.md)包含桌面配置、浏览器选择和排错。其他 MCP 客户端也可以通过 stdio 启动同一个 `node /绝对路径/tablaze/dist/cli.js` 命令。
 
+### 独立执行任务
+
+可选 `run` 命令支持 `codex`、`anthropic`、`ollama`、`openai-compatible` 四类规划器，始终要求明确指定模型。Codex 复用本机 CLI 和已有登录：
+
+```sh
+node dist/cli.js run --provider codex --model "<你的Codex模型>" \
+  --task "<已授权的任务>" --channel chrome
+```
+
+默认兼容提供方仍需 `--endpoint`。原生 Anthropic 和 Ollama 使用各自协议及默认端点；认证、输出参数和模型能力各有边界。详见[提供方配置](docs/PROVIDERS.md)、[CLI 示例](docs/CODEX.zh-CN.md#为-run-选择规划器)和[Agent 验收与恢复](docs/AGENT.md)。本地协议及进程测试不代表真实 Anthropic/Ollama 的效果，也不代表新生产 Codex 入口的性能；上方历史对比仍对应原来的运行代码哈希。
+
+新 Codex 生产入口另有[独立真实验证](docs/CODEX_PROVIDER_SMOKE.md)：两项任务完整成功并通过服务端验收（2/2），重复写入为 0；不与旧对照数据合并。
+
 ## 简单的工作流，明确的控制
 
 | 能力 | 给 Agent 带来什么 |
@@ -125,12 +138,14 @@ codex mcp get tablaze
 | [Codex 接入](docs/CODEX.zh-CN.md) | 可复制的配置、工具参数与排错。 |
 | [运行机制](docs/RUNTIME.md#简体中文) | 引用生命周期、批次语义、浏览器模式与当前限制。 |
 | [类型化自定义工具](docs/CUSTOM_TOOLS.md) | SDK Schema、可信应用上下文、浏览器绑定与恢复约定。 |
+| [模型提供方](docs/PROVIDERS.md) | Codex CLI、原生 Anthropic/Ollama 与兼容 HTTP 的协议、认证及用量。 |
+| [Browser Use 多入口审计](docs/BROWSER_USE_VARIANTS.md) | 区分 Agent、MCP、Harness、Pi 和云服务；源码审计不等于性能测量。 |
 | [基准测试](bench/README.md) | 复现本地场景，检查每个原始样本。 |
 | [验证记录](docs/VALIDATION.md) | 真实浏览器、SDK 与 Codex 的结果和验证范围。 |
 | [安全边界](SECURITY.md) | 数据处理、资源归属与私密漏洞报告。 |
 | [发布打包](docs/RELEASE.md) | 生成 npm 安装包和源码归档。 |
 
-[历史 0.1.0 的 Ubuntu Node 20/22 CI](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909)已通过当时的构建、浏览器/MCP 测试和包内容检查；当前开发分支的验收[单独记录](docs/DEVELOPMENT_STATUS.md)。源码目录中运行 `npm test` 可执行测试；`npm run bench` 单独运行本地基准。
+[历史 0.1.0 的 Ubuntu Node 20/22 CI](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909)已通过当时的构建、浏览器/MCP 测试和包内容检查；后续[提交 `924491d` 的 Ubuntu Node 20/22 CI](https://github.com/SweetDianDian/tablaze/actions/runs/35731475966)两个任务也均已通过。该提交早于新增提供方适配器，不能视为本轮改动的新 CI 验收。当前开发分支的验收[单独记录](docs/DEVELOPMENT_STATUS.md)。源码目录中运行 `npm test` 可执行测试；`npm run bench` 单独运行本地基准。
 
 ## 参与贡献
 

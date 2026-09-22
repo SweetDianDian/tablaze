@@ -71,7 +71,7 @@ async function hold(seconds) {
   const segment = narration[holdIndex++];
   const ms = quick ? 100 : Math.max(seconds, segment ? segment.duration_seconds + 1 : 0) * 1000;
   report.presentation_holds.push({ at_ms: elapsed(), duration_ms: ms });
-  await present({ hold: quick ? '快速校验 · 非发布录像' : `中文讲解 · 工具耗时单独记录` });
+  await present({ hold: quick ? '快速校验 · 非发布录像' : `语音讲解 · 工具耗时单独记录` });
   if (segment) voiceTimeline.push({ ...segment, start_seconds: videoTime() + 0.25 });
   await delay(ms);
   await present({ hold: '正常速度录制 · 无剪辑加速' });

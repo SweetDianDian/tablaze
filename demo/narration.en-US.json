@@ -1,0 +1,79 @@
+[
+  {
+    "index": 0,
+    "id": "overview",
+    "text": "Let's find a Lisbon hotel for two: three nights, a nine-hundred-euro budget, and free cancellation. We'll search, handle approval, and check the downloaded file.",
+    "text_zh": "来找一家里斯本酒店，两人住三晚，预算九百欧，还要能免费取消。接着走完搜索、审批，再核验下载的文件。",
+    "language": "en-US"
+  },
+  {
+    "index": 1,
+    "id": "six-actions",
+    "text": "Fill in the city, nights, guests, and budget, select free cancellation, then search. Those six actions run in order in one request.",
+    "text_zh": "填好城市、晚数、人数和预算，勾选免费取消，再搜索。这六个动作放在同一个请求里，按顺序执行。",
+    "language": "en-US"
+  },
+  {
+    "index": 2,
+    "id": "batch-complete",
+    "text": "All six actions are done, and the matching hotels are on screen. The server confirms we sent just one search request.",
+    "text_zh": "六个动作都完成了，符合条件的酒店也出来了。服务器记录确认，我们只发起了一次搜索请求。",
+    "language": "en-US"
+  },
+  {
+    "index": 3,
+    "id": "result-checks",
+    "text": "Now let's check the URL, title, page text, form fields, and hotel count. All five checks pass, so the search is confirmed.",
+    "text_zh": "再来核对网址、标题、页面文字、表单字段和酒店数量。五项检查都通过，这次搜索才算确认成功。",
+    "language": "en-US"
+  },
+  {
+    "index": 4,
+    "id": "node-replacement",
+    "text": "Let's replace the button's page element without changing its appearance. It still looks the same, but that old reference no longer works.",
+    "text_zh": "现在换掉按钮背后的页面节点，外观保持不变。它看起来还是那个按钮，但原来的引用已经失效了。",
+    "language": "en-US"
+  },
+  {
+    "index": 5,
+    "id": "stale-rejected",
+    "text": "Try that old reference again, and it's rejected. No actions ran, no popups opened, and there were zero submissions or orders.",
+    "text_zh": "再试一次旧引用，请求就被拒绝了。一个动作都没执行，没有弹窗，也没有任何提交或订单。",
+    "language": "en-US"
+  },
+  {
+    "index": 6,
+    "id": "fresh-observation",
+    "text": "To pick up from here, we look at the page again. A fresh snapshot gives us a new button reference to work with.",
+    "text_zh": "要继续操作，先重新观察页面。新的快照给了我们新的按钮引用，可以用它继续操作。",
+    "language": "en-US"
+  },
+  {
+    "index": 7,
+    "id": "popup-follow",
+    "text": "Let's enable pop-up following. When approval opens, we move to it in the same session, keeping the original page open.",
+    "text_zh": "先开启弹窗跟随。审批页打开后，我们在同一个会话里切换过去，同时保留原来的页面。",
+    "language": "en-US"
+  },
+  {
+    "index": 8,
+    "id": "approval",
+    "text": "First the name and cost center, then confirm and approve: four actions. Three receipt checks pass. One server submission, one order.",
+    "text_zh": "先填姓名和成本中心，再确认、批准，四个动作完成。回执三项检查通过，服务器收到一次提交，生成一份订单。",
+    "language": "en-US"
+  },
+  {
+    "index": 9,
+    "id": "download-verify",
+    "text": "Now we download the actual CSV, read its bytes, and check both its contents and hash. Both match, so we've got the right file.",
+    "text_zh": "接着实际下载 CSV，读取真实字节，再核对文件内容和哈希摘要。两项都匹配，确认拿到的文件没错。",
+    "language": "en-US"
+  },
+  {
+    "index": 10,
+    "id": "summary-cleanup",
+    "text": "Eight checks, one approval, and one verified file. We close both tabs we own, leaving none behind, with a record we can audit.",
+    "text_zh": "八项检查，一次审批，一个文件核验。最后关闭我们打开的两个标签页，没有遗留页面，操作记录也都能核查。",
+    "language": "en-US"
+  }
+]

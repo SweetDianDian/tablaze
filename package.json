@@ -39,7 +39,11 @@
     "CHANGELOG.md",
     "demo/render-video.mjs",
     "demo/narrate.mjs",
-    "demo/narration.zh-CN.json"
+    "demo/narration.en-US.json",
+    "demo/narrate-neural.py",
+    "demo/requirements-narration.txt",
+    "demo/revoice.mjs",
+    "demo/narration.zh-CN-v3.json"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",

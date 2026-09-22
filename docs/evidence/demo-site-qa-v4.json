@@ -1,0 +1,251 @@
+{
+  "checks": [
+    {
+      "name": "layout-390-zh",
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "bodyWidth": 390,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-390-en",
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "bodyWidth": 390,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-768-zh",
+      "innerWidth": 768,
+      "scrollWidth": 768,
+      "bodyWidth": 768,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-768-en",
+      "innerWidth": 768,
+      "scrollWidth": 768,
+      "bodyWidth": 768,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-1440-zh",
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "bodyWidth": 1440,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-1440-en",
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "bodyWidth": 1440,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "hero-cta"
+    },
+    {
+      "name": "overlay-play"
+    },
+    {
+      "name": "hd-video-with-decoded-audio",
+      "muted": false,
+      "volume": 1,
+      "audioBytes": 6978,
+      "width": 2880,
+      "height": 1800,
+      "audioTracks": 1
+    },
+    {
+      "name": "sound-toggle-keyboard"
+    },
+    {
+      "name": "eleven-narration-captions"
+    },
+    {
+      "name": "bilingual-captions-loaded",
+      "tracks": [
+        {
+          "lang": "en",
+          "kind": "captions",
+          "default": false
+        },
+        {
+          "lang": "zh",
+          "kind": "subtitles",
+          "default": true
+        }
+      ]
+    },
+    {
+      "name": "native-control-pause"
+    },
+    {
+      "name": "chapter-overview",
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "name": "chapter-batch",
+      "expected": 14.866,
+      "actual": 14.866
+    },
+    {
+      "name": "chapter-verify",
+      "expected": 40.403,
+      "actual": 40.403
+    },
+    {
+      "name": "chapter-guard",
+      "expected": 55.658,
+      "actual": 55.658
+    },
+    {
+      "name": "chapter-popup",
+      "expected": 93.979,
+      "actual": 93.979
+    },
+    {
+      "name": "chapter-download",
+      "expected": 122.187,
+      "actual": 122.187
+    },
+    {
+      "name": "chapter-recap",
+      "expected": 141.47,
+      "actual": 141.47
+    },
+    {
+      "name": "decoded-frame-popup",
+      "time": 95.979,
+      "sourceWidth": 2880,
+      "sourceHeight": 1800,
+      "screenshot": "decoded-popup-1440.png"
+    },
+    {
+      "name": "decoded-frame-download",
+      "time": 124.187,
+      "sourceWidth": 2880,
+      "sourceHeight": 1800,
+      "screenshot": "decoded-download-1440.png"
+    },
+    {
+      "name": "language-keeps-progress",
+      "before": 124.187,
+      "after": 124.187
+    },
+    {
+      "name": "chapter-keyboard-Enter"
+    },
+    {
+      "name": "chapter-keyboard-Space"
+    },
+    {
+      "name": "missing-report-native-playback"
+    },
+    {
+      "name": "demo-false-no-video-load"
+    },
+    {
+      "name": "video-error-fallback",
+      "overlayVisible": false,
+      "status": "视频暂时无法播放，可使用下方链接下载。",
+      "downloads": 3
+    },
+    {
+      "name": "reduced-motion-no-autoplay"
+    },
+    {
+      "name": "overlay-keyboard-Enter"
+    },
+    {
+      "name": "complete-video-decode",
+      "duration": 154.104,
+      "error": null,
+      "playbackRateReset": 1
+    },
+    {
+      "name": "overlay-keyboard-Space-after-ended"
+    },
+    {
+      "name": "csv-and-method-links"
+    },
+    {
+      "name": "no-page-errors"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "demo-390-zh.png",
+      "sha256": "6bd762e307d8b80e7997b42df687ce5a1b38598e058ac187dd5e0fd111005905",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "demo-390-en.png",
+      "sha256": "88dadf1263580a49031ce34300ff885e2f6e4e03261973157495598d71b5e7a4",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "demo-768-zh.png",
+      "sha256": "32aa54c823ec150a31f6bc8884205187e7b2ee280a95b80359941fbd1e0d2e10",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "demo-768-en.png",
+      "sha256": "34757359d045d2cedf31e52d4d4ba4f9fdae0fc13af1c080b2d083ff93dcd418",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "demo-1440-zh.png",
+      "sha256": "29ff29a89f826c1079060bcdfaae26a0ce2c1a3c063d31d36763ff3237783e7e",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "demo-1440-en.png",
+      "sha256": "6d0d018951808204a300c5e9bd782e1f52606cfdcce3cf980ff7ee87ecad7d87",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "hero-1440-zh.png",
+      "sha256": "9649a7bd0fb75e9883aec4b14f987cfae6ca85d37af53c5e1baab2fad1a0616c",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "decoded-popup-1440.png",
+      "sha256": "51fc1429bd7df230e1f6584eabfeb79a2b5a739a239341d99b29ad2e3016da1d",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "decoded-download-1440.png",
+      "sha256": "82c5bc2b0cda9c214cdfef52130e70c329b638e78ffa03d004c3bdc546ab2397",
+      "retention": "Local QA artifact; not included in source repository."
+    }
+  ],
+  "errors": [],
+  "browserClosed": true,
+  "localServerClosed": true,
+  "schema_version": 1,
+  "recorded_at": "2026-09-22T18:02:19.757727+00:00",
+  "scope": "Local website in Chrome loading the actual fixed-commit GitHub MP4 through the configured proxy. No media mocking except deliberate 404 failure scenario. English audio track, nonzero decoded audio, unmuted start, eleven English cues and eleven Chinese subtitle cues, keyboard sound toggle and complete 2880x1800 decode pass. Rate 16 is used only to accelerate QA decode; public playback remains normal speed.",
+  "media_url": "https://raw.githubusercontent.com/SweetDianDian/tablaze/dacb3e4b27a5e13db89b50ed67b56da9dc208c53/demo/media/tablaze-demo-hd.mp4?v=ba2e6cc0",
+  "source_sha256": {
+    "site/index.html": "dcf50e81e2b35615f987f1a05acaa41a6c85cb638ab7a3337a62119808bf1157",
+    "site/styles.css": "1371db059ff2d35730af2a256f6ffad5bd7eae94b67ad639818c46ce2736853f",
+    "site/app.js": "4c03f06fea4ee38b2dea83d113f76a77a57ccdb175de47758022f3b44b3b5130"
+  },
+  "video_sha256": "ba2e6cc03a59a20eb16120a83b2c26bd6d43de4a1108f3159951dc5dd3fb5122",
+  "demo_report_sha256": "d26fcde5079239fbb0722431e39d2842950744d32d160d5d6df7612174102410"
+}

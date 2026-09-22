@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 if (process.platform !== 'darwin') throw new Error('This narration recipe requires macOS say and its Tingting voice. Supply an equivalent measured manifest on other systems.');
 const directory = resolve(process.argv[2] || 'demo/narration-output');
 await mkdir(directory, { recursive: true });
-const script = JSON.parse(await readFile(join(dirname(fileURLToPath(import.meta.url)), 'narration.zh-CN.json'), 'utf8'));
+const script = JSON.parse(await readFile(join(dirname(fileURLToPath(import.meta.url)), 'narration.zh-CN-v3.json'), 'utf8'));
 const run = promisify(execFile), manifest = [];
 for (const item of script) {
   const base = String(item.index + 1).padStart(2, '0') + '-' + item.id;
@@ -18,7 +18,7 @@ for (const item of script) {
   const { stdout } = await run('/usr/bin/afinfo', [file]);
   const duration = Number(stdout.match(/estimated duration:\s*([\d.]+)\s*sec/)?.[1]);
   if (!Number.isFinite(duration) || duration <= 0 || (await readFile(file)).length < 1000) throw new Error('Narration synthesis produced no audio. Check the installed voice and local speech permissions.');
-  manifest.push({ ...item, file, duration_seconds: duration });
+  manifest.push({ ...item, file, duration_seconds: duration, synthesis: 'macOS Tingting' });
 }
 await writeFile(join(directory, 'narration.json'), JSON.stringify(manifest, null, 2) + '\n');
 process.stdout.write(join(directory, 'narration.json') + '\n');

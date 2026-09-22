@@ -173,7 +173,7 @@ function renderDemoSound() {
   const audible = !demoVideo.muted && demoVideo.volume > 0;
   $('#demo-sound').textContent = audible ? words('Sound on', '声音已开启') : words('Enable sound', '开启声音');
   $('#demo-sound').setAttribute('aria-pressed', String(audible));
-  $('#demo-sound').setAttribute('aria-label', audible ? words('Mute narration', '静音旁白') : words('Enable Chinese narration', '开启中文旁白'));
+  $('#demo-sound').setAttribute('aria-label', audible ? words('Mute narration', '静音旁白') : words('Enable English narration', '开启英语旁白'));
 }
 $('#demo-sound').addEventListener('click', () => {
   if (demoVideo.muted || demoVideo.volume === 0) { demoVideo.muted = false; demoVideo.volume = 1; }

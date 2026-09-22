@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { accessSync, constants, existsSync, readFileSync, statSync } from "node:fs";
+import { accessSync, closeSync, constants, existsSync, fstatSync, openSync, readFileSync, readSync, statSync } from "node:fs";
 import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { dirname, join, resolve } from "node:path";
@@ -14,6 +14,7 @@ import { connectAgentTools, createOpenAICompatiblePlanner, runAgent, type AgentM
 import { createCodexPlanner, type CodexReasoningEffort } from "./codex.js";
 import { createAnthropicPlanner, createOllamaPlanner } from "./providers.js";
 import { normalizeStartUrl, parseAgentCheckpoint, type AgentCheckpoint } from "./checkpoint.js";
+import { compileNavigationPolicy, type NavigationPolicy } from "./navigation-policy.js";
 
 const require = createRequire(import.meta.url);
 const HELP = `Tablaze / 闪页 — compact browser MCP
@@ -32,6 +33,7 @@ Options / 选项:
   --cdp-url <url>           Explicitly attach over CDP / 主动连接 CDP
   --timeout-ms <100-60000>  Action timeout (default 10000) / 操作超时
   --popup-policy <policy>   stay (default) or follow-single / 弹窗跟随策略
+  --navigation-policy <file>  Trusted exact-origin JSON policy; isolated browsers only
   --help                    Print this help / 帮助
   --version                 Print the version / 版本
 
@@ -67,9 +69,35 @@ interface RunOptions {
 }
 const PROVIDERS = new Set<RunProvider>(["openai-compatible", "codex", "anthropic", "ollama"]);
 const REASONING_EFFORTS = new Set<CodexReasoningEffort>(["none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"]);
+
+function loadNavigationPolicy(path: string): NavigationPolicy {
+  let descriptor: number | undefined;
+  try {
+    // Nonblocking open lets us reject FIFOs/devices instead of hanging before
+    // fstat. The bounded read also detects growth after the initial size check.
+    descriptor = openSync(path, constants.O_RDONLY | constants.O_NONBLOCK);
+    const metadata = fstatSync(descriptor);
+    if (!metadata.isFile() || metadata.size > 64 * 1024) throw new Error();
+    const buffer = Buffer.alloc(64 * 1024 + 1);
+    let length = 0;
+    while (length < buffer.length) {
+      const count = readSync(descriptor, buffer, length, buffer.length - length, null);
+      if (count === 0) break;
+      length += count;
+    }
+    if (length > 64 * 1024) throw new Error();
+    const value: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(buffer.subarray(0, length)));
+    return compileNavigationPolicy(value as NavigationPolicy).policy;
+  } catch {
+    throw new Error("--navigation-policy must reference a readable regular UTF-8 JSON file of at most 64 KiB, containing only valid allowedOrigins and/or blockedOrigins arrays.");
+  } finally {
+    if (descriptor !== undefined) closeSync(descriptor);
+  }
+}
+
 function parseOptions(): { command: string; options: BrowserOptions; run?: RunOptions } {
   const { values, positionals } = parseArgs({
-    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
+    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
     allowPositionals: true, strict: true,
   });
   if (values.help) return { command: "help", options: {} };
@@ -77,6 +105,9 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
   if (positionals.length > 1 || (positionals[0] && !["doctor", "setup", "run"].includes(positionals[0]))) throw new Error("Expected no command, doctor, setup, or run. Run tablaze --help.");
   if (values.headless && values.headed) throw new Error("Choose either --headless or --headed.");
   const cdpUrl = values["cdp-url"];
+  if (values["navigation-policy"] !== undefined && cdpUrl) throw new Error("--navigation-policy cannot be combined with --cdp-url; it requires isolated browser contexts.");
+  if (values["navigation-policy"] !== undefined && positionals[0] === "setup") throw new Error("--navigation-policy applies to MCP, run, or doctor, not setup.");
+  const navigationPolicy = values["navigation-policy"] === undefined ? undefined : loadNavigationPolicy(values["navigation-policy"]);
   const channel = values.channel ?? (cdpUrl ? undefined : process.env.TABLAZE_BROWSER_CHANNEL);
   if (channel && !CHANNELS.has(channel)) throw new Error("Unsupported browser channel. Use chromium, chrome, or a documented Chrome/Edge channel.");
   const executablePath = values["executable-path"] ?? (cdpUrl ? undefined : process.env.TABLAZE_EXECUTABLE_PATH);
@@ -120,7 +151,7 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
     };
     run = { task: values.task, startUrl: values["start-url"] === undefined ? undefined : normalizeStartUrl(values["start-url"]), provider, model: values.model, endpoint: values.endpoint, apiKey: provider === "codex" ? undefined : process.env[envName] || undefined, codexCommand: values["codex-command"], reasoningEffort, maxOutputTokens, maxSteps: limit("max-steps", 30, 1000), maxToolCalls: limit("max-calls", 100, 10000), timeoutMs: limit("run-timeout-ms", 300000, 86400000), checkpointPath: values.checkpoint ? resolve(values.checkpoint) : undefined, resumePath: values.resume ? resolve(values.resume) : undefined, reconciled: values.reconciled };
   } else if (runKeys.some(key => values[key] !== undefined)) throw new Error("Agent options require the run command.");
-  return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, timeoutMs, popupPolicy }, run };
+  return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, timeoutMs, popupPolicy, navigationPolicy }, run };
 }
 
 function channelExecutable(channel: string): string | undefined {
@@ -171,6 +202,7 @@ function doctor(options: BrowserOptions): void {
     playwright_version: playwrightPackage.version, mode: options.cdpUrl ? "cdp" : "isolated",
     browser: { source: options.cdpUrl ? "external-cdp" : options.executablePath ? "executable" : options.channel ?? "managed-chromium", executable: executable ?? null, installed, detected_version: detectedBrowserVersion(executable), expected_managed_version: bundled ? managed?.browserVersion ?? null : null, expected_managed_revision: bundled ? managed?.revision ?? null : null },
     headless: options.cdpUrl ? null : options.headless, timeout_ms: options.timeoutMs, popup_policy: options.popupPolicy ?? "stay",
+    navigation_policy: { enabled: options.navigationPolicy !== undefined, allowed_origin_count: options.navigationPolicy?.allowedOrigins?.length ?? null, blocked_origin_count: options.navigationPolicy?.blockedOrigins?.length ?? 0 },
     ready: options.cdpUrl ? null : installed,
     next_step: options.cdpUrl ? "CDP configuration supplied. No connection was attempted; endpoint details are omitted." : installed ? "The browser executable exists. Run an MCP smoke test to verify launch permissions." : "Run tablaze setup, or select an installed browser with --channel chrome.",
   };
@@ -190,7 +222,11 @@ async function setup(): Promise<void> {
 interface RunCheckpointFile { version: 1; savedAt: string; agent: AgentCheckpoint; browser: BrowserWorkspace }
 async function loadRunCheckpoint(path: string): Promise<RunCheckpointFile> {
   if ((await stat(path)).size > 64 * 1024 * 1024) throw new Error("Checkpoint file exceeds 64 MiB.");
-  const value = JSON.parse(await readFile(path, "utf8")) as RunCheckpointFile;
+  const encoded = await readFile(path, "utf8");
+  let value: RunCheckpointFile;
+  // SyntaxError messages can quote private cookies, tokens or page history.
+  try { value = JSON.parse(encoded) as RunCheckpointFile; }
+  catch { throw new Error("Run checkpoint must contain valid JSON."); }
   if (!value || value.version !== 1 || !value.browser || value.browser.version !== 1 || !Array.isArray(value.browser.sessions)) throw new Error("Invalid run checkpoint envelope.");
   return { ...value, agent: parseAgentCheckpoint(value.agent) };
 }
@@ -268,7 +304,7 @@ async function main(): Promise<void> {
           saved.agent.elapsedMs += performance.now() - start;
         } finally { clearTimeout(timer); controller.signal.removeEventListener("abort", stopRestoring); }
       }
-      let workspace: BrowserWorkspace = restored ? await engine.exportWorkspace() : { version: 1, popupPolicy: options.popupPolicy ?? "stay", sessions: [] };
+      let workspace: BrowserWorkspace = await engine.exportWorkspace();
       const checkpointPath = run.checkpointPath ?? run.resumePath;
       const result = await runAgent({ task: run.task ?? saved!.agent.task, startUrl: run.startUrl, planner, tools: connection.tools, maxSteps: run.maxSteps, maxToolCalls: run.maxToolCalls, timeoutMs: run.timeoutMs, signal: controller.signal,
         resume: saved?.agent, resumeSessionMap: restored?.sessionMap,

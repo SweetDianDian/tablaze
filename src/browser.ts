@@ -5,6 +5,8 @@ import { basename, join } from 'node:path';
 import { chromium, type Browser, type BrowserContext, type Download, type ElementHandle, type Frame, type JSHandle, type Page } from 'playwright';
 import { inspectDOM } from './snapshot.js';
 import { assembleDOMExtraction, inspectDOMField, validateDOMFieldPlan, type DOMFieldPlan, type DOMFieldObservation, type ExtractionSchema } from './extraction.js';
+import { compileNavigationPolicy, NavigationPolicyError, type NavigationPolicy, type CompiledNavigationPolicy } from './navigation-policy.js';
+import { startNavigationGuard, type NavigationGuard } from './navigation-guard.js';
 
 export class BrowserError extends Error {
   constructor(public readonly code: string, message: string) { super(message); this.name = 'BrowserError'; }
@@ -12,12 +14,14 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; timeoutMs?: number; popupPolicy?: PopupPolicy }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
 type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
 export interface BrowserWorkspace {
   version: 1;
   popupPolicy?: PopupPolicy;
+  /** Bind restoration to the same trusted navigation policy; never infer it from saved URLs. */
+  navigationPolicyHash?: string;
   sessions: { sessionId: string; activeTabId: string; storage: StorageState; tabs: { tabId: string; url: string }[] }[];
 }
 export type BrowserAction =
@@ -47,6 +51,7 @@ interface Session {
   dialogPolicy?: { action: 'accept' | 'dismiss'; promptText?: string };
   dialogs: { type: string; message: string; action: string }[];
   unexpected: string[]; cleanup?: Promise<void>;
+  navigationGuard?: NavigationGuard; navigationContextId?: string;
 }
 const errorInfo = (error: unknown, fallback = 'BROWSER_ERROR') => ({ code: error instanceof BrowserError ? error.code : fallback, message: (error instanceof Error ? error.message : String(error)).split('\nCall log:')[0].slice(0, 2000) });
 const integer = (value: number | undefined, fallback: number, min: number, max: number, name: string) => { const result = value ?? fallback; if (!Number.isInteger(result) || result < min || result > max) throw new BrowserError('INVALID_ARGUMENT', `${name} must be an integer between ${min} and ${max}.`); return result; };
@@ -66,31 +71,76 @@ export class BrowserEngine {
   private disposal?: Promise<void>;
   private disposalWork?: Promise<void>;
   private ownedBrowserClosing?: Promise<void>;
+  private ownedBrowserLaunch?: Promise<Browser>;
   private timeout: number;
   private popupPolicy: PopupPolicy;
+  private readonly navigationPolicy?: CompiledNavigationPolicy;
+  private navigationGuards = new Map<Browser, NavigationGuard>();
   private artifactDirectory?: Promise<string>;
   constructor(private options: BrowserOptions = {}) {
     this.timeout = integer(options.timeoutMs, 10000, 100, 60000, 'timeoutMs');
     if (options.popupPolicy !== undefined && !['stay', 'follow-single'].includes(options.popupPolicy)) throw new BrowserError('INVALID_ARGUMENT', 'popupPolicy must be stay or follow-single.');
     this.popupPolicy = options.popupPolicy ?? 'stay';
+    try { this.navigationPolicy = compileNavigationPolicy(options.navigationPolicy); }
+    catch { throw new BrowserError('NAVIGATION_POLICY_INVALID', 'Invalid navigation policy configuration.'); }
+    if (this.navigationPolicy && options.cdpUrl) throw new BrowserError('NAVIGATION_POLICY_CDP_UNSUPPORTED', 'Navigation policy requires an isolated browser owned by this engine.');
   }
+
+  private assertNavigationAllowed(url: string, internalBlank = false): void {
+    if (internalBlank && url === 'about:blank') return;
+    try { this.navigationPolicy?.assertAllowed(url); }
+    catch (error) { throw new BrowserError(error instanceof NavigationPolicyError ? error.code : 'NAVIGATION_BLOCKED', 'Navigation is blocked by the configured policy.'); }
+  }
+  private assertNavigationGuard(guard?: NavigationGuard): void {
+    const failure = this.navigationGuardFailure(guard);
+    if (failure) throw failure;
+  }
+  private navigationGuardFailure(guard?: NavigationGuard): BrowserError | undefined {
+    try { guard?.assertHealthy(); }
+    catch { return new BrowserError('NAVIGATION_POLICY_FAILED', 'The navigation policy could not remain active. The owned browser is being closed.'); }
+  }
+  private blockedNavigations(session: Session): number { return session.navigationContextId ? session.navigationGuard?.blockedRequests(session.navigationContextId) ?? 0 : 0; }
 
   private browser(): Promise<Browser> {
     if (this.disposed) return Promise.reject(new BrowserError('ENGINE_CLOSED', 'The browser engine has been disposed.'));
     if (!this.browserPromise) {
       const launch = this.options.cdpUrl
         ? chromium.connectOverCDP(this.options.cdpUrl, { timeout: 30000 })
-        : chromium.launch({ headless: this.options.headless ?? true, channel: this.options.channel, executablePath: this.options.executablePath, timeout: 30000 });
-      const pending = launch.then(browser => { browser.once('disconnected', () => { if (this.browserPromise === pending) this.browserPromise = undefined; }); return browser; }).catch(error => { if (this.browserPromise === pending) this.browserPromise = undefined; throw new BrowserError('BROWSER_LAUNCH_FAILED', this.options.cdpUrl ? 'Could not connect to the configured CDP endpoint. Check reachability and Chrome remote debugging; endpoint details are omitted.' : errorInfo(error).message); });
+        : chromium.launch({ headless: this.options.headless ?? true, channel: this.options.channel, executablePath: this.options.executablePath, timeout: 30000, ...(this.navigationPolicy ? { args: ['--remote-debugging-port=0', '--enable-automation'] } : {}) });
+      if (!this.options.cdpUrl) {
+        this.ownedBrowserLaunch = launch;
+        void launch.then(browser => browser.once('disconnected', () => { if (this.ownedBrowserLaunch === launch) this.ownedBrowserLaunch = undefined; }), () => { if (this.ownedBrowserLaunch === launch) this.ownedBrowserLaunch = undefined; });
+      }
+      const pending = launch.then(async browser => {
+        if (this.navigationPolicy) {
+          try { this.navigationGuards.set(browser, await startNavigationGuard(browser, this.navigationPolicy)); }
+          catch { await browser.close().catch(() => {}); throw new BrowserError('NAVIGATION_POLICY_FAILED', 'The isolated browser navigation policy could not be initialized.'); }
+        }
+        browser.once('disconnected', () => {
+          if (this.browserPromise === pending) this.browserPromise = undefined;
+          const guard = this.navigationGuards.get(browser);
+          if (guard) void guard.close().finally(() => this.navigationGuards.delete(browser)).catch(() => { this.cleanupFailed = true; });
+        });
+        return browser;
+      }).catch(error => { if (this.browserPromise === pending) this.browserPromise = undefined; if (error instanceof BrowserError) throw error; throw new BrowserError('BROWSER_LAUNCH_FAILED', this.options.cdpUrl ? 'Could not connect to the configured CDP endpoint. Check reachability and Chrome remote debugging; endpoint details are omitted.' : errorInfo(error).message); });
       this.browserPromise = pending;
     }
     return this.browserPromise;
   }
   private session(id: string): Session { const session = this.sessions.get(id); if (!session || session.closed) throw new BrowserError('SESSION_NOT_FOUND', `No open session ${id}.`); return session; }
-  private exclusive<T>(id: string, work: (session: Session) => Promise<T>): Promise<T> {
+  private exclusive<T>(id: string, work: (session: Session) => Promise<T>, allowUnhealthy = false): Promise<T> {
     if (this.disposed) return Promise.reject(new BrowserError('ENGINE_CLOSED', 'The browser engine has been disposed.'));
     let session: Session; try { session = this.session(id); } catch (error) { return Promise.reject(error); }
-    const result = session.tail.then(() => { if (session.closed || session.page.isClosed()) throw new BrowserError('SESSION_CLOSED', 'This session is closed.'); return work(session); });
+    const result = session.tail.then(async () => {
+      if (!allowUnhealthy) this.assertNavigationGuard(session.navigationGuard);
+      if (session.closed || session.page.isClosed()) throw new BrowserError('SESSION_CLOSED', 'This session is closed.');
+      try {
+        return await work(session);
+      } catch (error) {
+        if (!allowUnhealthy && !this.disposed && !(error instanceof BrowserError && ['CANCELLED', 'BATCH_TIMEOUT', 'ENGINE_CLOSED'].includes(error.code))) this.assertNavigationGuard(session.navigationGuard);
+        throw error;
+      }
+    });
     session.tail = result.then(() => undefined, () => undefined);
     return result;
   }
@@ -179,7 +229,7 @@ export class BrowserEngine {
   }
   open(url: string, options: { storageState?: string | StorageState; signal?: AbortSignal } = {}): Promise<Record<string, unknown>> {
     if (this.disposed) return Promise.reject(new BrowserError('ENGINE_CLOSED', 'The browser engine has been disposed.'));
-    let checked: string; try { checked = validUrl(url); } catch (error) { return Promise.reject(error); }
+    let checked: string; try { checked = validUrl(url); this.assertNavigationAllowed(checked); } catch (error) { return Promise.reject(error); }
     const operation = this.openInternal(checked, options);
     this.opening.add(operation); operation.then(() => this.opening.delete(operation), () => this.opening.delete(operation));
     return operation;
@@ -187,6 +237,7 @@ export class BrowserEngine {
   private async openInternal(url: string, options: { storageState?: string | StorageState; signal?: AbortSignal }): Promise<Record<string, unknown>> {
     const ownsContext = !this.options.cdpUrl;
     let context: BrowserContext | undefined, page: Page | undefined, session: Session | undefined;
+    let navigationGuard: NavigationGuard | undefined;
     let attemptCleanup: Promise<void> | undefined;
     let interruption: BrowserError | undefined, rejectCancellation: (error: BrowserError) => void = () => {};
     const cancelled = new Promise<never>((_, reject) => { rejectCancellation = reject; });
@@ -244,36 +295,43 @@ export class BrowserEngine {
     this.cancelOpening.add(onDispose);
     try {
       check();
+      this.assertNavigationAllowed(url, true);
       if (options.storageState && this.options.cdpUrl) throw new BrowserError('INVALID_ARGUMENT', 'Storage state import requires an isolated context.');
       if (typeof options.storageState === 'string' && (await phase(stat(options.storageState))).size > 10 * 1024 * 1024) throw new BrowserError('STATE_TOO_LARGE', 'Storage state exceeds 10 MiB.');
       const browser = await phase(this.browser());
+      navigationGuard = this.navigationGuards.get(browser);
+      this.assertNavigationGuard(navigationGuard);
       check();
       context = ownsContext
-        ? await phase(browser.newContext({ viewport: { width: 1280, height: 800 }, acceptDownloads: true, storageState: options.storageState }), value => { context = value; }, value => value.close())
+        ? await phase(browser.newContext({ viewport: { width: 1280, height: 800 }, acceptDownloads: true, storageState: options.storageState, ...(this.navigationPolicy ? { serviceWorkers: 'block' as const } : {}) }), value => { context = value; }, value => value.close())
         : browser.contexts()[0];
       if (!context) throw new BrowserError('CDP_CONTEXT_MISSING', 'The attached browser has no default context.');
       check();
       page = await phase(context.newPage(), value => { page = value; }, value => value.close());
       check();
+      const navigationContextId = navigationGuard ? await phase(navigationGuard.contextIdFor(page)) : undefined;
       session = {
         id: randomUUID(), context, ownsContext, page, tail: Promise.resolve(), closed: false,
         revision: 0, nextRef: 1, nextFrame: 1, activationEpoch: 0, frames: new Map([[page.mainFrame(), 'f0']]), generations: new Map(),
         tabs: new Map(), activeTabId: '', nextTab: 1, downloads: new Map(), dialogs: [], unexpected: [],
+        navigationGuard, navigationContextId,
       };
       this.openingSessions.add(session);
       session.activeTabId = this.registerPage(session, page);
       await phase(page.goto(url, { waitUntil: 'domcontentloaded' }));
       const snapshot = await phase(this.snapshotInternal(session, {}));
       check();
+      this.assertNavigationGuard(navigationGuard);
       this.sessions.set(session.id, session);
       this.openingSessions.delete(session);
       return { ...snapshot, session_mode: ownsContext ? 'isolated' : 'attached_profile' };
     } catch (error) {
+      const failure = interruption ?? this.navigationGuardFailure(navigationGuard) ?? (error instanceof BrowserError ? error : session && this.blockedNavigations(session) > 0 ? new BrowserError('NAVIGATION_BLOCKED', 'Navigation was blocked by the configured policy.') : new BrowserError('NAVIGATION_FAILED', errorInfo(error).message));
       // Cancellation returns promptly even when a close RPC is stuck. Disposal
       // tracks that cleanup and reports incomplete cleanup instead of losing it.
       if (interruption) void cleanupAttempt().catch(() => {});
       else await cleanupAttempt();
-      throw interruption ?? (error instanceof BrowserError ? error : new BrowserError('NAVIGATION_FAILED', errorInfo(error).message));
+      throw failure;
     } finally { options.signal?.removeEventListener('abort', onAbort); this.cancelOpening.delete(onDispose); }
   }
   private registerPage(session: Session, page: Page): string {
@@ -345,14 +403,16 @@ export class BrowserEngine {
       if (options.action === 'list') return { ok: true, session_id: session.id, tabs: this.tabList(session) };
       if (options.action === 'new') {
         const url = options.url ? validUrl(options.url) : 'about:blank';
+        this.assertNavigationAllowed(url, true);
         const page = await session.context.newPage();
         if (this.disposed || session.closed) {
           await page.close().catch(() => {});
           throw new BrowserError('SESSION_CLOSED', 'The session closed while creating this tab.');
         }
         const id = this.registerPage(session, page);
+        const blockedBefore = this.blockedNavigations(session);
         try { if (url !== 'about:blank') await page.goto(url, { waitUntil: 'domcontentloaded' }); }
-        catch (error) { await page.close().catch(() => {}); throw new BrowserError('NAVIGATION_FAILED', errorInfo(error).message); }
+        catch (error) { await page.close().catch(() => {}); throw this.blockedNavigations(session) > blockedBefore ? new BrowserError('NAVIGATION_BLOCKED', 'Navigation was blocked by the configured policy.') : new BrowserError('NAVIGATION_FAILED', errorInfo(error).message); }
         if (this.disposed || session.closed || page.isClosed()) throw new BrowserError('SESSION_CLOSED', 'The session closed while opening this tab.');
         this.activatePage(session, id, page);
       } else {
@@ -372,11 +432,14 @@ export class BrowserEngine {
     return this.exclusive(sessionId, async session => {
       if (session.snapshot) session.snapshot.actionable = false;
       const wait = { waitUntil: 'domcontentloaded' as const };
-      if (options.action === 'goto') await session.page.goto(validUrl(options.url ?? ''), wait);
-      else if (options.action === 'back') await session.page.goBack(wait);
-      else if (options.action === 'forward') await session.page.goForward(wait);
-      else if (options.action === 'reload') await session.page.reload(wait);
-      else throw new BrowserError('INVALID_ARGUMENT', 'Unsupported navigation operation.');
+      const blockedBefore = this.blockedNavigations(session);
+      try {
+        if (options.action === 'goto') { const url = validUrl(options.url ?? ''); this.assertNavigationAllowed(url); await session.page.goto(url, wait); }
+        else if (options.action === 'back') await session.page.goBack(wait);
+        else if (options.action === 'forward') await session.page.goForward(wait);
+        else if (options.action === 'reload') await session.page.reload(wait);
+        else throw new BrowserError('INVALID_ARGUMENT', 'Unsupported navigation operation.');
+      } catch (error) { if (this.blockedNavigations(session) > blockedBefore) throw new BrowserError('NAVIGATION_BLOCKED', 'Navigation was blocked by the configured policy.'); throw error; }
       return this.snapshotInternal(session, {});
     });
   }
@@ -423,13 +486,14 @@ export class BrowserEngine {
       });
       sessions.push(state);
     }
-    return { version: 1, popupPolicy: this.popupPolicy, sessions };
+    return { version: 1, popupPolicy: this.popupPolicy, ...(this.navigationPolicy ? { navigationPolicyHash: this.navigationPolicy.hash } : {}), sessions };
   }
   async restoreWorkspace(input: unknown): Promise<{ sessionMap: Record<string, string>; snapshots: Record<string, unknown>[] }> {
     if (this.options.cdpUrl) throw new BrowserError('INVALID_ARGUMENT', 'Workspace restoration requires isolated contexts.');
     if (this.disposed || this.sessions.size || this.opening.size) throw new BrowserError('INVALID_ARGUMENT', 'Restore into a new, empty browser engine.');
     const workspace = input as BrowserWorkspace;
     if (!workspace || workspace.version !== 1 || !Array.isArray(workspace.sessions) || workspace.sessions.length > 20 || Buffer.byteLength(JSON.stringify(workspace)) > 10 * 1024 * 1024) throw new BrowserError('INVALID_ARGUMENT', 'Invalid or oversized browser workspace.');
+    if (workspace.navigationPolicyHash !== this.navigationPolicy?.hash) throw new BrowserError('NAVIGATION_POLICY_MISMATCH', 'Restore requires the same navigation policy as the saved workspace.');
     if (workspace.popupPolicy !== undefined && !['stay', 'follow-single'].includes(workspace.popupPolicy)) throw new BrowserError('INVALID_ARGUMENT', 'Invalid workspace popup policy.');
     const ids = new Set<string>();
     for (const saved of workspace.sessions) {
@@ -440,6 +504,7 @@ export class BrowserEngine {
         if (!tab || typeof tab.tabId !== 'string' || !tab.tabId || tabs.has(tab.tabId) || typeof tab.url !== 'string' || tab.url.length > 8192) throw new BrowserError('INVALID_ARGUMENT', 'Invalid workspace tab.');
         tabs.add(tab.tabId);
         if (tab.url !== 'about:blank') validUrl(tab.url);
+        this.assertNavigationAllowed(tab.url, true);
       }
       if (!tabs.has(saved.activeTabId)) throw new BrowserError('INVALID_ARGUMENT', 'Workspace active tab is missing.');
     }
@@ -551,6 +616,8 @@ export class BrowserEngine {
     session.snapshot = { id, frame, generation, refs, actionable: true, entries, scope };
     const metadataTruncated = allFrames.length > 100 || allFrames.some(frame => frame.url.length > 4000 || frame.name.length > 200) || title.length > 1000 || session.page.url().length > 4000;
     const output: Record<string, unknown> = { ok: true, session_id: session.id, snapshot_id: id, tab_id: session.activeTabId, tabs: this.tabList(session), scope: { selector: scope.selector ?? null, viewport_only: scope.viewportOnly }, mode: options.mode ?? 'full', frame_id: frameId, url: session.page.url().slice(0, 4000), title: title.slice(0, 1000), frames, frame_count: allFrames.length, elements: entries, text: data.text, truncated: data.truncated || metadataTruncated, truncation: { ...data.truncation, metadata: metadataTruncated }, budgets: { max_elements: maxElements, text_limit: textLimit, max_frames: 100 }, elapsed_ms: Math.round(performance.now() - start) };
+    this.assertNavigationGuard(session.navigationGuard);
+    if (session.navigationGuard) output.navigation_policy = { enabled: true, blocked_requests: this.blockedNavigations(session) };
     if (options.mode === 'diff') {
       const previousEntries = new Map((compatible ? previous.entries : []).map(entry => [entry.ref, entry]));
       const currentEntries = new Map(entries.map(entry => [entry.ref, entry]));
@@ -584,6 +651,7 @@ export class BrowserEngine {
         return earlyFailure('STALE_SNAPSHOT', 'The snapshot was replaced or already used by an action batch. Take a fresh snapshot.');
       }
       const observedPage = state.frame.page();
+      const blockedBefore = this.blockedNavigations(session);
       state.actionable = false;
       const deadline = start + budget;
       let interruption: BrowserError | undefined;
@@ -602,10 +670,12 @@ export class BrowserEngine {
       options.signal?.addEventListener('abort', onAbort, { once: true });
       const checkInterruption = () => {
         if (this.disposed) interrupt('ENGINE_CLOSED', 'The browser engine is shutting down.');
-        if (session.closed && !interruption) interrupt('SESSION_CLOSED', 'The browser tab closed while the batch was running.');
         if (options.signal?.aborted) onAbort();
         if (performance.now() >= deadline) interrupt('BATCH_TIMEOUT', 'The action batch exceeded its total time budget. This session was closed; completed actions were not rolled back.');
         if (interruption) throw interruption;
+        this.assertNavigationGuard(session.navigationGuard);
+        if (session.closed) { interrupt('SESSION_CLOSED', 'The browser tab closed while the batch was running.'); throw interruption; }
+        if (this.blockedNavigations(session) > blockedBefore) throw new BrowserError('NAVIGATION_BLOCKED', 'A document request was blocked by the configured navigation policy. Re-observe before continuing.');
         if (observedPage.isClosed() || session.page !== observedPage) throw new BrowserError('STALE_REFERENCE', 'The observed tab closed or changed. Observe the active tab before further input.');
       };
       const remaining = (limit: number) => { checkInterruption(); return Math.max(1, Math.min(limit, deadline - performance.now())); };
@@ -818,7 +888,7 @@ export class BrowserEngine {
             }
           }
           completed++; results.push({ index, type: action.type, status: 'completed' });
-        } catch (error) { if (!interruption && performance.now() >= deadline) interrupt('BATCH_TIMEOUT', 'The action batch exceeded its total time budget. This session was closed; completed actions were not rolled back.'); const info = errorInfo(interruption ?? error, 'ACTION_FAILED'); if (action.type === 'fill' && action.value) info.message = info.message.split(action.value).join('[redacted]'); failedActionMayHaveSideEffects = actionStarted; failed = { index, action: action.type, error: info }; results.push({ index, type: action.type, status: 'failed', error: info }); }
+        } catch (error) { if (!interruption && performance.now() >= deadline) interrupt('BATCH_TIMEOUT', 'The action batch exceeded its total time budget. This session was closed; completed actions were not rolled back.'); const policyError = this.blockedNavigations(session) > blockedBefore ? new BrowserError('NAVIGATION_BLOCKED', 'A document request was blocked by the configured navigation policy.') : undefined; const info = errorInfo(interruption ?? this.navigationGuardFailure(session.navigationGuard) ?? policyError ?? error, 'ACTION_FAILED'); if (action.type === 'fill' && action.value) info.message = info.message.split(action.value).join('[redacted]'); failedActionMayHaveSideEffects = actionStarted; failed = { index, action: action.type, error: info }; results.push({ index, type: action.type, status: 'failed', error: info }); }
         finally { if (popupWindow) observedPage.off('popup', popupWindow.listener); }
       }
       const output: Record<string, unknown> = { ok: !failed && !interruption, batch_complete: !failed && !interruption && completed === actions.length, session_id: session.id, snapshot_id: snapshotId, partial: !!(failed || interruption) && (completed > 0 || failedActionMayHaveSideEffects) || !!popupFollowed && completed < actions.length, completed, failed, failed_action_may_have_side_effects: failedActionMayHaveSideEffects, results, ...(popupFollowed ? { replan_required: true, popup_followed: popupFollowed } : {}), elapsed_ms: Math.round(performance.now() - start) };
@@ -996,7 +1066,7 @@ export class BrowserEngine {
     }
     return session.cleanup;
   }
-  close(sessionId: string): Promise<Record<string, unknown>> { return this.exclusive(sessionId, async session => { session.closed = true; this.sessions.delete(sessionId); await this.cleanup(session); return { ok: true, session_id: sessionId, closed: true }; }); }
+  close(sessionId: string): Promise<Record<string, unknown>> { return this.exclusive(sessionId, async session => { session.closed = true; this.sessions.delete(sessionId); await this.cleanup(session); return { ok: true, session_id: sessionId, closed: true }; }, true); }
   dispose(): Promise<void> {
     if (!this.disposal) {
       this.disposed = true;
@@ -1005,6 +1075,7 @@ export class BrowserEngine {
       for (const session of sessions) session.closed = true;
       this.sessions.clear();
       const browserPromise = this.browserPromise;
+      const ownedBrowserLaunch = this.ownedBrowserLaunch;
       const alreadyClosing = [...this.resourceCleanup];
       if (!this.options.cdpUrl) this.ownedBrowserClosing = (async () => {
         // Let close RPCs started by an earlier cancellation settle briefly.
@@ -1014,7 +1085,7 @@ export class BrowserEngine {
           const timer = setTimeout(resolve, 250);
           void Promise.allSettled(alreadyClosing).then(() => { clearTimeout(timer); resolve(); });
         });
-        const browser = await browserPromise?.catch(() => undefined);
+        const browser = await (ownedBrowserLaunch ?? browserPromise)?.catch(() => undefined);
         if (browser) await browser.close().catch(() => { this.cleanupFailed = true; });
       })();
       for (const cancel of this.cancelOpening) cancel();
@@ -1023,6 +1094,8 @@ export class BrowserEngine {
         // A CDP connection must stay usable until late owned pages are identified
         // and closed; disconnecting first can strand a page in external Chrome.
         await this.ownedBrowserClosing;
+        if ((await Promise.allSettled([...this.navigationGuards.values()].map(guard => guard.close()))).some(result => result.status === 'rejected')) this.cleanupFailed = true;
+        this.navigationGuards.clear();
         if ((await Promise.allSettled(sessions.map(session => this.cleanup(session)))).some(result => result.status === 'rejected')) this.cleanupFailed = true;
         await Promise.allSettled([...this.opening, ...this.bindingJobs, ...this.resourceCleanup, ...sessions.map(session => session.tail)]);
         const browser = await browserPromise?.catch(() => undefined);

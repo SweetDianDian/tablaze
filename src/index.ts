@@ -1,5 +1,6 @@
 export { BrowserEngine, BrowserError } from "./browser.js";
 export type { BrowserOptions, BrowserWorkspace, PopupPolicy, SnapshotOptions, BrowserAction, BrowserCheck, BrowserBinding, BrowserBindingGuard } from "./browser.js";
+export type { NavigationPolicy } from "./navigation-policy.js";
 export { createServer, SERVER_VERSION } from "./server.js";
 export { runAgent, connectAgentTools, createMcpToolClient, createOpenAICompatiblePlanner, AgentPlannerError } from "./agent.js";
 export { parseAgentCheckpoint, AGENT_CHECKPOINT_VERSION } from "./checkpoint.js";

@@ -1,0 +1,413 @@
+{
+  "schemaVersion": 1,
+  "evidenceId": "navigation-policy-probe-v1",
+  "measuredDateUtc": "2026-09-22",
+  "classification": "supplementary_mechanism_and_development_source_probes",
+  "scope": {
+    "repeatsPerNamedCase": 1,
+    "statisticalReliabilityClaim": false,
+    "browserUseComparison": false,
+    "modelsOrPaidServicesUsed": false,
+    "personalBrowserUsed": false,
+    "networkTargets": "task-owned loopback HTTP fixtures only",
+    "redaction": "Fixture URLs, ports, profile paths, request bodies, cookie values and raw errors omitted."
+  },
+  "provenanceLimits": [
+    "Hashes identify retained probe files at publication; no execution-time hash manifest was recorded.",
+    "Raw result mtime is filesystem metadata, not an independently attested execution timestamp.",
+    "Production-module probes imported TypeScript source directly under Node 25; they did not execute dist files.",
+    "No execution-time navigation-guard.ts, navigation-policy.ts or dist hashes were captured; equivalence to the final source/build is not established.",
+    "The nine-case source probe preceded later startup/detached-target cleanup edits; the OOPIF/stress probe used a later development version."
+  ],
+  "routeCounterexample": {
+    "kind": "standalone_playwright_route_probe",
+    "scriptName": "route-probe.mjs",
+    "scriptSha256AtPublication": "8ea0cd5d47a4bba4181e426b682440c43d4dc649708406ce8ac0d6cf6ebd8d39",
+    "rawResultName": "route-results.json",
+    "rawResultSha256AtPublication": "1a9471a5a85bf148c7e4f204b253b87e0bf8b57910dd6d30b78789e4d0a308f3",
+    "rawResultMtimeUtcAtPublication": "2026-09-22T14:09:08.369776+00:00",
+    "rawFilesIncludedInRepository": false,
+    "environment": {
+      "node": "v25.9.0",
+      "playwright": "1.63.0",
+      "chrome": "153.0.8010.53",
+      "browserChannel": "chrome",
+      "headless": true,
+      "serviceWorkers": "block"
+    },
+    "executedCaseCount": 18,
+    "methods": {
+      "continue": "context.route navigation requests: exact-origin check, then route.continue()",
+      "fetchThenFulfill": "Same check, then route.fetch({maxRedirects:0}) and route.fulfill({response})"
+    },
+    "deniedNavigationCases": [
+      {
+        "case": "direct_redirect",
+        "continue": {
+          "forbiddenOriginRequestsReceived": 1,
+          "explicitDenialHandlerCount": 0,
+          "frameUnavailableObserved": false
+        },
+        "fetchThenFulfill": {
+          "forbiddenOriginRequestsReceived": 1,
+          "explicitDenialHandlerCount": 0,
+          "frameUnavailableObserved": false
+        }
+      },
+      {
+        "case": "two_hop_redirect",
+        "continue": {
+          "forbiddenOriginRequestsReceived": 1,
+          "explicitDenialHandlerCount": 0,
+          "frameUnavailableObserved": false
+        },
+        "fetchThenFulfill": {
+          "forbiddenOriginRequestsReceived": 1,
+          "explicitDenialHandlerCount": 0,
+          "frameUnavailableObserved": false
+        }
+      },
+      {
+        "case": "direct_iframe",
+        "continue": {
+          "forbiddenOriginRequestsReceived": 0,
+          "explicitDenialHandlerCount": 1,
+          "frameUnavailableObserved": false
+        },
+        "fetchThenFulfill": {
+          "forbiddenOriginRequestsReceived": 0,
+          "explicitDenialHandlerCount": 1,
+          "frameUnavailableObserved": false
+        }
+      },
+      {
+        "case": "iframe_redirect",
+        "continue": {
+          "forbiddenOriginRequestsReceived": 1,
+          "explicitDenialHandlerCount": 0,
+          "frameUnavailableObserved": false
+        },
+        "fetchThenFulfill": {
+          "forbiddenOriginRequestsReceived": 0,
+          "explicitDenialHandlerCount": 0,
+          "frameUnavailableObserved": false
+        }
+      },
+      {
+        "case": "first_popup",
+        "continue": {
+          "forbiddenOriginRequestsReceived": 0,
+          "explicitDenialHandlerCount": 1,
+          "frameUnavailableObserved": true
+        },
+        "fetchThenFulfill": {
+          "forbiddenOriginRequestsReceived": 0,
+          "explicitDenialHandlerCount": 1,
+          "frameUnavailableObserved": true
+        }
+      },
+      {
+        "case": "popup_redirect",
+        "continue": {
+          "forbiddenOriginRequestsReceived": 1,
+          "explicitDenialHandlerCount": 0,
+          "frameUnavailableObserved": true
+        },
+        "fetchThenFulfill": {
+          "forbiddenOriginRequestsReceived": 1,
+          "explicitDenialHandlerCount": 0,
+          "frameUnavailableObserved": true
+        }
+      }
+    ],
+    "interpretation": "Both methods allowed forbidden redirect destinations to receive requests. The fetch/fulfill iframe redirect had zero forbidden requests but no denial event, so it is not evidence of successful enforcement."
+  },
+  "rawCdpLaunchProbe": {
+    "kind": "standalone_flattened_cdp_probe",
+    "scriptName": "launch-cdp-probe.mjs",
+    "scriptSha256AtPublication": "3036a7c08cdca2a9466b86805ae4c0c9b790dcd959e6b01a30e5c471a2e7c857",
+    "rawResultName": "launch-cdp-results.json",
+    "rawResultSha256AtPublication": "2c2f990c6b1e1c1de8416d25125d801d2c9fe85651572b727d3f4d721089dfb7",
+    "rawResultMtimeUtcAtPublication": "2026-09-22T14:20:44.169578+00:00",
+    "rawFilesIncludedInRepository": false,
+    "environment": {
+      "node": "v25.9.0",
+      "playwright": "1.63.0",
+      "chrome": "153.0.8010.53",
+      "browserChannel": "chrome",
+      "headless": true,
+      "serviceWorkers": "block"
+    },
+    "launchArguments": [
+      "--remote-debugging-port=0",
+      "--enable-automation"
+    ],
+    "bootstrap": {
+      "ownedProfileFound": true,
+      "loopbackEndpoint": true,
+      "discovery": "Public Browser.getBrowserCommandLine and that owned profile DevToolsActivePort only"
+    },
+    "documentInterception": "Fetch.enable Request-stage Document pattern, before Runtime.runIfWaitingForDebugger; recursive flattened Target auto-attach",
+    "cases": [
+      {
+        "case": "direct_redirect",
+        "forbiddenOriginRequestsReceived": 0,
+        "interceptedDocumentRequests": 2,
+        "explicitDenialCount": 1
+      },
+      {
+        "case": "two_hop_redirect",
+        "forbiddenOriginRequestsReceived": 0,
+        "interceptedDocumentRequests": 3,
+        "explicitDenialCount": 1
+      },
+      {
+        "case": "direct_iframe",
+        "forbiddenOriginRequestsReceived": 0,
+        "interceptedDocumentRequests": 2,
+        "explicitDenialCount": 1
+      },
+      {
+        "case": "iframe_redirect",
+        "forbiddenOriginRequestsReceived": 0,
+        "interceptedDocumentRequests": 3,
+        "explicitDenialCount": 1
+      },
+      {
+        "case": "first_popup",
+        "forbiddenOriginRequestsReceived": 0,
+        "interceptedDocumentRequests": 2,
+        "explicitDenialCount": 1
+      },
+      {
+        "case": "popup_redirect",
+        "forbiddenOriginRequestsReceived": 0,
+        "interceptedDocumentRequests": 3,
+        "explicitDenialCount": 1
+      },
+      {
+        "case": "allowed_cookie_redirect",
+        "forbiddenOriginRequestsReceived": 0,
+        "interceptedDocumentRequests": 2,
+        "explicitDenialCount": 0
+      },
+      {
+        "case": "allowed_post_303",
+        "forbiddenOriginRequestsReceived": 0,
+        "interceptedDocumentRequests": 3,
+        "explicitDenialCount": 0
+      },
+      {
+        "case": "allowed_post_307",
+        "forbiddenOriginRequestsReceived": 0,
+        "interceptedDocumentRequests": 3,
+        "explicitDenialCount": 0
+      }
+    ],
+    "allowedResponseSemantics": {
+      "allowed_cookie_redirect": {
+        "serverMethodSequence": [
+          "GET",
+          "GET"
+        ],
+        "setCookieReachedReceipt": true,
+        "receiptBodyEmpty": true,
+        "postBodyPreserved": null
+      },
+      "allowed_post_303": {
+        "serverMethodSequence": [
+          "GET",
+          "POST",
+          "GET"
+        ],
+        "setCookieReachedReceipt": true,
+        "receiptBodyEmpty": true,
+        "postBodyPreserved": null
+      },
+      "allowed_post_307": {
+        "serverMethodSequence": [
+          "GET",
+          "POST",
+          "POST"
+        ],
+        "setCookieReachedReceipt": true,
+        "receiptBodyEmpty": false,
+        "postBodyPreserved": true
+      }
+    }
+  },
+  "developmentSourceProbe": {
+    "kind": "direct_typescript_module_probe",
+    "scriptName": "production-guard-probe.mjs",
+    "scriptSha256AtPublication": "84d3b36011164a807ed76d31e702ed3cfc9847b25bf217da0d9516343e1bf87a",
+    "rawResultName": "production-guard-results.json",
+    "rawResultSha256AtPublication": "c212f7216287a50c83a1eb0da603a92130951c139c940e262f59cf82db99b5ab",
+    "rawResultMtimeUtcAtPublication": "2026-09-22T14:25:59.041677+00:00",
+    "rawFilesIncludedInRepository": false,
+    "environment": {
+      "node": "v25.9.0",
+      "playwright": "1.63.0",
+      "chrome": "153.0.8010.53",
+      "browserChannel": "chrome",
+      "headless": true,
+      "serviceWorkers": "block"
+    },
+    "executedModules": [
+      "src/navigation-guard.ts",
+      "src/navigation-policy.ts"
+    ],
+    "executionTimeSourceSha256": null,
+    "executedDistBuild": false,
+    "cases": [
+      {
+        "case": "direct_redirect",
+        "forbiddenOriginRequestsReceived": 0,
+        "contextBlockedRequests": 1,
+        "expectedTopLevelBlockedNavigationErrorObserved": true
+      },
+      {
+        "case": "two_hop_redirect",
+        "forbiddenOriginRequestsReceived": 0,
+        "contextBlockedRequests": 1,
+        "expectedTopLevelBlockedNavigationErrorObserved": true
+      },
+      {
+        "case": "direct_iframe",
+        "forbiddenOriginRequestsReceived": 0,
+        "contextBlockedRequests": 1,
+        "expectedTopLevelBlockedNavigationErrorObserved": false
+      },
+      {
+        "case": "iframe_redirect",
+        "forbiddenOriginRequestsReceived": 0,
+        "contextBlockedRequests": 1,
+        "expectedTopLevelBlockedNavigationErrorObserved": false
+      },
+      {
+        "case": "first_popup",
+        "forbiddenOriginRequestsReceived": 0,
+        "contextBlockedRequests": 1,
+        "expectedTopLevelBlockedNavigationErrorObserved": false
+      },
+      {
+        "case": "popup_redirect",
+        "forbiddenOriginRequestsReceived": 0,
+        "contextBlockedRequests": 1,
+        "expectedTopLevelBlockedNavigationErrorObserved": false
+      },
+      {
+        "case": "allowed_cookie_redirect",
+        "forbiddenOriginRequestsReceived": 0,
+        "contextBlockedRequests": 0,
+        "expectedTopLevelBlockedNavigationErrorObserved": false
+      },
+      {
+        "case": "allowed_post_303",
+        "forbiddenOriginRequestsReceived": 0,
+        "contextBlockedRequests": 0,
+        "expectedTopLevelBlockedNavigationErrorObserved": false
+      },
+      {
+        "case": "allowed_post_307",
+        "forbiddenOriginRequestsReceived": 0,
+        "contextBlockedRequests": 0,
+        "expectedTopLevelBlockedNavigationErrorObserved": false
+      }
+    ],
+    "allowedResponseSemantics": {
+      "allowed_cookie_redirect": {
+        "serverMethodSequence": [
+          "GET",
+          "GET"
+        ],
+        "setCookieReachedReceipt": true,
+        "receiptBodyEmpty": true,
+        "postBodyPreserved": null
+      },
+      "allowed_post_303": {
+        "serverMethodSequence": [
+          "GET",
+          "POST",
+          "GET"
+        ],
+        "setCookieReachedReceipt": true,
+        "receiptBodyEmpty": true,
+        "postBodyPreserved": null
+      },
+      "allowed_post_307": {
+        "serverMethodSequence": [
+          "GET",
+          "POST",
+          "POST"
+        ],
+        "setCookieReachedReceipt": true,
+        "receiptBodyEmpty": false,
+        "postBodyPreserved": true
+      }
+    },
+    "interpretation": "Six prohibited navigation scenarios each recorded zero downstream requests and one context denial. Three allowed scenarios recorded zero denials and preserved the listed response semantics."
+  },
+  "oopifAndContextStress": {
+    "kind": "direct_typescript_module_probe",
+    "scriptName": "stress-oopif-probe.mjs",
+    "scriptSha256AtPublication": "4c938554abab9021dae5c175fbff7c11fec4f211f9cdd706a36cb39d293696bf",
+    "rawResultName": "stress-oopif-results.json",
+    "rawResultSha256AtPublication": "e58d0979cf86c10886ea385775fdba852ca690fdf8ca636da84aa037abb71679",
+    "rawResultMtimeUtcAtPublication": "2026-09-22T14:27:48.779875+00:00",
+    "rawFilesIncludedInRepository": false,
+    "environmentIndependentlyRecorded": false,
+    "environment": {
+      "node": null,
+      "playwright": null,
+      "chrome": null,
+      "browserChannel": "chrome",
+      "headless": true,
+      "serviceWorkers": "block",
+      "extraLaunchArgument": "--site-per-process"
+    },
+    "executedModules": [
+      "src/navigation-guard.ts",
+      "src/navigation-policy.ts"
+    ],
+    "executionTimeSourceSha256": null,
+    "executedDistBuild": false,
+    "fixtureTopology": "Two local servers; allowed main origin and allowed cross-site frame origin; a third exact-origin identity was denied.",
+    "crossProcessIframeObservedViaTargetGetTargets": true,
+    "forbiddenRequestsAfterOopifNavigation": 0,
+    "initialContextBlockedCounts": [
+      1,
+      0
+    ],
+    "popupClosesAcrossTwoContexts": 24,
+    "contextBlockedCountsAfterStress": [
+      7,
+      6
+    ],
+    "secondContextStillUsableAfterFirstClosed": true,
+    "closedContextCounterRetired": true,
+    "cleanupReached": true
+  },
+  "transportDisconnectCounterexample": {
+    "kind": "standalone_flattened_cdp_disconnect_probe",
+    "scriptName": "disconnect-probe.mjs",
+    "scriptSha256AtPublication": "aaf6c4e26c622992b1fe7c6823878aa6b8a623542cb3e099b7de4be5373cd04f",
+    "rawResultName": "disconnect-results.json",
+    "rawResultSha256AtPublication": "4a075c3b226df41097066455c0ffc7555e8c1727e2ef5e740ed513c2b2468f3e",
+    "rawResultMtimeUtcAtPublication": "2026-09-22T14:21:50.408948+00:00",
+    "rawFilesIncludedInRepository": false,
+    "environmentIndependentlyRecorded": false,
+    "requestPausedObserved": true,
+    "serverRequestsBeforeDisconnect": 0,
+    "serverRequestsAfterDisconnect": 2,
+    "observationDelayMs": 400,
+    "navigationCompletedAfterDisconnect": true,
+    "disconnectMethod": "Terminate the raw guard WebSocket while a Document request is paused; leave the owned browser running for observation.",
+    "interpretation": "The paused navigation resumed after transport loss. Count 2 is the recorded total HTTP requests; the retained result does not identify both request paths. Production browser teardown is best effort, not atomic fail-closed."
+  },
+  "publicApiRegressionEvidence": {
+    "status": "separately_managed_by_root",
+    "testCount": null,
+    "buildHash": null,
+    "note": "These probes do not certify the final BrowserEngine/MCP/CLI build. Public regression results and their source/build hashes belong in a separate test manifest; no pending count is inferred here."
+  }
+}

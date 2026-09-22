@@ -1,8 +1,8 @@
 # Tablaze launch copy / 闪页首发审稿
 
-Draft date: 2026-09-22. Current status: developer preview, version 0.1.0. The public [SweetDianDian/tablaze](https://github.com/SweetDianDian/tablaze) repository has been created and its initial source push is being prepared. npm publication and the first Linux CI result are pending. The copy below remains a review draft; other URL fields stay unset until their destinations exist.
+Draft date: 2026-09-22. Version 0.1.0 is a developer preview with [public source](https://github.com/SweetDianDian/tablaze) and a passing [Ubuntu CI run](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909) on Node 20 / 22. npm publication is pending. The copy below is ready for editorial review; unset URL fields still need their destinations.
 
-草稿日期：2026-09-22。当前为 0.1.0 开发者预览版；公开 [GitHub 仓库](https://github.com/SweetDianDian/tablaze)已创建，正在准备首次源码推送。npm 尚未发布，首次 Linux CI 结果待确认。以下仍为审稿内容，其他链接仅在真实目标建立后填写。
+草稿日期：2026-09-22。0.1.0 开发者预览版[源码已公开](https://github.com/SweetDianDian/tablaze)，Ubuntu 上 Node 20 / 22 的 CI 已通过；npm 尚未发布。以下为发布文案草稿，待填链接需先建立真实目标。
 
 ## Short introduction / 短介绍
 
@@ -28,9 +28,9 @@ Tablaze 基于 Playwright，提供八个 stdio MCP 工具，默认使用临时�
 
 ## GitHub descriptions / GitHub 简介
 
-Each single-line description below is within GitHub's 350-character limit. Use one language per repository description; keep the other in its corresponding README.
+Each description fits GitHub's 350-character limit.
 
-每条单行简介均不超过 350 字符。仓库简介选择一种语言，另一种放在对应 README 中。
+每条简介均不超过 GitHub 的 350 字符限制。
 
 **English**
 
@@ -46,23 +46,23 @@ Tablaze / 闪页：为编程 Agent 提供精简的浏览器 MCP。持续会话�
 
 ## Evidence caption / 可选证据说明
 
-Use this beside the raw report, not as a universal speed headline. These are observed measurements from the 2026-09-22 local run, not a timing promise for the demonstration below.
+Use this beside the raw report. Measurements are from the 2026-09-22 local benchmark.
 
-这段说明适合放在原始报告旁。数值来自 2026-09-22 本机运行，不是通用速度标题，也不是下方演示的耗时承诺。
+这段说明适合放在原始报告旁，数值来自 2026-09-22 本机基准。
 
 > Local fixture, real Chrome: 5/5 runs passed independent URL/DOM checks. Median process-cold open: 415.013 ms; warm snapshot: 6.326 ms across 15 observations; four-action batch: 240.455 ms; outcome verification: 10.805 ms. Warm snapshots serialized to 1,401 UTF-8 JSON bytes. Apple M3 Max, macOS arm64, Node 26.8.1, Playwright 1.63.0, Chrome 153.0.8010.53. Engine calls only; MCP transport, model inference, installation and internet latency are excluded. Bytes are not tokens.
 
 > 本地 fixture、真实 Chrome：5/5 次运行通过独立 URL/DOM 验收。中位数：新进程冷启动 415.013 ms；15 次会话内快照 6.326 ms；四步动作批次 240.455 ms；结果验收 10.805 ms。快照序列化为 1,401 UTF-8 JSON 字节。环境为 Apple M3 Max、macOS arm64、Node 26.8.1、Playwright 1.63.0、Chrome 153.0.8010.53。计时仅包含直接引擎调用，不含 MCP 传输、模型推理、安装和外网延迟；字节数不是 token 数。
 
-Source: [raw report](../bench/results/latest.json), [measurement method](../bench/README.md), [validation record](VALIDATION.md). Before publication, pin the report to the release commit and check its `source_sha256` values against the candidate artifacts. Do not silently reuse these numbers after changing the measured build.
+Source: [raw report](../bench/results/latest.json), [measurement method](../bench/README.md), [validation record](VALIDATION.md). Keep the report with its recorded `source_sha256`; repeat the measurement when the measured code changes.
 
-依据：[原始报告](../bench/results/latest.json)、[测量方法](../bench/README.md)、[验证记录](VALIDATION.md)。发布时将报告固定到对应提交，并核对候选产物的 `source_sha256`；测量版本变化后重新取数。
+依据：[原始报告](../bench/results/latest.json)、[测量方法](../bench/README.md)、[验证记录](VALIDATION.md)。报告保留对应的 `source_sha256`；测量代码变化后重新取数。
 
 ## 90-second recording script / 90 秒实拍脚本与字幕
 
-This is a shot plan, not an existing recording or proof that Codex selected these calls autonomously. Record actual stdio MCP requests and responses next to the visible browser. Use a client that permits explicit tool calls for the deliberate stale-revision scene. A later recording driven by a Codex prompt should identify the real client/model and retain its actual tool choices.
+This shot plan expands the [existing SDK trace demo](../demo/README.md) into a 90-second walkthrough. Record actual stdio MCP requests and responses next to the visible browser; the stale-revision scene needs explicit tool calls. For a model-driven version, identify the client/model and retain its actual tool choices.
 
-这是分镜草稿，不是已录制视频，也不代表 Codex 已自主选择过这些调用。实拍时并排展示真实 stdio MCP 调用、响应和可见浏览器；故意使用旧版本的片段需要能明确指定工具参数的客户端。后续如改用 Codex 提示词驱动，应注明真实客户端、模型，并保留实际工具选择。
+这份分镜将[已有 SDK 轨迹演示](../demo/README.md)扩展为 90 秒流程。实拍时并排展示真实 MCP 调用、响应和可见浏览器；旧版本片段需要显式指定参数。模型驱动版本应注明客户端、模型，并保留实际工具选择。
 
 ### Before recording / 录制前
 
@@ -108,7 +108,7 @@ The stale scene demonstrates revision validation. DOM replacement and changes du
 
 ## Three newcomer issue drafts / 三条新手 Issue 草稿
 
-These are proposed issues, not already-open GitHub issues. Recheck scope against the release branch before creating them. Suggested labels: `good first issue`, `help wanted`; create labels only when the repository exists.
+These issue drafts can be opened after checking their scope against the current release branch. Suggested labels: `good first issue`, `help wanted`.
 
 以下是待审草稿，不是已创建的 Issue。正式创建前对照发布分支确认仍有需要。每项均有明确入口和验收条件。
 
@@ -146,7 +146,7 @@ These are proposed issues, not already-open GitHub issues. Recheck scope against
 
 **What can I use today? / 现在能用什么？**
 
-Build the source from [GitHub](https://github.com/SweetDianDian/tablaze) with Node.js 20+, then use the [Codex integration guide](CODEX.md) or the eight standard stdio MCP tools from another compatible client. A local package has been exercised through a real MCP SDK client; one real Codex CLI model-selected local task also passed, as recorded in the [validation evidence](VALIDATION.md). The first hosted Linux CI result is pending. / 可从 GitHub 获取源码并按[中文 Codex 指南](CODEX.zh-CN.md)接入。已有真实 MCP SDK 验证和一次 Codex CLI 模型自主调用的本地任务验证，范围见[验证记录](VALIDATION.md)；首次托管 Linux CI 结果仍待确认。
+Build the source from [GitHub](https://github.com/SweetDianDian/tablaze) with Node.js 20+, then use the [Codex integration guide](CODEX.md) or the eight standard stdio MCP tools from another compatible client. A local package has been exercised through a real MCP SDK client; one real Codex CLI model-selected local task also passed, as recorded in the [validation evidence](VALIDATION.md). [Hosted Ubuntu CI](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909) also passed on Node 20 / 22. / 可从 GitHub 获取源码并按[中文 Codex 指南](CODEX.zh-CN.md)接入。已有真实 MCP SDK 验证和一次 Codex CLI 模型自主调用的本地任务验证，范围见[验证记录](VALIDATION.md)；Ubuntu 上 Node 20 / 22 的托管 CI 也已通过。
 
 **Is this Jev? Does it need a Jev key? / 这是 Jev 吗？需要 Jev Key 吗？**
 
@@ -178,25 +178,25 @@ Password and hidden input values are omitted from snapshots, and sensitive value
 
 **Can I install from npm right now? / 现在能直接从 npm 安装吗？**
 
-This preview has no public npm release. Use the source or the locally supplied tarball and its exact path. Add a registry installation command only after the package owner, version and public artifact have been verified. / 当前使用源码或本地提供的安装包；公开包、归属和版本核验后再写 registry 安装命令。
+npm publication is pending. Install from the GitHub source using the quickstart, or use the local preview tarball. / npm 尚未发布，请按快速开始从 GitHub 源码安装，或使用本地预览安装包。
 
-## Real URLs to fill before publication / 公开发布前待填链接
+## Publication links / 发布链接
 
-The repository and contribution routes are now known. Other unset fields are not live destinations; no placeholder should become a public button or installation instruction. Source-file links can be finalized after the first push, and evidence links should be pinned to their corresponding commit/tag.
+Repository, source files and contribution routes are public. Evidence links below pin historical results to their tested commit; remaining destinations are marked pending.
 
-仓库与贡献入口已确认，其余未填写字段不是可用链接，不生成公开按钮或安装指令。源码文件链接在首次推送后确认，证据优先固定到对应提交或版本。
+仓库、源码文件和贡献入口已公开。下方证据链接固定到对应提交，其他目标仍标为待填。
 
 | Field / 字段 | Current value / 当前值 | Verify before using / 使用前核验 |
 | --- | --- | --- |
-| `REPOSITORY_URL` | [SweetDianDian/tablaze](https://github.com/SweetDianDian/tablaze) | Public repository created; initial source push in preparation. / 公开仓库已创建，首次源码推送准备中。 |
+| `REPOSITORY_URL` | [SweetDianDian/tablaze](https://github.com/SweetDianDian/tablaze) | Public source on `main`. / 源码已发布至 `main`。 |
 | `RELEASE_URL` | Unset / 待填 | Real tag/version, downloadable artifact and release notes. / 真实标签、可下载产物与发布说明。 |
 | `NPM_PACKAGE_URL` | Unset / 待填 | Published package owner, exact version and installed contents. Omit until published. / 包归属、版本和安装内容；未发布则不展示。 |
-| `WEBSITE_URL` | Unset / 待填 | Public HTTPS page, working EN/中文 links and actual installation commands. / 可访问页面、语言切换与真实安装命令。 |
+| `WEBSITE_URL` | [Tablaze](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site) | Deployed; currently visible to the owner only. / 已部署，当前仅所有者可见。 |
 | `DEMO_VIDEO_URL` | Unset / 待填 | Actual recording, visible version, normal-speed/cut labels and accurate captions. / 真实视频、版本及准确字幕。 |
-| `BENCHMARK_REPORT_URL` | Unset / 待填 | Raw JSON pinned to its measured commit, alongside methodology. / 与测量提交一致的原始报告及方法。 |
-| `VALIDATION_URL` | Unset / 待填 | Published validation record with remaining gaps intact. / 保留待验证事项的验证记录。 |
-| `CI_RUN_URL` | Unset / 待填 | A real hosted run for the release candidate, not the workflow file alone. / 发布候选的真实托管运行。 |
-| `CONTRIBUTING_URL`, `ISSUES_URL`, `PULL_REQUESTS_URL` | [Contribution guide](../CONTRIBUTING.md) · [Issues](https://github.com/SweetDianDian/tablaze/issues) · [Pull requests](https://github.com/SweetDianDian/tablaze/pulls) | The guide and templates become available with the first source push. / 指南和模板随首次源码推送提供。 |
+| `BENCHMARK_REPORT_URL` | [Raw report](https://github.com/SweetDianDian/tablaze/blob/579631abb53ccf2bca027d07ccc09b990fab3b27/bench/results/latest.json) | Historical local run with recorded source hashes; see [method](../bench/README.md). / 本地历史运行，源码哈希与方法保留。 |
+| `VALIDATION_URL` | [Validation record](https://github.com/SweetDianDian/tablaze/blob/main/docs/VALIDATION.md) | Environments, evidence and remaining coverage. / 环境、证据与待补覆盖。 |
+| `CI_RUN_URL` | [GitHub Actions run](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909) | Passed on Ubuntu, Node 20 / 22; commit `579631a`. / 两个 Node 版本均通过。 |
+| `CONTRIBUTING_URL`, `ISSUES_URL`, `PULL_REQUESTS_URL` | [Contribution guide](../CONTRIBUTING.md) · [Issues](https://github.com/SweetDianDian/tablaze/issues) · [Pull requests](https://github.com/SweetDianDian/tablaze/pulls) | Guide and templates are available in the public repository. / 指南和模板已公开。 |
 | `SECURITY_REPORT_URL` | [Private vulnerability report](https://github.com/SweetDianDian/tablaze/security/advisories/new) | GitHub private reporting enabled and verified; aligned with `SECURITY.md`. / GitHub 私密报告已启用并验证，与安全说明一致。 |
 
 Editorial references / 审稿依据：[product contract](PRODUCT_SPEC.md), [MCP tool schemas](../src/server.ts), [browser engine](../src/browser.ts), [snapshot implementation](../src/snapshot.ts), [fixtures](../tests/fixture.mjs), [launch plan](LAUNCH_PLAN.md).

@@ -2,9 +2,9 @@
 
 ## 0.1.0 — developer preview / 开发者预览
 
-2026-09-22. The public [SweetDianDian/tablaze](https://github.com/SweetDianDian/tablaze) repository has been created for the initial source upload. npm publication and the first Linux CI result are pending.
+2026-09-22. Source is available in [SweetDianDian/tablaze](https://github.com/SweetDianDian/tablaze). [GitHub Actions](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909) passed on Ubuntu with Node.js 20 and 22 using managed Chromium. npm publication is pending.
 
-2026-09-22：公开 GitHub 仓库已创建，正在准备首个源码提交；npm 尚未发布，首次 Linux CI 结果待确认。
+2026-09-22：源码已公开；Ubuntu 上 Node.js 20 / 22 与 managed Chromium 的 GitHub Actions 检查已通过。npm 尚未发布。
 
 - Eight stdio MCP tools for browser sessions, observations, ordered actions, extraction, verification, capture and cleanup.
 - Persistent browser process with isolated temporary contexts by default; explicit CDP mode owns only its created pages.

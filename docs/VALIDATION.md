@@ -1,6 +1,6 @@
 # Preview validation / 预览版验证记录
 
-Date: 2026-09-22. These results describe this checkout and machine only.
+Date: 2026-09-22. Results below identify their environment and the source or archive they tested.
 
 ## Observed results / 已观察结果
 
@@ -11,9 +11,8 @@ Date: 2026-09-22. These results describe this checkout and machine only.
 - Separate Jev examples have six offline tests. They do not validate a real Jev API call or establish Tablaze compatibility with Jev.
 - Clean source ZIP installation: Node 20.16.0, 22.17.0 and 26.8.1 each passed npm ci, build, doctor and all 22 tests (66 total, none skipped). [Machine-readable evidence](evidence/clean-install.json) binds this check to its exact archive SHA-256. Installation used the existing npm cache and installed Chrome.
 - Release archives add documentation, demo and release tooling after that matrix. [Equivalence evidence](evidence/release-equivalence.json) confirms unchanged core source, tests, lockfile and TypeScript settings, plus 15 byte-identical compiled runtime files. Compared with the tested archive, the package manifest changes its publication allowlist and public repository metadata (`bugs`, `homepage`, `repository`); the later ZIP itself was not re-run through the three-runtime matrix.
-- The GitHub upload adds repository metadata and public documentation links without changing the browser runtime. Historical tests remain bound to their recorded archive/source hashes; these metadata updates do not constitute another installation or browser test run.
 - Runtime: macOS (darwin arm64), installed Chrome 153.0.8010.53. Browser instances are isolated test processes.
-- CI for Linux / Node 20 and 22 is prepared; its first hosted result after the initial GitHub push is pending.
+- GitHub Actions on Ubuntu passed for Node 20 and 22 with managed Chromium: locked dependency installation, build, browser/MCP tests and package dry run. [Run](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909) · [Machine-readable record](evidence/linux-ci.json). Both jobs completed at 2026-09-22T06:53:17Z on commit [`579631a`](https://github.com/SweetDianDian/tablaze/commit/579631abb53ccf2bca027d07ccc09b990fab3b27).
 
 ## Local performance / 本机性能
 
@@ -27,9 +26,9 @@ Date: 2026-09-22. These results describe this checkout and machine only.
 | Outcome verification / 结果验证 | 10.805 ms | 5 |
 | Warm snapshot JSON UTF-8 bytes / 快照字节 | 1,401 bytes | 15 |
 
-Five of five runs passed independent outcome checks. The engine is called in-process. These timings exclude MCP transport, model inference, browser installation, and internet websites. A cold sample uses a fresh browser process, not an empty operating-system cache. Byte counts are not token counts. Five runs of one local form do not demonstrate reliability on arbitrary sites or superiority over competing products.
+Five of five runs passed independent outcome checks. Timings measure in-process engine calls on one local form, excluding MCP transport, model inference, browser installation and internet latency. Cold samples start a fresh browser process with the operating-system cache intact. Payload size is measured in UTF-8 bytes.
 
-五次运行均通过独立结果验证。测量直接调用浏览器引擎，不含 MCP 传输、模型推理、浏览器安装或外网访问；冷启动指新建浏览器进程，不是清空系统缓存。字节数不是 token 数。这些结果不能推出任意网站上的成功率，也不能证明优于其他产品。
+五次运行均通过独立结果验证。计时范围为单一本地表单上的进程内引擎调用，不含 MCP 传输、模型推理、浏览器安装或外网延迟。冷启动使用新建浏览器进程，保留系统缓存；输出体积以 UTF-8 字节计。
 
 ## Reproduce / 复现
 
@@ -49,7 +48,7 @@ Packaged CLI users should download the source archive to run the development sui
 
 ## Website checks / 网站检查
 
-The bilingual page passed browser checks for language switching, a four-step illustrative replay, keyboard tab navigation, real clipboard copying, FAQ interaction, raw measurement loading and no horizontal overflow at 390, 768 and 1440 pixels. No JavaScript page errors were observed. This is a local preview result; it does not claim a public deployment.
+The bilingual page passed browser checks for language switching, a four-step illustrative replay, keyboard tab navigation, real clipboard copying, FAQ interaction, raw measurement loading and no horizontal overflow at 390, 768 and 1440 pixels. No JavaScript page errors were observed. These checks used the local preview.
 
 ## Package checks / 安装包检查
 
@@ -57,20 +56,20 @@ The actual preview tarball was installed outside the source checkout using local
 
 ## Reproducible demo / 可复现演示
 
-A normal-speed recording presents actual SDK responses and browser screenshots. The video is 56.08 seconds at 1440×900; labelled reading pauses are excluded from individual tool durations. The run includes a four-action hotel batch, five independent checks, replacement-node rejection, fresh-observation recovery and zero remaining sessions. It does not contain model inference or a continuous controlled-tab video feed. [Recorder](../demo/README.md) · [Recorded request evidence](evidence/demo-run.json).
+A normal-speed recording presents actual SDK responses and browser screenshots. The video is 56.08 seconds at 1440×900; labelled reading pauses are excluded from individual tool durations. The run includes a four-action hotel batch, five independent checks, replacement-node rejection, fresh-observation recovery and zero remaining sessions. The recording presents the SDK trace and browser screenshots; model-driven acceptance is recorded separately below. [Recorder](../demo/README.md) · [Recorded request evidence](evidence/demo-run.json).
 
 The introduction page was updated with this playable video and larger body text; 390/768/1440 pixel layouts and both languages passed checks, with no JavaScript page errors.
 
 ## Real Codex acceptance / Codex 实际验收
 
-A real Codex CLI 0.154.0 model selected six MCP calls, completed four form actions and passed five URL/title/text/value/count checks, then closed its session and confirmed zero remaining sessions. It used read-only filesystem sandboxing and invocation-only on-request/auto_review settings, with no global configuration change or approval bypass. The initial default non-interactive policy rejected navigation; both outcomes are preserved in the [sanitized evidence](evidence/codex-e2e.json). This is one local fixture task, not a performance benchmark or arbitrary-site reliability result.
+A real Codex CLI 0.154.0 model selected six MCP calls, completed four form actions and passed five URL/title/text/value/count checks, then closed its session and confirmed zero remaining sessions. The task used read-only filesystem sandboxing with invocation-only on-request/auto_review settings. The [sanitized evidence](evidence/codex-e2e.json) records the client, tool calls, results and an earlier navigation rejection. Coverage is one local fixture task through the CLI.
 
 ## Remaining evidence / 待补证据
 
-- Windows/Linux and alternate Chrome/Edge channel results.
+- Windows and alternate Chrome/Edge channel results; additional Linux distributions beyond the Ubuntu CI runner.
 - Matched third-party benchmark comparisons.
 - Internet-site reliability, long-running sessions, heavy pages and popup/file workflows.
-- Broader Codex end-to-end coverage across client versions and external websites.
+- Broader Codex end-to-end coverage across client versions and external websites, including desktop UI acceptance. Current model-driven evidence is from Codex CLI.
 - Real Jev API execution (separate optional example, not part of Tablaze).
 
-The public [GitHub repository](https://github.com/SweetDianDian/tablaze) has been created and its first source push is being prepared. npm is not published. No third-party adoption, star count or successful Linux CI result is claimed here.
+Source is public in the [GitHub repository](https://github.com/SweetDianDian/tablaze), with a passing [Ubuntu CI run](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909). npm publication is pending.

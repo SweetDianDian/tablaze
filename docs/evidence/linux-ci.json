@@ -1,0 +1,36 @@
+{
+  "evidence_type": "github_actions_hosted_validation",
+  "repository": "https://github.com/SweetDianDian/tablaze",
+  "run_id": 35696802909,
+  "url": "https://github.com/SweetDianDian/tablaze/actions/runs/35696802909",
+  "head_sha": "579631abb53ccf2bca027d07ccc09b990fab3b27",
+  "event": "push",
+  "status": "completed",
+  "conclusion": "success",
+  "created_at": "2026-09-22T06:52:14Z",
+  "updated_at": "2026-09-22T06:53:18Z",
+  "verification_source": "GitHub Actions run and jobs APIs",
+  "environment": "Ubuntu GitHub-hosted runner with Playwright-managed Chromium",
+  "jobs": [
+    {
+      "name": "Linux / Node 20",
+      "conclusion": "success",
+      "completed_at": "2026-09-22T06:53:17Z",
+      "url": "https://github.com/SweetDianDian/tablaze/actions/runs/35696802909/job/106645358633"
+    },
+    {
+      "name": "Linux / Node 22",
+      "conclusion": "success",
+      "completed_at": "2026-09-22T06:53:17Z",
+      "url": "https://github.com/SweetDianDian/tablaze/actions/runs/35696802909/job/106645358543"
+    }
+  ],
+  "successful_steps_in_both_jobs": [
+    "Install locked dependencies",
+    "Install managed Chromium and system dependencies",
+    "Run build, real browser tests and MCP protocol tests",
+    "Inspect package contents without publishing",
+    "Retain verification logs"
+  ],
+  "scope": "These results belong to the recorded source commit. No npm publication, Windows run or alternate browser-channel coverage is implied. Test counts were not extracted from hosted logs."
+}

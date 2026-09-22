@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+  <title id="title">Tablaze — a compact browser MCP</title>
+  <desc id="desc">Tablaze wordmark beside an abstract browser window and three steps: observe, act, verify.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#111b26"/>
+      <stop offset="1" stop-color="#090e15"/>
+    </linearGradient>
+    <linearGradient id="flare" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#ff9b6a"/>
+      <stop offset="1" stop-color="#ff6338"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="1198" height="358" rx="22" fill="url(#background)" stroke="#29394a" stroke-width="2"/>
+  <g fill="none" stroke="#1c2b3c" stroke-width="1">
+    <path d="M660 1V359M740 1V359M820 1V359M900 1V359M980 1V359M1060 1V359M1140 1V359"/>
+    <path d="M620 60H1199M620 140H1199M620 220H1199M620 300H1199"/>
+  </g>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <g transform="translate(58 43)">
+      <rect width="34" height="34" rx="9" fill="#ff754a"/>
+      <path d="M10 23L23 10M12 10H23V21" fill="none" stroke="#101923" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="48" y="23" font-size="15" letter-spacing="3" fill="#a4b6cc">BROWSER MCP</text>
+    </g>
+    <text x="54" y="191" font-size="103" font-weight="700" letter-spacing="-6" fill="#f2f5f9">tablaze<tspan fill="#ff754a">.</tspan></text>
+    <text x="59" y="241" font-size="26" fill="#b7c8db">Give your agent a browser.</text>
+    <text x="60" y="308" font-size="13" letter-spacing="2.5" fill="#8da4bd">SMALL SNAPSHOTS. WARM SESSIONS.</text>
+    <g transform="translate(727 50)">
+      <rect x="22" y="-10" width="362" height="215" rx="13" fill="#0e1823" stroke="#2c3f53"/>
+      <rect x="0" y="13" width="362" height="215" rx="13" fill="#111e2c" stroke="#40546c" stroke-width="1.5"/>
+      <path d="M1 52H361" stroke="#33475d"/>
+      <circle cx="21" cy="33" r="4" fill="#ff754a"/>
+      <circle cx="35" cy="33" r="4" fill="#61778f"/>
+      <circle cx="49" cy="33" r="4" fill="#61778f"/>
+      <rect x="83" y="27" width="180" height="12" rx="6" fill="#263a50"/>
+      <rect x="24" y="77" width="172" height="9" rx="4.5" fill="#adc0d6"/>
+      <rect x="24" y="99" width="226" height="7" rx="3.5" fill="#4a627c"/>
+      <rect x="24" y="130" width="164" height="37" rx="6" fill="#192d42" stroke="#405c78"/>
+      <rect x="205" y="130" width="131" height="37" rx="6" fill="#192d42" stroke="#405c78"/>
+      <path d="M41 147H117M223 147H272" stroke="#8ba4bf" stroke-width="5" stroke-linecap="round"/>
+      <rect x="24" y="184" width="12" height="12" rx="3" fill="#bfd99e"/>
+      <path d="M50 190H136" stroke="#728ca7" stroke-width="5" stroke-linecap="round"/>
+      <rect x="205" y="181" width="131" height="23" rx="5" fill="url(#flare)"/>
+      <path d="M289 96L284 138L299 127L314 151L326 144L311 120L330 117Z" fill="#ff8658" stroke="#0d1722" stroke-width="5" stroke-linejoin="round"/>
+    </g>
+    <g font-size="12" letter-spacing="1.4" fill="#c5d4e5">
+      <text x="732" y="318">OBSERVE</text>
+      <path d="M815 313H847M841 307L847 313L841 319" fill="none" stroke="#ff754a" stroke-width="1.5"/>
+      <text x="869" y="318">ACT</text>
+      <path d="M920 313H952M946 307L952 313L946 319" fill="none" stroke="#ff754a" stroke-width="1.5"/>
+      <text x="974" y="318">VERIFY</text>
+      <circle cx="1090" cy="313" r="9" fill="#b8d998"/>
+      <path d="M1086 313L1089 316L1094 310" fill="none" stroke="#15221e" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+</svg>

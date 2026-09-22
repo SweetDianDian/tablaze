@@ -1,38 +1,41 @@
-# Tablaze / 闪页
+<p align="center">
+  <a href="https://tablaze-browser-mcp.isdiandian0825.chatgpt.site">
+    <img src="docs/assets/tablaze-banner.svg" alt="Tablaze — a compact browser MCP. Observe. Act. Verify." width="100%">
+  </a>
+</p>
 
-**Small snapshots. Warm sessions. Clear outcomes.**
+<p align="center">
+  <strong><a href="https://tablaze-browser-mcp.isdiandian0825.chatgpt.site">Website ↗</a></strong> &nbsp; · &nbsp;
+  <a href="https://tablaze-browser-mcp.isdiandian0825.chatgpt.site#demo">Watch the demo</a> &nbsp; · &nbsp;
+  <a href="docs/CODEX.md">Codex guide</a> &nbsp; · &nbsp;
+  <a href="README.zh-CN.md">简体中文</a>
+</p>
 
-Tablaze is a local browser MCP for agents that need to open pages, work through forms, and verify what actually happened. It keeps Chromium running, returns compact page observations, and executes bounded action batches against the elements the agent just observed.
+<p align="center">
+  <a href="https://github.com/SweetDianDian/tablaze/actions/workflows/ci.yml"><img src="https://github.com/SweetDianDian/tablaze/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-b7db9a?style=flat-square" alt="MIT license"></a>
+  <a href="package.json"><img src="https://img.shields.io/badge/node-%E2%89%A520-80b7ff?style=flat-square" alt="Node.js 20 or later"></a>
+</p>
 
-[简体中文](README.zh-CN.md) · [Connect Codex](docs/CODEX.md) · [Benchmark method](bench/README.md) · [Contributing](CONTRIBUTING.md)
+**Give your agent a browser it can work with.** Tablaze connects Codex and other MCP clients to Chromium through eight focused tools. Inspect a page, fill a form, extract a result, and check that the task actually succeeded.
 
-**Status: developer preview, version 0.1.0.** The public source repository is [SweetDianDian/tablaze](https://github.com/SweetDianDian/tablaze). npm publication is still pending; use the source or a locally built package. Linux CI awaits its first push-triggered result. There are no claimed adoption numbers or cross-product speedups.
+Built with Playwright. Browser sessions stay running between calls; your MCP client supplies the reasoning. No additional model API key required.
 
-## What makes it useful
+## See it work
 
-- **A browser that stays ready.** Sessions retain their page and cookies while the server runs. Default sessions use separate, temporary browser contexts.
-- **Observations with a budget.** Full or incremental snapshots expose element references, visible text, frames, and explicit truncation information.
-- **References with context.** Each batch supplies both a session ID and a snapshot revision. Replaced nodes and changed target semantics are checked again before input.
-- **Fewer separate tool calls.** Submit up to 20 ordered actions, inspect completed/failed/skipped steps, then verify explicit outcomes.
-- **No extra model account.** Tablaze does not call a model or require an API key. Your MCP client supplies the reasoning.
+**[Watch the 56-second demo →](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site#demo)**
 
-```text
-Codex / another MCP client
-           │ stdio
-           ▼
-        Tablaze
- observe → guarded actions → verify
-           │ Playwright
-           ▼
-   persistent browser process
-     isolated session contexts
-```
+A real MCP SDK client searches for a stay in Lisbon, verifies five outcomes, then encounters a replaced button and recovers with a fresh observation. The recording shows actual tool responses and browser captures.
 
-Jev is **not integrated** in this release. The exploration of `browser-use/jev-ultrafast` inspired the focus on a small browser control loop; Tablaze does not require Jev, TypeSafe, or a text-generation provider.
+[![Real MCP demo: five checks passed against the Lisbon hotel results](docs/assets/demo-poster.png)](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site#demo)
 
-## Start from source
+`Observe the form` → `Fill · select · check · search` → `Verify the result`
 
-Requires **Node.js 20+**, npm, Git, and a supported desktop/server environment for Chromium. Clone the source, then build it:
+[Reproduce the recording](demo/README.md) · [Inspect the full trace](docs/evidence/demo-run.json)
+
+## Get started
+
+Requires **Node.js 20+**, npm and Git. This is a developer preview; npm publication is pending, so install from source:
 
 ```sh
 git clone https://github.com/SweetDianDian/tablaze.git
@@ -40,93 +43,72 @@ cd tablaze
 npm ci
 npm run build
 node dist/cli.js setup
-node dist/cli.js doctor
 ```
 
-`setup` invokes the installed Playwright CLI to download its matching Chromium. On Linux, additional system libraries may be required; see [Playwright's browser installation guide](https://playwright.dev/docs/browsers). Browser downloads never run automatically during MCP startup.
+<details>
+<summary>Already have Chrome, or running on Linux?</summary>
 
-To use installed Chrome instead, skip `setup` and run:
+For installed Chrome, skip `setup`, run `node dist/cli.js doctor --channel chrome`, and append `--channel chrome` to the Codex command below. This launches a separate browser session.
+
+On Linux, use `npx playwright install --with-deps chromium` in place of `setup` to install the browser and system dependencies.
+
+[Browser modes and diagnostics](docs/CODEX.md#1-build-and-choose-a-browser)
+
+</details>
+
+### Connect Codex
+
+From the cloned directory, register the built server:
 
 ```sh
-node dist/cli.js doctor --channel chrome
-```
-
-`--channel chrome` launches a separate browser with a temporary context. It does not attach to your existing logged-in tabs. `doctor` checks the executable and reports versions when available; it does not launch or connect to a browser.
-
-## Connect Codex
-
-Replace **both absolute paths** below with your Node executable and built checkout. Find Node with `node -p 'process.execPath'`.
-
-```sh
-codex mcp add tablaze -- "/absolute/path/to/node" "/absolute/path/to/tablaze/dist/cli.js" --channel chrome
+codex mcp add tablaze -- "$(node -p 'process.execPath')" "$PWD/dist/cli.js"
 codex mcp get tablaze
 ```
 
-Omit `--channel chrome` to use Chromium installed by `setup`. For configuration, all tool examples, cancellation semantics, and troubleshooting, read the [Codex guide](docs/CODEX.md). The command shape follows [OpenAI's MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=cli).
+Then ask Codex:
 
-Try this prompt:
+> Use Tablaze to open https://example.com, read the heading and links, verify that the title contains “Example Domain”, then close the session. Report the result of the checks.
 
-> Use Tablaze to open https://example.com, read its heading and links, verify the page title, and close the session. Report what the browser evidence confirms.
+[Complete Codex setup](docs/CODEX.md) covers desktop configuration, browser selection and troubleshooting. Other MCP clients can launch the same `node /absolute/path/to/tablaze/dist/cli.js` command over stdio.
 
-## Eight tools
+## A small loop, with useful controls
 
-| Tool | Purpose |
+| Capability | What it gives your agent |
 | --- | --- |
-| `tab_open` | Open an HTTP(S) page and return its first snapshot. |
-| `tab_snapshot` | Read a full snapshot or a diff; optionally select an iframe. |
-| `tab_act` | Click, fill, press, select, check, scroll, or wait in an ordered batch. |
-| `tab_extract` | Extract bounded text, links, or table rows. |
-| `tab_verify` | Check URL, title, text, visibility, field value, or element count. |
-| `tab_capture` | Return a JPEG screenshot with metadata. |
-| `tab_list` | List this server's sessions. |
-| `tab_close` | Close one owned session. |
+| **Warm sessions** | Keep page state between calls. Temporary, isolated browser contexts by default; explicit CDP attachment for an existing profile. |
+| **Compact observations** | Full or incremental snapshots with element refs, text budgets and visible truncation. |
+| **Guarded actions** | Check snapshot revisions and DOM targets before input. Re-observe when a target changes. |
+| **Ordered batches** | Send up to 20 actions in one call, with completed, failed and skipped steps. Stops on error; earlier effects remain. |
+| **Explicit verification** | Check the resulting URL, title, text, field values, visibility and element counts. |
 
-Tool results include JSON text and `structuredContent`. Failed operations set `isError`; action results also describe partial progress. SDK input-validation errors use the SDK's error format. Screenshots include an MCP image block. There is no arbitrary JavaScript execution tool.
+### Eight tools
 
-## Know the execution contract
+| Tool | Use it to |
+| --- | --- |
+| `tab_open` | Open a page and receive its first snapshot. |
+| `tab_snapshot` | Observe the page, changes or a selected frame. |
+| `tab_act` | Click, fill, press, select, check, scroll or wait. |
+| `tab_verify` | Test explicit assertions against the current page. |
+| `tab_extract` | Read text, links or tables. |
+| `tab_capture` | Capture a JPEG screenshot. |
+| `tab_list` | Inspect owned sessions. |
+| `tab_close` | Close a session and release its resources. |
 
-Observe before acting. A newer snapshot invalidates the previous `snapshot_id`, and an action batch consumes its supplied revision. Use the fresh snapshot returned by `tab_act`, or call `tab_snapshot` again. References from another session or a navigated/replaced document are not interchangeable. A diff needs its named baseline; ask for a full snapshot if that baseline is unavailable.
+## Explore the project
 
-Batches contain **1–20 steps**, run serially within a session, and stop at the first failure. The total budget defaults to **30 seconds**, with a **60-second maximum**. The CLI's `--timeout-ms` controls individual action/navigation waits; `tab_act.timeout_ms` controls the whole batch. A cancelled active batch or expired batch budget closes its owned session to interrupt work. A cancellation received before execution starts performs no actions. Cancellation and failure **do not roll back** clicks, submissions, or network requests that already happened.
+| Guide | Inside |
+| --- | --- |
+| [Codex integration](docs/CODEX.md) | Copyable configuration, tool arguments and troubleshooting. |
+| [Runtime reference](docs/RUNTIME.md#english) | Reference lifetime, batch semantics, browser modes and current limits. |
+| [Benchmark](bench/README.md) | Reproduce the local workload and inspect every raw sample. |
+| [Validation evidence](docs/VALIDATION.md) | Real browser, SDK and Codex results, with their measured scope. |
+| [Security](SECURITY.md) | Data handling, resource ownership and private reporting. |
+| [Release packaging](docs/RELEASE.md) | Build the npm tarball and source archive. |
 
-Node identity and semantic checks reduce stale-target mistakes. The DOM can still change between a check and actual input: this is **not an atomic guarantee or a security sandbox**. Trial actionability checks can scroll the page. Use `tab_verify` for business outcomes; a completed click does not prove a successful submission.
+[Ubuntu CI on Node 20 and 22](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909) passed the build, browser/MCP tests and package inspection. To check a source checkout yourself, run `npm test`; use `npm run bench` for the separate local benchmark.
 
-## Browser modes and data
+## Contribute
 
-Default sessions are isolated and last only as long as their context/server. They are not saved user profiles. An explicit `--cdp-url` attaches to an already configured Chromium endpoint and creates owned pages in its existing profile. Those pages share that profile's login state and storage. Closing Tablaze cleans up its owned pages and disconnects; it does not intentionally close unrelated tabs or terminate the external Chrome process.
+Bring a reproducible browser case, improve a guide, or send a focused fix. [Open an issue](https://github.com/SweetDianDian/tablaze/issues) · [Submit a pull request](https://github.com/SweetDianDian/tablaze/pulls) · [Read the contribution guide](CONTRIBUTING.md)
 
-Password and hidden input values are omitted from snapshots and rejected by value checks. Other field values, page text, URLs, extracted content, and screenshots may contain private information and are returned to the MCP client. This is not comprehensive secret detection. Read the [security boundaries](SECURITY.md).
-
-Current limits: Chromium only; no file upload/download workflow, arbitrary evaluation, closed-shadow-root access, native dialog handling, or supported new-tab workflow. Open shadow DOM and explicitly selected frames have coverage, but the compact DOM representation is not a complete accessibility tree. Canvas-only interfaces may need a screenshot; there is no coordinate-click tool. CDP uses Playwright's lower-fidelity attachment path.
-
-## Build a local package
-
-```sh
-npm pack
-```
-
-For this version, the output is `tablaze-0.1.0.tgz`. Install that exact artifact into a directory you choose:
-
-```sh
-npm install --prefix "/absolute/path/to/tablaze-install" "/absolute/path/to/tablaze-0.1.0.tgz"
-node "/absolute/path/to/tablaze-install/node_modules/tablaze/dist/cli.js" doctor --channel chrome
-```
-
-Point Codex at the installed `dist/cli.js` absolute path. A registry command such as `npx tablaze@latest` is intentionally not an installation path for this unpublished preview.
-
-## Validate and contribute
-
-Report a reproducible problem through [Issues](https://github.com/SweetDianDian/tablaze/issues), or send a focused [pull request](https://github.com/SweetDianDian/tablaze/pulls). Read the [contribution guide](CONTRIBUTING.md) for the local fixture workflow and validation expectations.
-
-Run from the source checkout with its lockfile and development dependencies:
-
-```sh
-npm test
-npm run bench
-```
-
-With installed Chrome on macOS/Linux, prefix either command with `TABLAZE_BROWSER_CHANNEL=chrome`. Tests use local fixtures and isolated browsers. The benchmark separates cold opening, warm observation, action batches, verification, and JSON payload size; its scope excludes model reasoning and MCP transport. See the [method and raw-output format](bench/README.md). Publish measurements with their environment and failed attempts, not an unsupported speed claim.
-
-[MIT license](LICENSE). Dependency credits and project provenance are in [NOTICE](NOTICE).
-
-Reproduce the [actual MCP demo](demo/README.md), inspect [validation evidence](docs/VALIDATION.md), or create release archives with the [packaging guide](docs/RELEASE.md).
+[MIT licensed](LICENSE) · [Dependency credits and project provenance](NOTICE)

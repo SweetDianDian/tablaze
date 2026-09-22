@@ -13,7 +13,7 @@ Source is public at [SweetDianDian/tablaze](https://github.com/SweetDianDian/tab
 | Linux CI | Ubuntu, Node 20 / 22, managed Chromium: locked dependency installation, build, browser/MCP tests and package dry run passed. [Run](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909) · [Record](evidence/linux-ci.json). |
 | Codex integration / Codex 接入 | One real Codex CLI model task completed 4 form actions and 5 checks, then closed all its sessions. [Record](evidence/codex-e2e.json). / 已验证一次真实 CLI 模型任务。 |
 | Performance / 性能 | Five local runs passed; raw timings and environment are in the [benchmark](../bench/README.md). / 五次本地基准均通过，记录包含环境与原始数据。 |
-| Documentation and demo / 文档与演示 | English/Chinese guides, private introduction Site and a recorded SDK workflow. / 双语指南、私有介绍页与真实 SDK 流程录制。 |
+| Documentation and demo / 文档与演示 | English/Chinese guides, a [public website](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site) and a recorded SDK workflow. / 双语指南、公开官网与真实 SDK 流程录制。 |
 | Distribution / 分发 | Public GitHub source, local source/npm archives and SHA-256 manifest. No npm registry release yet. / GitHub 源码已公开，本地归档已准备，npm 待发布。 |
 | Support / 反馈 | [Issues](https://github.com/SweetDianDian/tablaze/issues) · [Pull requests](https://github.com/SweetDianDian/tablaze/pulls) · [Private vulnerability report](https://github.com/SweetDianDian/tablaze/security/advisories/new). Private reporting is enabled. / 私密漏洞报告已启用。 |
 

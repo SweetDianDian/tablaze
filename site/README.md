@@ -10,7 +10,7 @@ Open http://127.0.0.1:4173. The language switch, illustrative replay, copy contr
 
 此目录是中英文介绍页的便携源码。运行上面的命令后访问本机地址，无需构建或外部素材 CDN。页面演示是示意回放，并没有在网页中连接 MCP。
 
-The deployed private preview additionally includes downloadable release artifacts. Before enabling those links on another host, copy the exact validated tarball and source zip alongside the page, then update `release.json`:
+The [public website](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site) additionally includes downloadable release artifacts. Before enabling those links on another host, copy the exact validated tarball and source zip alongside the page, then update `release.json`:
 
 ```json
 {

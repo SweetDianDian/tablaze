@@ -191,7 +191,7 @@ Repository, source files and contribution routes are public. Evidence links belo
 | `REPOSITORY_URL` | [SweetDianDian/tablaze](https://github.com/SweetDianDian/tablaze) | Public source on `main`. / 源码已发布至 `main`。 |
 | `RELEASE_URL` | Unset / 待填 | Real tag/version, downloadable artifact and release notes. / 真实标签、可下载产物与发布说明。 |
 | `NPM_PACKAGE_URL` | Unset / 待填 | Published package owner, exact version and installed contents. Omit until published. / 包归属、版本和安装内容；未发布则不展示。 |
-| `WEBSITE_URL` | [Tablaze](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site) | Deployed; currently visible to the owner only. / 已部署，当前仅所有者可见。 |
+| `WEBSITE_URL` | [Tablaze](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site) | Public; visitors can view the introduction and recorded demo. / 已公开，访客可直接查看介绍和演示。 |
 | `DEMO_VIDEO_URL` | Unset / 待填 | Actual recording, visible version, normal-speed/cut labels and accurate captions. / 真实视频、版本及准确字幕。 |
 | `BENCHMARK_REPORT_URL` | [Raw report](https://github.com/SweetDianDian/tablaze/blob/579631abb53ccf2bca027d07ccc09b990fab3b27/bench/results/latest.json) | Historical local run with recorded source hashes; see [method](../bench/README.md). / 本地历史运行，源码哈希与方法保留。 |
 | `VALIDATION_URL` | [Validation record](https://github.com/SweetDianDian/tablaze/blob/main/docs/VALIDATION.md) | Environments, evidence and remaining coverage. / 环境、证据与待补覆盖。 |

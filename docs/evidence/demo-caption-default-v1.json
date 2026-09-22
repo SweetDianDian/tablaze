@@ -1,0 +1,45 @@
+{
+  "checks": [
+    {
+      "name": "captions-off-and-HD-unmuted-ready",
+      "tracks": [
+        {
+          "language": "en",
+          "mode": "disabled"
+        },
+        {
+          "language": "zh",
+          "mode": "disabled"
+        }
+      ],
+      "muted": false,
+      "volume": 1,
+      "paused": true,
+      "width": 2880,
+      "height": 1800
+    },
+    {
+      "name": "approval-scene-no-caption-overlay",
+      "time": 114,
+      "audioDecoded": true
+    },
+    {
+      "name": "optional-caption-choice-survives-language-and-chapter"
+    },
+    {
+      "name": "reload-starts-without-overlay"
+    },
+    {
+      "name": "no-page-errors"
+    }
+  ],
+  "errors": [],
+  "screenshots": [
+    "approval-without-overlay.png"
+  ],
+  "recorded_at": "2026-09-22T18:12:33.877Z",
+  "source_sha256": {
+    "site/index.html": "ed0666d082802c461d23694959b7639ca1ca998117ad3e93fc721a33f9ae5aa0",
+    "site/app.js": "804512dde1f3f9a91cc4ac777887d2b4ce73e73abeaf286019690dd264b4849e"
+  }
+}

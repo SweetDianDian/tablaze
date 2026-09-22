@@ -181,6 +181,10 @@ $('#demo-sound').addEventListener('click', () => {
   renderDemoSound();
 });
 demoVideo.addEventListener('volumechange', renderDemoSound);
+// Start with a clear picture; viewers can enable either track in native controls.
+demoVideo.addEventListener('loadedmetadata', () => {
+  for (const track of demoVideo.textTracks) track.mode = 'disabled';
+}, { once: true });
 async function playDemo(focusVideo = false) {
   if (!demoAvailable) return;
   if (focusVideo) demoVideo.focus({preventScroll: true});

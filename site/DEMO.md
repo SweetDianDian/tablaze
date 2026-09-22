@@ -1,8 +1,8 @@
 # Real MCP demonstration / 真实 MCP 演示
 
-The current website recording is **154.104 seconds at 2880×1800**, with eleven segments of conversational English male neural narration, optional captions and seven chapter shortcuts. Larger form text and a wider browser surface make the actual controls readable. Lossless presentation PNG frames are encoded directly to H.264/AAC MP4 once; the video is not made by enlarging or recompressing the previous WebM.
+The current website recording is **154.104 seconds at 2880×1800**, with eleven segments of conversational English male neural narration, optional captions (off by default) and seven chapter shortcuts. Larger form text and a wider browser surface make the actual controls readable. Lossless presentation PNG frames are encoded directly to H.264/AAC MP4 once; the video is not made by enlarging or recompressing the previous WebM.
 
-官网当前演示为 **154.104 秒、2880×1800**，包含十一段英语神经合成男声旁白、中英字幕和七个章节。表单文字与浏览器展示区已放大，高清展示帧直接一次编码为 H.264/AAC MP4，并非把上一版 WebM 放大或再次压缩。稿件使用更口语化的短句与自然停顿，点击播放后默认有声，也可使用明确的声音开关。当前版本只替换旁白和字幕，原有 H.264 画面流的哈希保持一致。
+官网当前演示为 **154.104 秒、2880×1800**，包含十一段英语神经合成男声旁白、中英字幕和七个章节。表单文字与浏览器展示区已放大，高清展示帧直接一次编码为 H.264/AAC MP4，并非把上一版 WebM 放大或再次压缩。稿件使用更口语化的短句与自然停顿，点击播放后默认有声，也可使用明确的声音开关。字幕默认关闭，可以从播放器手动开启。当前版本只替换旁白和字幕，原有 H.264 画面流的哈希保持一致。
 
 ## Reproduce / 复现
 
@@ -72,6 +72,10 @@ The underlying browser workflow passed on **2026-09-23 (Asia/Shanghai)**: 22 MCP
 
 [Complete trace](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-run.json) · [34 website checks](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-site-qa-v4.json) · [Decoded narration evidence](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-narration-v4.json)
 
-All 34 local website checks pass, including 2880×1800 video metadata, an actual decoded audio track, initially unmuted playback, keyboard sound control, eleven English cues and eleven Chinese subtitle cues, complete video decode and all seven chapter jumps. All eleven source clips and the final AAC are decoded and checked separately; the narration evidence includes the actual measurements and exact voice metadata. These checks establish audio in the file and player; local device volume is controlled by the viewer.
+The v4 media/player release passed 34 browser checks, including 2880×1800 video metadata, an actual decoded audio track, initially unmuted playback, keyboard sound control, eleven English cues and eleven Chinese subtitle cues, complete video decode and all seven chapter jumps. All eleven source clips and the final AAC are decoded and checked separately; the narration evidence includes the actual measurements and exact voice metadata. These checks establish audio in the file and player; local device volume is controlled by the viewer.
 
 This deterministic SDK demonstration does not invoke a reasoning model, make external bookings or payments, or prove general website reliability or superiority over Browser Use. Source hashes bind the trace to the recorded runtime. The original [female-narrated v3](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-run-v3.json), [short v1](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-run-v1.json) and [silent 126-second v2](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-run-v2.json) traces remain historical records.
+
+The later [caption-default check](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-caption-default-v1.json) verifies that both tracks start disabled, the approval scene is unobstructed, English audio decodes, and an optional caption choice survives language and chapter changes. Captions remain available through native video controls.
+
+字幕显示调整已单独验证：首次播放默认不显示字幕，审批画面不再被大字幕遮挡，英语声音正常；手动开启字幕后，切换语言或章节会保留选择。

@@ -118,14 +118,14 @@
       "time": 95.979,
       "sourceWidth": 2880,
       "sourceHeight": 1800,
-      "screenshot": "/private/tmp/tablaze-demo-hd-site-qa/decoded-popup-1440.png"
+      "screenshot": "/private/tmp/tablaze-demo-hd-remote-qa/decoded-popup-1440.png"
     },
     {
       "name": "decoded-frame-download",
       "time": 124.187,
       "sourceWidth": 2880,
       "sourceHeight": 1800,
-      "screenshot": "/private/tmp/tablaze-demo-hd-site-qa/decoded-download-1440.png"
+      "screenshot": "/private/tmp/tablaze-demo-hd-remote-qa/decoded-download-1440.png"
     },
     {
       "name": "language-keeps-progress",
@@ -175,32 +175,32 @@
   "screenshots": [
     {
       "file": "demo-390-zh.png",
-      "sha256": "54fc43626a0d386a60468ddbbad60592d343c2e9f6c4406920df93ec73a668cb",
+      "sha256": "08e7dc37ee6eafcfc54fdcf87974e9bde5cee969d7a2d5d1ae4e39260399ebc6",
       "retention": "Local QA artifact; not included in source repository."
     },
     {
       "file": "demo-390-en.png",
-      "sha256": "9dfc5bea94da3a3334a1e1391ccadc6834a9e8874d56154f0b702364f07e5364",
+      "sha256": "70794a259a7fb8c773045ff6b04b86ee7568420496f14be8427256cb5a59c8f9",
       "retention": "Local QA artifact; not included in source repository."
     },
     {
       "file": "demo-768-zh.png",
-      "sha256": "1dd20274d25e57f0452384715cfd134149f72b199c4c440c801418c5f14b631b",
+      "sha256": "21ec2287e64ffbabacf92c64088e451abb97a08b25e04824091be449c24f61fc",
       "retention": "Local QA artifact; not included in source repository."
     },
     {
       "file": "demo-768-en.png",
-      "sha256": "91ac33331c4e6cfcfe4bfbe0ff157f83b8cca7f092b9fc0e1829daa1933ef6e4",
+      "sha256": "b8ee447a406cf0b6cfda74fddb013451a3842f38d3700afad9172f62d000e339",
       "retention": "Local QA artifact; not included in source repository."
     },
     {
       "file": "demo-1440-zh.png",
-      "sha256": "fa3807827af33d149e93f63c90731b5c47091f521ef1bb3a5d256991c87d5716",
+      "sha256": "1d35a4cd2c2c5cf74998a695343d249a7a0d579ad7051c24ae0529a1db4ff7e5",
       "retention": "Local QA artifact; not included in source repository."
     },
     {
       "file": "demo-1440-en.png",
-      "sha256": "c4fff24eddfa25911ee2092d81149e34c43e1b3865c425705877d629d7d7aa18",
+      "sha256": "677220b53538fac463046a19560f5a95242c345d4f63563f9ebda0437b59e74c",
       "retention": "Local QA artifact; not included in source repository."
     },
     {
@@ -210,12 +210,12 @@
     },
     {
       "file": "decoded-popup-1440.png",
-      "sha256": "9d2ae437e20be4f38b43073ef16f3220f4b00a5ee214b62cc902906ad11a7b8e",
+      "sha256": "313b3fc44d9c2c889bc1d53afbac6759def0e959ee67100080f9d4f3fe57236c",
       "retention": "Local QA artifact; not included in source repository."
     },
     {
       "file": "decoded-download-1440.png",
-      "sha256": "dfb2259312c7101c4dd5469e09cf588f19b4e97c49f2da56899634c19cb71072",
+      "sha256": "ffc33f763fc91f713e331f72f2e2713b190696a3fb2ce88d003a75eb78094414",
       "retention": "Local QA artifact; not included in source repository."
     }
   ],
@@ -223,10 +223,11 @@
   "browserClosed": true,
   "localServerClosed": true,
   "schema_version": 1,
-  "recorded_at": "2026-09-22T17:04:26.865195+00:00",
-  "scope": "Local Chrome checks against the final 2880x1800 H.264/AAC recording. Actual audio track, nonzero decoded audio, initially unmuted playback and keyboard sound toggle verified. Complete decode uses playbackRate 16 only for QA; published playback remains normal speed.",
+  "recorded_at": "2026-09-22T17:29:01.882407+00:00",
+  "scope": "Local website in Chrome loading the actual fixed-commit GitHub MP4 through the configured proxy. No media mocking except deliberate 404 failure scenario. Actual audio track, nonzero decoded audio, unmuted start, captions, keyboard sound toggle and complete 2880x1800 decode pass. Rate 16 is used only to accelerate QA decode; public playback remains normal speed.",
+  "media_url": "https://raw.githubusercontent.com/SweetDianDian/tablaze/df42a27d39187664bb434a9e345cc648799f0737/demo/media/tablaze-demo-hd.mp4?v=daa95f35",
   "source_sha256": {
-    "site/index.html": "7d9e14ed63dada72901e533cdb56543dcbfe1051052496c047d4f108cca1a5f4",
+    "site/index.html": "f1e604c2317dc0568d2309ece4f0be27f497d88e9329572bccd207db1b0ac9ec",
     "site/styles.css": "1371db059ff2d35730af2a256f6ffad5bd7eae94b67ad639818c46ce2736853f",
     "site/app.js": "be001b2c88ac3755807e394937fe67c71348cf3d7b9d360838e58fc0d5f79dde"
   },

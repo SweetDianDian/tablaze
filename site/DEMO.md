@@ -34,7 +34,7 @@ Output defaults to `demo/output/`:
 - Five original JPEG captures, `poster.png`, and the verified `wayfar-itinerary.csv`.
 - `frames/` and `frames.ffconcat`: local lossless presentation inputs, retained for inspection.
 
-When publishing, copy the MP4, VTT, report, CSV and five captures into the website's `demo/` directory, and copy `poster.png` as `poster-hd.png`. Set `release.json` to `"demo": true`. Generated videos, audio and frames are not bundled in the source ZIP; the script and reproduction instructions are included.
+The current website loads the [identical MP4 from a fixed GitHub commit](https://raw.githubusercontent.com/SweetDianDian/tablaze/df42a27d39187664bb434a9e345cc648799f0737/demo/media/tablaze-demo-hd.mp4?v=daa95f35). Its bytes and SHA-256 are unchanged; this avoids recurring large-archive upload timeouts. The VTT, report, CSV, five captures and `poster-hd.png` remain hosted with the website. For self-hosting, copy all output assets into the website's `demo/` directory and change the video URLs back to `demo/tablaze-demo-hd.mp4`; copy `poster.png` as `poster-hd.png`. Set `release.json` to `"demo": true`. Generated videos, audio and frames are not bundled in the source ZIP; the script and reproduction instructions are included.
 
 Without narration configuration, the original silent WebM recipe remains available. `TABLAZE_DEMO_QUICK=1` is only for a short harness check and cannot be used with narrated publication. Do not present quick-mode output as the normal-speed website recording.
 

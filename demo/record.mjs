@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { once } from 'node:events';
-import { mkdir, readFile, readdir, writeFile, rm, copyFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, writeFile, rm, copyFile, rename } from 'node:fs/promises';
+import { execFile } from 'node:child_process';
+import { promisify } from 'node:util';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
@@ -15,6 +17,7 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const output = resolve(root, process.env.TABLAZE_DEMO_OUTPUT || 'demo/output');
 const channel = process.env.TABLAZE_BROWSER_CHANNEL || undefined;
 const quick = process.env.TABLAZE_DEMO_QUICK === '1';
+const ffmpeg = process.env.TABLAZE_DEMO_FFMPEG;
 await mkdir(output, { recursive: true });
 const recording = join(output, 'recording');
 await mkdir(recording, { recursive: true });
@@ -265,6 +268,14 @@ try {
   stdout('All demo assertions passed; saving the full video.');
   await context.close(); context = undefined;
   await video.saveAs(join(output, 'tablaze-demo.webm'));
+  if (ffmpeg) {
+    // Output frame-rate conversion retains timestamps; it does not speed up the recording.
+    const original = join(output, 'tablaze-demo-original.webm');
+    await rename(join(output, 'tablaze-demo.webm'), original);
+    const args = ['-y', '-hide_banner', '-loglevel', 'error', '-i', original, '-an', '-c:v', 'libvpx', '-b:v', '0', '-crf', '18', '-r', '5', '-fps_mode', 'cfr', '-deadline', 'good', '-cpu-used', '4', join(output, 'tablaze-demo.webm')];
+    await promisify(execFile)(ffmpeg, args, { timeout: 120000, maxBuffer: 1024 * 1024 });
+    report.video_encoding = { codec: 'VP8', frames_per_second: 5, crf: 18, resolution_unchanged: true, timestamps_preserved: true, original_file: 'tablaze-demo-original.webm', original_sha256: sha256(await readFile(original)), encoder_sha256: sha256(await readFile(ffmpeg)), command_arguments: args.map(value => value === original ? 'INPUT.webm' : value === join(output, 'tablaze-demo.webm') ? 'OUTPUT.webm' : value) };
+  }
   await rm(recording, { recursive: true, force: true });
   const metadata = await browser.newPage();
   await metadata.goto('http://127.0.0.1:' + server.address().port);

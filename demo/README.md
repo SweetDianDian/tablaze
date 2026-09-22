@@ -16,6 +16,14 @@ TABLAZE_BROWSER_CHANNEL=chrome node demo/record.mjs
 
 Or install managed Chromium with `node dist/cli.js setup`, then omit the channel variable. Playwright's video support requires its matching FFmpeg helper; normal Playwright browser installation supplies it.
 
+For the compact website video, also set `TABLAZE_DEMO_FFMPEG` to an absolute FFmpeg executable path (the matching Playwright helper works). The recorder re-encodes the presentation at 1440×900, 5 fps and VP8 CRF 18, preserving its timeline. It keeps `tablaze-demo-original.webm` locally and records the original, encoder and published-video hashes plus the exact encoding arguments. Shorter-than-200-ms presentation transitions may be omitted; the complete MCP trace remains in the report.
+
+官网精简版额外设置 `TABLAZE_DEMO_FFMPEG=/绝对路径/ffmpeg`，保持分辨率与时间轴，以 5 fps、VP8 CRF 18 重编码。原始视频保留在本地，报告分别记录原片、编码器、发布视频的哈希与实际参数。小于 200 毫秒的展示过渡可能被省略，完整调用记录仍保留。
+
+Here `timestamps_preserved` denotes normal presentation speed, not identical per-frame timestamps: constant-frame-rate encoding quantizes frames to a 200 ms grid. This run's original video is 125.64 seconds and its published version is 126 seconds; the extra 0.36 seconds is tail-frame padding, not acceleration.
+
+`timestamps_preserved` 指保持正常展示速度，并非逐帧时间戳完全相同。固定帧率会将帧时间对齐到 200 毫秒网格；本次原片 125.64 秒、发布版 126 秒，多出的 0.36 秒是尾帧补齐，没有加速。
+
 Output is generated in `demo/output/`:
 
 - `tablaze-demo.webm`: normal-speed recording, with bilingual on-screen descriptions.
@@ -41,9 +49,9 @@ For a short harness check only, use `TABLAZE_DEMO_QUICK=1`. It records with shor
 
 ## Recorded result / 本次录制结果
 
-The normal recording completed on 2026-09-22 with `status: passed` and `quick_mode: false`. The video is **125.6 seconds at 1440×900**, including **121 seconds of labelled reading holds**. It records 22 MCP tool calls, eight passing browser assertions, one order and one 145-byte CSV with matching contents and SHA-256. The sum of the recorded tool-call durations is 2,367.54 ms; this is one local scripted sample, excluding reading holds and model inference, not an internet-site or Browser Use speed comparison. See the [complete request evidence](../docs/evidence/demo-run.json).
+The normal recording completed on 2026-09-22 with `status: passed` and `quick_mode: false`. The video is **126 seconds at 1440×900**, including **121 seconds of labelled reading holds**. It records 22 MCP tool calls, eight passing browser assertions, one order and one 145-byte CSV with matching contents and SHA-256. The sum of the recorded tool-call durations is 2,339.659 ms; this is one local scripted sample, excluding reading holds and model inference, not an internet-site or Browser Use speed comparison. See the [complete request evidence](../docs/evidence/demo-run.json).
 
-正式录制于 2026-09-22 完成，`status: passed`、`quick_mode: false`。视频 **125.6 秒，1440×900**，其中 **121 秒为标注的讲解停留**。记录包含 22 次 MCP 工具调用、八项通过的浏览器断言、一份审批订单，以及内容和 SHA-256 均匹配的 145 字节 CSV。逐次工具耗时合计 2,367.54 毫秒，仅对应这次本地脚本样本，不含讲解停留或模型推理，不能当作外网站点或 Browser Use 的速度对比。
+正式录制于 2026-09-22 完成，`status: passed`、`quick_mode: false`。视频 **126 秒，1440×900**，其中 **121 秒为标注的讲解停留**。记录包含 22 次 MCP 工具调用、八项通过的浏览器断言、一份审批订单，以及内容和 SHA-256 均匹配的 145 字节 CSV。逐次工具耗时合计 2,339.659 毫秒，仅对应这次本地脚本样本，不含讲解停留或模型推理，不能当作外网站点或 Browser Use 的速度对比。
 
 This is a deterministic SDK script with no model inference. The video presents actual tool responses and screenshots; **it is not a continuous video feed from the controlled tab**. Reading holds are labelled and excluded from tool timings; the timeline is not accelerated. The fixture performs no external booking or payment. These assertions demonstrate this workflow, not general website reliability, a security sandbox or model autonomy.
 

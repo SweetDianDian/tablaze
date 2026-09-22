@@ -70,38 +70,52 @@
     },
     {
       "name": "chapter-batch",
-      "expected": 10.745,
-      "actual": 10.745
+      "expected": 10.777,
+      "actual": 10.777
     },
     {
       "name": "chapter-verify",
-      "expected": 29.362,
-      "actual": 29.362
+      "expected": 29.385,
+      "actual": 29.385
     },
     {
       "name": "chapter-guard",
-      "expected": 43.446,
-      "actual": 43.446
+      "expected": 43.483,
+      "actual": 43.483
     },
     {
       "name": "chapter-popup",
-      "expected": 71.571,
-      "actual": 71.571
+      "expected": 71.62,
+      "actual": 71.62
     },
     {
       "name": "chapter-download",
-      "expected": 95.447,
-      "actual": 95.447
+      "expected": 95.469,
+      "actual": 95.469
     },
     {
       "name": "chapter-recap",
-      "expected": 111.873,
-      "actual": 111.873
+      "expected": 111.891,
+      "actual": 111.891
+    },
+    {
+      "name": "decoded-frame-popup",
+      "time": 73.62,
+      "sourceWidth": 1440,
+      "sourceHeight": 900,
+      "screenshot": "decoded-popup-1440.png"
+    },
+    {
+      "name": "decoded-frame-download",
+      "time": 97.469,
+      "sourceWidth": 1440,
+      "sourceHeight": 900,
+      "screenshot": "decoded-download-1440.png"
     },
     {
       "name": "language-keeps-progress",
-      "before": 111.873,
-      "after": 111.873
+      "before": 97.469,
+      "after": 97.469
     },
     {
       "name": "chapter-keyboard-Enter"
@@ -129,7 +143,7 @@
     },
     {
       "name": "complete-video-decode",
-      "duration": 125.6,
+      "duration": 126,
       "error": null,
       "playbackRateReset": 1
     },
@@ -146,37 +160,47 @@
   "screenshots": [
     {
       "file": "demo-390-zh.png",
-      "sha256": "579f7e1d69b926554f3fe2d7f70474311cdb5c884493eb10fddba7badaf70e73",
+      "sha256": "6b8a63a49ba0f0f1d249c69cac8f88e1f018468f808fbe4760ca53ed1b775459",
       "retention": "Local QA artifact; not included in this source repository."
     },
     {
       "file": "demo-390-en.png",
-      "sha256": "0d67e5eada040853f808e84cd8746a8e22a6a2220159401d00e50d72a1b08a47",
+      "sha256": "cc55e80cc2c5adf36ce2dca6e90117f7db8789cf45886c3023236275de647731",
       "retention": "Local QA artifact; not included in this source repository."
     },
     {
       "file": "demo-768-zh.png",
-      "sha256": "2cbcc455ace1f2acc0148402708d159e1badc0fd23cda769f4efe6b27e1b6e4a",
+      "sha256": "f01373330e521835afacf2758ee8b893dfa7c79e9ef4712957e050520330e3fd",
       "retention": "Local QA artifact; not included in this source repository."
     },
     {
       "file": "demo-768-en.png",
-      "sha256": "d6ef963bad3c3b9b4237959af0229ed5babb7c3d6bf9f76b322d02772db13ef9",
+      "sha256": "e1c1473134869aed455feaa067df520b8138589ff114002ac73edfac94a61e12",
       "retention": "Local QA artifact; not included in this source repository."
     },
     {
       "file": "demo-1440-zh.png",
-      "sha256": "8d82b0803daddbe064bcd42718593eab13547eef5f669d504c1a29faebba1c55",
+      "sha256": "7d64e2fec549a67601e28fe465bf9592ba7e639961dfd2ad4a7311263d1752e1",
       "retention": "Local QA artifact; not included in this source repository."
     },
     {
       "file": "demo-1440-en.png",
-      "sha256": "2a58b1febbdf6f82f478371d8d87673ba484afa16baf8caa6549ca645d968b92",
+      "sha256": "ec792641dc869603418084635148b56f3b807db4ee8478e5a0dae6861acb5603",
       "retention": "Local QA artifact; not included in this source repository."
     },
     {
       "file": "hero-1440-zh.png",
       "sha256": "9649a7bd0fb75e9883aec4b14f987cfae6ca85d37af53c5e1baab2fad1a0616c",
+      "retention": "Local QA artifact; not included in this source repository."
+    },
+    {
+      "file": "decoded-popup-1440.png",
+      "sha256": "ac89a884ca2fa4d1602f2e20e590e05ef30d364771e74db7a0ced16a458e969b",
+      "retention": "Local QA artifact; not included in this source repository."
+    },
+    {
+      "file": "decoded-download-1440.png",
+      "sha256": "051d1df76ad8c2baaca6830c1050c94e03fb0ed7743271b3a7f5ead62f248f70",
       "retention": "Local QA artifact; not included in this source repository."
     }
   ],
@@ -184,13 +208,13 @@
   "browserClosed": true,
   "localServerClosed": true,
   "schema_version": 1,
-  "recorded_at": "2026-09-22T15:34:13.162873+00:00",
-  "scope": "Local Chrome browser checks for the expanded static website. The complete decode check used playbackRate 16 only during verification; the published media is unchanged and plays at normal speed.",
+  "recorded_at": "2026-09-22T16:10:36.533268+00:00",
+  "scope": "Local Chrome checks against the final compact 126-second media. PlaybackRate 16 was used only for complete decode verification; published playback is normal speed. Two decoded video frames were visually inspected for readable text.",
   "source_sha256": {
     "site/index.html": "832914eda9478fe19db4c07400d5d5604b9b440e4984f0f14060c60a8a74e5ae",
     "site/styles.css": "40bd01304f73e2b9e3655867972f822d7f0545c7a0eba5ac892755aadd6b7ccb",
     "site/app.js": "411c494ff110ee353bcee3268bcf0ec641f08677babe5dfaf1890b318d7a4d3c"
   },
-  "video_sha256": "a28c40b3296dd0cfe6a15a890b2209dbf8c19d3c95f0fe6e85142ccec33647cf",
-  "demo_report_sha256": "6aaf36a53941984820b2430223a8c509445c4da8f217da9c91898a2712e8177f"
+  "video_sha256": "1697146a68ae62a043b486093360ad43610995b0c403de0aee34ececcb06b419",
+  "demo_report_sha256": "9b764f07cd5a526a41d9959657938b74a0bb7bdd215ee288d4fe4e22432ee688"
 }

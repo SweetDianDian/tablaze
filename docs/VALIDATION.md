@@ -56,7 +56,7 @@ The actual preview tarball was installed outside the source checkout using local
 
 ## Complete travel demo / 完整差旅演示
 
-The normal recording completed on 2026-09-22 at 15:23:24 UTC with `status: passed` and `quick_mode: false`, using Node.js 25.9.0 and Chrome 153.0.8010.53 on macOS arm64. It is 125.6 seconds at 1440×900, including 121 seconds of labelled reading holds. [Recorder and method](../demo/README.md) · [Complete request evidence](evidence/demo-run.json).
+The normal recording completed on 2026-09-22 at 15:58:38 UTC with `status: passed` and `quick_mode: false`, using Node.js 25.9.0 and Chrome 153.0.8010.53 on macOS arm64. It is 126 seconds at 1440×900, including 121 seconds of labelled reading holds. [Recorder and method](../demo/README.md) · [Complete request evidence](evidence/demo-run.json).
 
 One continuous localhost workflow passed the following checks:
 
@@ -65,9 +65,9 @@ One continuous localhost workflow passed the following checks:
 - A fresh snapshot supplied the replacement reference. Explicit `follow-single` policy followed the owned popup; four approval actions completed, three receipt assertions passed, and the server recorded exactly one submission and one order.
 - The downloaded CSV was 145 bytes and matched the expected contents and SHA-256. Both owned tabs were closed with their session; `tab_list` returned zero remaining sessions and the server's stderr was empty.
 
-The report records 22 MCP tool calls, eight passing browser assertions and 2,367.54 ms in summed tool-call durations. Those durations exclude presentation holds and model inference. This single local scripted run is not an internet performance benchmark or a Browser Use comparison.
+The report records 22 MCP tool calls, eight passing browser assertions and 2,339.659 ms in summed tool-call durations. Those durations exclude presentation holds and model inference. This single local scripted run is not an internet performance benchmark or a Browser Use comparison.
 
-本次正式录制通过验收：同一条差旅流程完成六步批次、五项结果检查、旧引用拒绝且无审批写入、重新观察恢复、弹窗内四步审批、三项回执检查，以及 CSV 实际字节和哈希核对。最终一份订单、一个已核对文件、两个自有标签页关闭，剩余会话为零。视频长 125.6 秒，含 121 秒讲解停留；22 次 MCP 调用的耗时合计仅描述本地样本。
+本次正式录制通过验收：同一条差旅流程完成六步批次、五项结果检查、旧引用拒绝且无审批写入、重新观察恢复、弹窗内四步审批、三项回执检查，以及 CSV 实际字节和哈希核对。最终一份订单、一个已核对文件、两个自有标签页关闭，剩余会话为零。视频长 126 秒，含 121 秒讲解停留；22 次 MCP 调用的耗时合计仅描述本地样本。
 
 The workflow is driven by a deterministic MCP SDK script with no model inference. The video records a presentation of actual responses and `tab_capture` screenshots, not a continuous feed from the controlled browser tab. Fixture counters and local file reads are independent recorder checks, not additional MCP tools. No external booking or payment occurs. Historical development-suite results (including the 353-test run) and model/Browser Use reports retain their own source versions and scope; this recording does not rerun or extend those results.
 
@@ -75,7 +75,7 @@ The workflow is driven by a deterministic MCP SDK script with no model inference
 
 ### Expanded website QA / 新版演示页面验收
 
-The local Chrome checks passed at 390, 768 and 1440 pixels in both languages, with zero page errors or horizontal overflow. All seven chapters sought to their reported times and updated the active state; language switching retained progress. Overlay playback, native pause, Enter/Space controls, reduced-motion behavior and no autoplay passed. Missing-report playback, disabled-demo loading and failed-video download fallback also passed. A complete accelerated decode check reached the end of the unchanged 125.6-second media without a video error; playback rate was reset to one. [Website QA evidence](evidence/demo-site-qa-v2.json).
+All 30 local Chrome checks passed at 390, 768 and 1440 pixels in both languages, with zero page errors or horizontal overflow. All seven chapters sought to their reported times and updated the active state; language switching retained progress. Overlay playback, native pause, Enter/Space controls, reduced-motion behavior and no autoplay passed. Missing-report playback, disabled-demo loading and failed-video download fallback also passed. A complete accelerated decode check reached the end of the unchanged 126-second media without a video error; playback rate was reset to one. Two frames decoded from the compact 5 fps video were visually checked for readable approval fields and file evidence. [Website QA evidence](evidence/demo-site-qa-v2.json).
 
 新版页面已通过本地 Chrome 验收：390 / 768 / 1440 像素、中英文、七章跳转与高亮、切换语言保留进度、原生暂停和键盘操作均通过，无横向溢出或页面错误。缺少报告、关闭演示、视频加载失败的回退路径，以及不自动播放和减少动画偏好已检查。视频完整解码至结尾没有错误；加速仅用于校验，发布视频未修改。
 

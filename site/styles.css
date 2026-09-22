@@ -62,3 +62,5 @@ nav{font-size:14px}.header-actions{font-size:13px}.small-button{font-size:13px}.
 
 /* Keep the offscreen skip link hidden in tall element captures; show it on focus. */
 .skip:not(:focus){clip-path:inset(50%)}
+
+#demo-sound{color:#d7e6db;border:1px solid #49614e;padding:7px 12px;border-radius:5px;font:inherit;cursor:pointer}#demo-sound[aria-pressed=false]{color:#ffc8b5;border-color:#805342}#demo-sound:focus-visible{outline:2px solid var(--orange);outline-offset:3px}

@@ -1,12 +1,11 @@
 {
   "schema_version": 2,
-  "started_at": "2026-09-22T16:59:16.138Z",
+  "started_at": "2026-09-22T15:56:28.405Z",
   "status": "passed",
   "source_sha256": {
-    "demo/fixture.mjs": "559c9899a4a8bdcbf2bd230e3dc93d24737225e6f86a4340f2ab16a5c06887d0",
-    "demo/record.mjs": "11bfb689311c0896bc0a5bedcc2c126c97dc5ece5d5cda456054dbdafed4be48",
-    "demo/render-video.mjs": "c3bd1860df2e27500f6a5bc0f35420511322d86d4e3d4420ab7d725364456196",
-    "demo/viewer.html": "f467e4d95541a3a137da76939cf216a1bd02a0a0e5930c6031b2b45d2989d142",
+    "demo/fixture.mjs": "0bc5dcfb8581d6cc00836cd4c48dcb05456bf4b86f33fd80bf169c0a660e93ca",
+    "demo/record.mjs": "624d3a38eeb2361d986b8410ac08393168e3ab73ee68d74f3fdac5f7007e7b56",
+    "demo/viewer.html": "0be1d07f998cf33520bf33836ab34aa43c79f4f3f6d10c9cb4cc77541c4090fc",
     "dist/agent.js": "a82919ae552619acd083faae0b0fa2e622956b2d1b1c6523e87e06caa3e7f814",
     "dist/browser.js": "9a23ea78b4bd100e3a9b42f24ab1a77729d41c4300545774d9290e024defe69f",
     "dist/checkpoint.js": "51f4f8a2626cfabfecbf7d11a8b87b43fa6bb995b4d8b6462193cc27dc78fd8d",
@@ -21,7 +20,7 @@
     "dist/server.js": "ca1868e3a02ac86220ecd3dce541ca5b8c6d588f18cc7d8c0c3204c38c0ee058",
     "dist/snapshot.js": "bb0675169765265ed5178863c7d19f7afcae3fe98c619136a71b243cfb4bb042",
     "package-lock.json": "0defcc13cd2deeff5b4a90e7d678ab8bec1d5144e13287cf629524ffafb17971",
-    "package.json": "c75edf26a70bb57b7345a18ee99f483a8083d4a59350bb093159631e83945ca4",
+    "package.json": "1fcb8cd8f1f49b2999a625413cd86d371afd5a57f1244284e40646ad756acdc4",
     "src/agent.ts": "89ba3b29d102fb32688bc79d117dce346b34a2a90ed82c562918b9015e645fce",
     "src/browser.ts": "afcf03d035c98f4f6d54949b2dad7319b3509cd4afe6ea894b764f524b4fb7c4",
     "src/checkpoint.ts": "07a979b9bbff344a3c5814b1b727061233ada8ed24c180d9e5477c3243a5aac7",
@@ -62,20 +61,20 @@
   },
   "events": [
     {
-      "at_ms": 1697.792,
+      "at_ms": 1445.844,
       "name": "tab_open",
       "arguments": {
-        "url": "http://127.0.0.1:61313/"
+        "url": "http://127.0.0.1:55264/"
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:1",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:1",
         "tab_id": "t1",
         "tabs": [
           {
             "tab_id": "t1",
-            "url": "http://127.0.0.1:61313/",
+            "url": "http://127.0.0.1:55264/",
             "active": true
           }
         ],
@@ -85,12 +84,12 @@
         },
         "mode": "full",
         "frame_id": "f0",
-        "url": "http://127.0.0.1:61313/",
+        "url": "http://127.0.0.1:55264/",
         "title": "差旅计划 — Wayfar",
         "frames": [
           {
             "frame_id": "f0",
-            "url": "http://127.0.0.1:61313/",
+            "url": "http://127.0.0.1:55264/",
             "name": "",
             "is_main": true
           }
@@ -202,20 +201,20 @@
         "session_mode": "isolated"
       },
       "is_error": false,
-      "elapsed_ms": 479.174
+      "elapsed_ms": 450.548
     },
     {
-      "at_ms": 1944.136,
+      "at_ms": 1497.467,
       "name": "tab_capture",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62"
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b"
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "url": "http://127.0.0.1:61313/",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "url": "http://127.0.0.1:55264/",
         "mime_type": "image/jpeg",
-        "bytes": 48982,
+        "bytes": 44708,
         "tab_id": "t1",
         "viewport": {
           "width": 1280,
@@ -226,15 +225,15 @@
         "coordinate_space": "viewport-css"
       },
       "is_error": false,
-      "elapsed_ms": 26.433,
+      "elapsed_ms": 47.717,
       "image_file": "01-plan.jpg"
     },
     {
-      "at_ms": 28071.234,
+      "at_ms": 18054.887,
       "name": "tab_act",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:1",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:1",
         "actions": [
           {
             "type": "fill",
@@ -274,8 +273,8 @@
       "result": {
         "ok": true,
         "batch_complete": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:1",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:1",
         "partial": false,
         "completed": 6,
         "failed": null,
@@ -312,16 +311,16 @@
             "status": "completed"
           }
         ],
-        "elapsed_ms": 509,
+        "elapsed_ms": 522,
         "snapshot": {
           "ok": true,
-          "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-          "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:2",
+          "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+          "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:2",
           "tab_id": "t1",
           "tabs": [
             {
               "tab_id": "t1",
-              "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+              "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
               "active": true
             }
           ],
@@ -331,12 +330,12 @@
           },
           "mode": "full",
           "frame_id": "f0",
-          "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+          "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
           "title": "酒店筛选结果 — Wayfar",
           "frames": [
             {
               "frame_id": "f0",
-              "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+              "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
               "name": "",
               "is_main": true
             }
@@ -385,24 +384,24 @@
             "text_limit": 6000,
             "max_frames": 100
           },
-          "elapsed_ms": 29
+          "elapsed_ms": 12
         }
       },
       "is_error": false,
-      "elapsed_ms": 510.7
+      "elapsed_ms": 526.605
     },
     {
-      "at_ms": 28392.59,
+      "at_ms": 18109.469,
       "name": "tab_capture",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62"
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b"
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
         "mime_type": "image/jpeg",
-        "bytes": 50464,
+        "bytes": 49826,
         "tab_id": "t1",
         "viewport": {
           "width": 1280,
@@ -413,18 +412,18 @@
         "coordinate_space": "viewport-css"
       },
       "is_error": false,
-      "elapsed_ms": 19.875,
+      "elapsed_ms": 39.874,
       "image_file": "02-results.jpg"
     },
     {
-      "at_ms": 41466.464,
+      "at_ms": 30157.368,
       "name": "tab_verify",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
         "checks": [
           {
             "kind": "url",
-            "value": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes"
+            "value": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes"
           },
           {
             "kind": "title",
@@ -448,14 +447,14 @@
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
         "passed": true,
         "checks": [
           {
             "index": 0,
             "kind": "url",
             "pass": true,
-            "actual": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes"
+            "actual": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes"
           },
           {
             "index": 1,
@@ -482,26 +481,26 @@
             "actual": 1
           }
         ],
-        "elapsed_ms": 11
+        "elapsed_ms": 28
       },
       "is_error": false,
-      "elapsed_ms": 12.416
+      "elapsed_ms": 32.63
     },
     {
-      "at_ms": 56265.129,
+      "at_ms": 44210.089,
       "name": "tab_snapshot",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62"
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b"
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:3",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:3",
         "tab_id": "t1",
         "tabs": [
           {
             "tab_id": "t1",
-            "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+            "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
             "active": true
           }
         ],
@@ -511,12 +510,12 @@
         },
         "mode": "full",
         "frame_id": "f0",
-        "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+        "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
         "title": "酒店筛选结果 — Wayfar",
         "frames": [
           {
             "frame_id": "f0",
-            "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+            "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
             "name": "",
             "is_main": true
           }
@@ -565,13 +564,13 @@
           "text_limit": 6000,
           "max_frames": 100
         },
-        "elapsed_ms": 9
+        "elapsed_ms": 33
       },
       "is_error": false,
-      "elapsed_ms": 10.793
+      "elapsed_ms": 38.668
     },
     {
-      "at_ms": 68305.332,
+      "at_ms": 51234.397,
       "name": "fixture.replace_approval",
       "result": {
         "acknowledged": true,
@@ -582,11 +581,11 @@
       "not_mcp": true
     },
     {
-      "at_ms": 68469.767,
+      "at_ms": 51255.704,
       "name": "tab_act",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:3",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:3",
         "actions": [
           {
             "type": "click",
@@ -597,8 +596,8 @@
       "result": {
         "ok": false,
         "batch_complete": false,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:3",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:3",
         "partial": false,
         "completed": 0,
         "failed": {
@@ -621,16 +620,16 @@
             }
           }
         ],
-        "elapsed_ms": 8,
+        "elapsed_ms": 16,
         "snapshot": {
           "ok": true,
-          "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-          "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:4",
+          "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+          "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:4",
           "tab_id": "t1",
           "tabs": [
             {
               "tab_id": "t1",
-              "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+              "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
               "active": true
             }
           ],
@@ -640,12 +639,12 @@
           },
           "mode": "full",
           "frame_id": "f0",
-          "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+          "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
           "title": "酒店筛选结果 — Wayfar",
           "frames": [
             {
               "frame_id": "f0",
-              "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+              "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
               "name": "",
               "is_main": true
             }
@@ -694,14 +693,14 @@
             "text_limit": 6000,
             "max_frames": 100
           },
-          "elapsed_ms": 5
+          "elapsed_ms": 12
         }
       },
       "is_error": true,
-      "elapsed_ms": 9.856
+      "elapsed_ms": 18.358
     },
     {
-      "at_ms": 68618.518,
+      "at_ms": 51262.041,
       "name": "fixture.confirm_zero_writes",
       "result": {
         "refused_code": "STALE_REFERENCE",
@@ -715,17 +714,17 @@
       "not_mcp": true
     },
     {
-      "at_ms": 68791.335,
+      "at_ms": 51296.881,
       "name": "tab_capture",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62"
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b"
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
         "mime_type": "image/jpeg",
-        "bytes": 51386,
+        "bytes": 50731,
         "tab_id": "t1",
         "viewport": {
           "width": 1280,
@@ -736,24 +735,24 @@
         "coordinate_space": "viewport-css"
       },
       "is_error": false,
-      "elapsed_ms": 23.931,
+      "elapsed_ms": 34.178,
       "image_file": "03-stopped.jpg"
     },
     {
-      "at_ms": 82856.153,
+      "at_ms": 64340.111,
       "name": "tab_snapshot",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62"
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b"
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:5",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:5",
         "tab_id": "t1",
         "tabs": [
           {
             "tab_id": "t1",
-            "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+            "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
             "active": true
           }
         ],
@@ -763,12 +762,12 @@
         },
         "mode": "full",
         "frame_id": "f0",
-        "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+        "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
         "title": "酒店筛选结果 — Wayfar",
         "frames": [
           {
             "frame_id": "f0",
-            "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+            "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
             "name": "",
             "is_main": true
           }
@@ -817,17 +816,17 @@
           "text_limit": 6000,
           "max_frames": 100
         },
-        "elapsed_ms": 4
+        "elapsed_ms": 19
       },
       "is_error": false,
-      "elapsed_ms": 5.48
+      "elapsed_ms": 23.429
     },
     {
-      "at_ms": 95371.323,
+      "at_ms": 72651.297,
       "name": "tab_act",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:5",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:5",
         "actions": [
           {
             "type": "click",
@@ -838,8 +837,8 @@
       "result": {
         "ok": true,
         "batch_complete": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:5",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:5",
         "partial": false,
         "completed": 1,
         "failed": null,
@@ -858,21 +857,21 @@
           "action_index": 0,
           "window_ms": 250
         },
-        "elapsed_ms": 283,
+        "elapsed_ms": 290,
         "snapshot": {
           "ok": true,
-          "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-          "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:6",
+          "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+          "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:6",
           "tab_id": "t2",
           "tabs": [
             {
               "tab_id": "t1",
-              "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+              "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
               "active": false
             },
             {
               "tab_id": "t2",
-              "url": "http://127.0.0.1:61313/approval",
+              "url": "http://127.0.0.1:55264/approval",
               "active": true
             }
           ],
@@ -882,12 +881,12 @@
           },
           "mode": "full",
           "frame_id": "f0",
-          "url": "http://127.0.0.1:61313/approval",
+          "url": "http://127.0.0.1:55264/approval",
           "title": "差旅审批 — Wayfar",
           "frames": [
             {
               "frame_id": "f0",
-              "url": "http://127.0.0.1:61313/approval",
+              "url": "http://127.0.0.1:55264/approval",
               "name": "",
               "is_main": true
             }
@@ -963,32 +962,32 @@
             "text_limit": 6000,
             "max_frames": 100
           },
-          "elapsed_ms": 15
+          "elapsed_ms": 10
         }
       },
       "is_error": false,
-      "elapsed_ms": 284.462
+      "elapsed_ms": 291.633
     },
     {
-      "at_ms": 95712.545,
+      "at_ms": 72663.908,
       "name": "tab_snapshot",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62"
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b"
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:7",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:7",
         "tab_id": "t2",
         "tabs": [
           {
             "tab_id": "t1",
-            "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+            "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
             "active": false
           },
           {
             "tab_id": "t2",
-            "url": "http://127.0.0.1:61313/approval",
+            "url": "http://127.0.0.1:55264/approval",
             "active": true
           }
         ],
@@ -998,12 +997,12 @@
         },
         "mode": "full",
         "frame_id": "f0",
-        "url": "http://127.0.0.1:61313/approval",
+        "url": "http://127.0.0.1:55264/approval",
         "title": "差旅审批 — Wayfar",
         "frames": [
           {
             "frame_id": "f0",
-            "url": "http://127.0.0.1:61313/approval",
+            "url": "http://127.0.0.1:55264/approval",
             "name": "",
             "is_main": true
           }
@@ -1079,23 +1078,23 @@
           "text_limit": 6000,
           "max_frames": 100
         },
-        "elapsed_ms": 5
+        "elapsed_ms": 6
       },
       "is_error": false,
-      "elapsed_ms": 5.692
+      "elapsed_ms": 7.107
     },
     {
-      "at_ms": 96039.596,
+      "at_ms": 72709.228,
       "name": "tab_capture",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62"
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b"
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "url": "http://127.0.0.1:61313/approval",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "url": "http://127.0.0.1:55264/approval",
         "mime_type": "image/jpeg",
-        "bytes": 43300,
+        "bytes": 40083,
         "tab_id": "t2",
         "viewport": {
           "width": 1280,
@@ -1106,15 +1105,15 @@
         "coordinate_space": "viewport-css"
       },
       "is_error": false,
-      "elapsed_ms": 22.083,
+      "elapsed_ms": 37.645,
       "image_file": "04-popup.jpg"
     },
     {
-      "at_ms": 108568.856,
+      "at_ms": 83145.899,
       "name": "tab_act",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:7",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:7",
         "actions": [
           {
             "type": "fill",
@@ -1142,8 +1141,8 @@
       "result": {
         "ok": true,
         "batch_complete": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:7",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:7",
         "partial": false,
         "completed": 4,
         "failed": null,
@@ -1170,21 +1169,21 @@
             "status": "completed"
           }
         ],
-        "elapsed_ms": 438,
+        "elapsed_ms": 419,
         "snapshot": {
           "ok": true,
-          "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-          "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:8",
+          "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+          "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:8",
           "tab_id": "t2",
           "tabs": [
             {
               "tab_id": "t1",
-              "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+              "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
               "active": false
             },
             {
               "tab_id": "t2",
-              "url": "http://127.0.0.1:61313/receipt",
+              "url": "http://127.0.0.1:55264/receipt",
               "active": true
             }
           ],
@@ -1194,12 +1193,12 @@
           },
           "mode": "full",
           "frame_id": "f0",
-          "url": "http://127.0.0.1:61313/receipt",
+          "url": "http://127.0.0.1:55264/receipt",
           "title": "审批完成 — Wayfar",
           "frames": [
             {
               "frame_id": "f0",
-              "url": "http://127.0.0.1:61313/receipt",
+              "url": "http://127.0.0.1:55264/receipt",
               "name": "",
               "is_main": true
             }
@@ -1220,7 +1219,7 @@
               "ref": "r23",
               "role": "link",
               "name": "下载行程 CSV",
-              "href": "http://127.0.0.1:61313/itinerary.csv"
+              "href": "http://127.0.0.1:55264/itinerary.csv"
             }
           ],
           "text": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 04 / READY TO GO ✓ 审批通过，行程已就绪。 审批编号 WF-001 申请人 Lin Chen 成本中心 设计团队 酒店 Casa Flora 行程 Lisbon · 3 晚 · 2 人 审批金额 EUR 780 审批完成 一份可交付的行程 下载 CSV 文件，交给同事或导入后续工作流。 下载行程 CSV 取消政策 免费取消 文件包含审批编号、城市、晚数、人数与金额。 虚构差旅任务 · 无外部预订或付款",
@@ -1237,17 +1236,17 @@
             "text_limit": 6000,
             "max_frames": 100
           },
-          "elapsed_ms": 27
+          "elapsed_ms": 8
         }
       },
       "is_error": false,
-      "elapsed_ms": 439.262
+      "elapsed_ms": 420.052
     },
     {
-      "at_ms": 108899.858,
+      "at_ms": 83154.765,
       "name": "tab_verify",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
         "checks": [
           {
             "kind": "title",
@@ -1265,7 +1264,7 @@
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
         "passed": true,
         "checks": [
           {
@@ -1287,13 +1286,13 @@
             "actual": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 04 / READY TO GO ✓ 审批通过，行程已就绪。 审批编号 WF-001 申请人 Lin Chen 成本中心 设计团队 酒店 Casa Flora 行程 Lisbon · 3 晚 · 2 人 审批金额 EUR 780 审批完成 一份可交付的行程 下载 CSV 文件，交给同事或导入后续工作流。 下载行程 CSV 取消政策 免费取消 文件包含审批编号、城市、晚数、人数与金额。 虚构差旅任务 · 无外部预订或付款"
           }
         ],
-        "elapsed_ms": 1
+        "elapsed_ms": 2
       },
       "is_error": false,
-      "elapsed_ms": 2.155
+      "elapsed_ms": 2.67
     },
     {
-      "at_ms": 109047.431,
+      "at_ms": 83160.078,
       "name": "fixture.confirm_order",
       "result": {
         "submission_attempts": 1,
@@ -1316,17 +1315,17 @@
       "not_mcp": true
     },
     {
-      "at_ms": 109204.793,
+      "at_ms": 83188.488,
       "name": "tab_capture",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62"
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b"
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "url": "http://127.0.0.1:61313/receipt",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "url": "http://127.0.0.1:55264/receipt",
         "mime_type": "image/jpeg",
-        "bytes": 45004,
+        "bytes": 42832,
         "tab_id": "t2",
         "viewport": {
           "width": 1280,
@@ -1337,29 +1336,29 @@
         "coordinate_space": "viewport-css"
       },
       "is_error": false,
-      "elapsed_ms": 9.243,
+      "elapsed_ms": 27.131,
       "image_file": "05-approved.jpg"
     },
     {
-      "at_ms": 123414.115,
+      "at_ms": 96228.145,
       "name": "tab_snapshot",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62"
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b"
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:9",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:9",
         "tab_id": "t2",
         "tabs": [
           {
             "tab_id": "t1",
-            "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+            "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
             "active": false
           },
           {
             "tab_id": "t2",
-            "url": "http://127.0.0.1:61313/receipt",
+            "url": "http://127.0.0.1:55264/receipt",
             "active": true
           }
         ],
@@ -1369,12 +1368,12 @@
         },
         "mode": "full",
         "frame_id": "f0",
-        "url": "http://127.0.0.1:61313/receipt",
+        "url": "http://127.0.0.1:55264/receipt",
         "title": "审批完成 — Wayfar",
         "frames": [
           {
             "frame_id": "f0",
-            "url": "http://127.0.0.1:61313/receipt",
+            "url": "http://127.0.0.1:55264/receipt",
             "name": "",
             "is_main": true
           }
@@ -1395,7 +1394,7 @@
             "ref": "r23",
             "role": "link",
             "name": "下载行程 CSV",
-            "href": "http://127.0.0.1:61313/itinerary.csv"
+            "href": "http://127.0.0.1:55264/itinerary.csv"
           }
         ],
         "text": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 04 / READY TO GO ✓ 审批通过，行程已就绪。 审批编号 WF-001 申请人 Lin Chen 成本中心 设计团队 酒店 Casa Flora 行程 Lisbon · 3 晚 · 2 人 审批金额 EUR 780 审批完成 一份可交付的行程 下载 CSV 文件，交给同事或导入后续工作流。 下载行程 CSV 取消政策 免费取消 文件包含审批编号、城市、晚数、人数与金额。 虚构差旅任务 · 无外部预订或付款",
@@ -1412,17 +1411,17 @@
           "text_limit": 6000,
           "max_frames": 100
         },
-        "elapsed_ms": 4
+        "elapsed_ms": 16
       },
       "is_error": false,
-      "elapsed_ms": 4.742
+      "elapsed_ms": 19.058
     },
     {
-      "at_ms": 123996.205,
+      "at_ms": 96534.751,
       "name": "tab_act",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:9",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:9",
         "actions": [
           {
             "type": "click",
@@ -1433,8 +1432,8 @@
       "result": {
         "ok": true,
         "batch_complete": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:9",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:9",
         "partial": false,
         "completed": 1,
         "failed": null,
@@ -1446,21 +1445,21 @@
             "status": "completed"
           }
         ],
-        "elapsed_ms": 276,
+        "elapsed_ms": 295,
         "snapshot": {
           "ok": true,
-          "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-          "snapshot_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62:10",
+          "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+          "snapshot_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b:10",
           "tab_id": "t2",
           "tabs": [
             {
               "tab_id": "t1",
-              "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+              "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
               "active": false
             },
             {
               "tab_id": "t2",
-              "url": "http://127.0.0.1:61313/receipt",
+              "url": "http://127.0.0.1:55264/receipt",
               "active": true
             }
           ],
@@ -1470,12 +1469,12 @@
           },
           "mode": "full",
           "frame_id": "f0",
-          "url": "http://127.0.0.1:61313/receipt",
+          "url": "http://127.0.0.1:55264/receipt",
           "title": "审批完成 — Wayfar",
           "frames": [
             {
               "frame_id": "f0",
-              "url": "http://127.0.0.1:61313/receipt",
+              "url": "http://127.0.0.1:55264/receipt",
               "name": "",
               "is_main": true
             }
@@ -1496,7 +1495,7 @@
               "ref": "r23",
               "role": "link",
               "name": "下载行程 CSV",
-              "href": "http://127.0.0.1:61313/itinerary.csv"
+              "href": "http://127.0.0.1:55264/itinerary.csv"
             }
           ],
           "text": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 04 / READY TO GO ✓ 审批通过，行程已就绪。 审批编号 WF-001 申请人 Lin Chen 成本中心 设计团队 酒店 Casa Flora 行程 Lisbon · 3 晚 · 2 人 审批金额 EUR 780 审批完成 一份可交付的行程 下载 CSV 文件，交给同事或导入后续工作流。 下载行程 CSV 取消政策 免费取消 文件包含审批编号、城市、晚数、人数与金额。 虚构差旅任务 · 无外部预订或付款",
@@ -1517,58 +1516,58 @@
         }
       },
       "is_error": false,
-      "elapsed_ms": 277.04
+      "elapsed_ms": 296.394
     },
     {
-      "at_ms": 124331.4,
+      "at_ms": 96542.959,
       "name": "tab_downloads",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62"
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b"
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
         "downloads": [
           {
-            "id": "9300b300-410c-471c-a7ff-9788849ab95f",
+            "id": "35a803fe-7728-4656-9b75-f6a91d32fce5",
             "filename": "wayfar-itinerary.csv",
-            "url": "http://127.0.0.1:61313/itinerary.csv",
+            "url": "http://127.0.0.1:55264/itinerary.csv",
             "status": "completed",
-            "path": "/tmp/tablaze-artifacts-ufu8nc/9300b300-410c-471c-a7ff-9788849ab95f.download",
+            "path": "/tmp/tablaze-artifacts-UKO26I/35a803fe-7728-4656-9b75-f6a91d32fce5.download",
             "bytes": 145
           }
         ]
       },
       "is_error": false,
-      "elapsed_ms": 0.69
+      "elapsed_ms": 0.95
     },
     {
-      "at_ms": 124683.279,
+      "at_ms": 96551.615,
       "name": "tab_downloads",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
-        "download_id": "9300b300-410c-471c-a7ff-9788849ab95f",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
+        "download_id": "35a803fe-7728-4656-9b75-f6a91d32fce5",
         "timeout_ms": 5000
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
         "downloads": [
           {
-            "id": "9300b300-410c-471c-a7ff-9788849ab95f",
+            "id": "35a803fe-7728-4656-9b75-f6a91d32fce5",
             "filename": "wayfar-itinerary.csv",
-            "url": "http://127.0.0.1:61313/itinerary.csv",
+            "url": "http://127.0.0.1:55264/itinerary.csv",
             "status": "completed",
-            "path": "/tmp/tablaze-artifacts-ufu8nc/9300b300-410c-471c-a7ff-9788849ab95f.download",
+            "path": "/tmp/tablaze-artifacts-UKO26I/35a803fe-7728-4656-9b75-f6a91d32fce5.download",
             "bytes": 145
           }
         ]
       },
       "is_error": false,
-      "elapsed_ms": 0.506
+      "elapsed_ms": 0.703
     },
     {
-      "at_ms": 124835.895,
+      "at_ms": 96558.522,
       "name": "artifact.verify_bytes",
       "result": {
         "filename": "wayfar-itinerary.csv",
@@ -1585,47 +1584,47 @@
       "not_mcp": true
     },
     {
-      "at_ms": 141450.616,
+      "at_ms": 112567.549,
       "name": "tab_tabs",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
         "action": "list"
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
         "tabs": [
           {
             "tab_id": "t1",
-            "url": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+            "url": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
             "active": false
           },
           {
             "tab_id": "t2",
-            "url": "http://127.0.0.1:61313/receipt",
+            "url": "http://127.0.0.1:55264/receipt",
             "active": true
           }
         ]
       },
       "is_error": false,
-      "elapsed_ms": 0.59
+      "elapsed_ms": 2.213
     },
     {
-      "at_ms": 141766.152,
+      "at_ms": 112601.793,
       "name": "tab_close",
       "arguments": {
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62"
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b"
       },
       "result": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
         "closed": true
       },
       "is_error": false,
-      "elapsed_ms": 15.363
+      "elapsed_ms": 20.793
     },
     {
-      "at_ms": 142068.172,
+      "at_ms": 112616.085,
       "name": "tab_list",
       "arguments": {},
       "result": {
@@ -1633,7 +1632,7 @@
         "sessions": []
       },
       "is_error": false,
-      "elapsed_ms": 0.55
+      "elapsed_ms": 1.303
     }
   ],
   "chapters": [
@@ -1645,84 +1644,84 @@
     },
     {
       "id": "batch",
-      "start_seconds": 14.866,
+      "start_seconds": 10.777,
       "title_zh": "六个步骤，一次有序提交。",
       "title_en": "Six actions in one ordered request."
     },
     {
       "id": "verify",
-      "start_seconds": 40.403,
+      "start_seconds": 29.385,
       "title_zh": "点完之后，再验收五项结果。",
       "title_en": "Verify the outcome beyond a successful click."
     },
     {
       "id": "guard",
-      "start_seconds": 55.658,
+      "start_seconds": 43.483,
       "title_zh": "页面更新了，旧引用先停下来。",
       "title_en": "A changed target stops the next action."
     },
     {
       "id": "popup",
-      "start_seconds": 93.979,
+      "start_seconds": 71.62,
       "title_zh": "跟随审批弹窗，把流程接下去。",
       "title_en": "Continue the workflow in its owned approval tab."
     },
     {
       "id": "download",
-      "start_seconds": 122.187,
+      "start_seconds": 95.469,
       "title_zh": "拿到文件，还要核对文件内容。",
       "title_en": "Deliver the file and verify its actual bytes."
     },
     {
       "id": "recap",
-      "start_seconds": 141.47,
+      "start_seconds": 111.891,
       "title_zh": "做完工作，留下可核查的结果。",
       "title_en": "The task is complete. The evidence stays with it."
     }
   ],
   "presentation_holds": [
     {
-      "at_ms": 2351.869,
-      "duration_ms": 12952.472
+      "at_ms": 1506.574,
+      "duration_ms": 10000
     },
     {
-      "at_ms": 15774.822,
-      "duration_ms": 11280.770999999999
+      "at_ms": 11513.622,
+      "duration_ms": 6000
     },
     {
-      "at_ms": 28839.549,
+      "at_ms": 18115.655,
       "duration_ms": 12000
     },
     {
-      "at_ms": 41772.3,
+      "at_ms": 30162.779,
       "duration_ms": 14000
     },
     {
-      "at_ms": 56568.988,
-      "duration_ms": 11375.057
+      "at_ms": 44219.612,
+      "duration_ms": 7000
     },
     {
-      "at_ms": 69238.959,
+      "at_ms": 51309.112,
       "duration_ms": 13000
     },
     {
-      "at_ms": 83155.792,
-      "duration_ms": 11266.349
+      "at_ms": 64350.026,
+      "duration_ms": 8000
     },
     {
-      "at_ms": 96483.589,
-      "duration_ms": 11187.891
+      "at_ms": 72718.624,
+      "duration_ms": 10000
     },
     {
-      "at_ms": 109648.304,
+      "at_ms": 83199.664,
       "duration_ms": 13000
     },
     {
-      "at_ms": 124980.131,
+      "at_ms": 96559.076,
       "duration_ms": 16000
     },
     {
-      "at_ms": 142379.404,
+      "at_ms": 112626.679,
       "duration_ms": 12000
     }
   ],
@@ -1753,7 +1752,7 @@
     "batch": {
       "completed": 6,
       "requested": 6,
-      "tool_elapsed_ms": 510.7,
+      "tool_elapsed_ms": 526.605,
       "server_filters": {
         "destination": "Lisbon",
         "nights": "3",
@@ -1765,14 +1764,14 @@
     },
     "result_verification": {
       "ok": true,
-      "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
+      "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
       "passed": true,
       "checks": [
         {
           "index": 0,
           "kind": "url",
           "pass": true,
-          "actual": "http://127.0.0.1:61313/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes"
+          "actual": "http://127.0.0.1:55264/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes"
         },
         {
           "index": 1,
@@ -1799,7 +1798,7 @@
           "actual": 1
         }
       ],
-      "elapsed_ms": 11
+      "elapsed_ms": 28
     },
     "changed_target": {
       "refused_code": "STALE_REFERENCE",
@@ -1817,7 +1816,7 @@
       },
       "owned_tabs": 2,
       "completed": 4,
-      "tool_elapsed_ms": 439.262,
+      "tool_elapsed_ms": 420.052,
       "server": {
         "searches": 1,
         "popup_visits": 1,
@@ -1847,7 +1846,7 @@
       },
       "verification": {
         "ok": true,
-        "session_id": "5ef88cb5-8c4d-4b67-a6de-61992d5ead62",
+        "session_id": "b9c7d03b-5f86-495b-a028-9292c1ce020b",
         "passed": true,
         "checks": [
           {
@@ -1869,7 +1868,7 @@
             "actual": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 04 / READY TO GO ✓ 审批通过，行程已就绪。 审批编号 WF-001 申请人 Lin Chen 成本中心 设计团队 酒店 Casa Flora 行程 Lisbon · 3 晚 · 2 人 审批金额 EUR 780 审批完成 一份可交付的行程 下载 CSV 文件，交给同事或导入后续工作流。 下载行程 CSV 取消政策 免费取消 文件包含审批编号、城市、晚数、人数与金额。 虚构差旅任务 · 无外部预订或付款"
           }
         ],
-        "elapsed_ms": 1
+        "elapsed_ms": 2
       }
     },
     "download": {
@@ -1892,660 +1891,56 @@
     "mcp_calls": 22,
     "successful_actions": 12,
     "rejected_actions": 1,
-    "tool_elapsed_ms": 2161.036,
+    "tool_elapsed_ms": 2339.659,
     "browser_assertions_passed": 8,
     "server_orders": 1,
     "downloaded_files": 1,
     "remaining_sessions": 0
   },
-  "recording_duration_ms": 154864.792,
-  "video_timeline_seconds": 154.104,
+  "recording_duration_ms": 124709.173,
+  "video_timeline_seconds": 123.975,
   "video_encoding": {
-    "file": "tablaze-demo-hd.mp4",
-    "codec": "H.264",
-    "frames_per_second": 12,
-    "crf": 16,
-    "width": 2880,
-    "height": 1800,
-    "audio": {
-      "codec": "AAC",
-      "language": "zh-CN",
-      "sample_rate": 48000,
-      "bit_rate": 192000,
-      "target_lufs": -16,
-      "synthesis": "macOS Tingting",
-      "segments": 11
-    },
-    "source": "Lossless 2x presentation PNG frames, encoded once. Real tab_capture images are embedded without re-encoding.",
-    "encoder_sha256": "6d175a4743ca50256e89a8cdd731100f9cee33bd79aeea46894d209410dc6617",
+    "codec": "VP8",
+    "frames_per_second": 5,
+    "crf": 18,
+    "resolution_unchanged": true,
+    "timestamps_preserved": true,
+    "original_file": "tablaze-demo-original.webm",
+    "original_sha256": "2ce57201f3d55d003e370ebd0c6e4b89e2be61cc2f6b6b09b78675304a3d64dd",
+    "encoder_sha256": "662398c99429f5493ff0ff40cdcd97ea25132addcbdedafd0741389964147825",
     "command_arguments": [
       "-y",
       "-hide_banner",
       "-loglevel",
-      "warning",
-      "-f",
-      "concat",
-      "-safe",
-      "1",
+      "error",
       "-i",
-      "frames.ffconcat",
-      "-i",
-      "NARRATION/01-overview.aiff",
-      "-i",
-      "NARRATION/02-six-actions.aiff",
-      "-i",
-      "NARRATION/03-batch-complete.aiff",
-      "-i",
-      "NARRATION/04-result-checks.aiff",
-      "-i",
-      "NARRATION/05-node-replacement.aiff",
-      "-i",
-      "NARRATION/06-stale-rejected.aiff",
-      "-i",
-      "NARRATION/07-fresh-observation.aiff",
-      "-i",
-      "NARRATION/08-popup-follow.aiff",
-      "-i",
-      "NARRATION/09-approval.aiff",
-      "-i",
-      "NARRATION/10-download-verify.aiff",
-      "-i",
-      "NARRATION/11-summary-cleanup.aiff",
-      "-filter_complex",
-      "[1:a]aresample=48000,adelay=1992:all=1[a0];[2:a]aresample=48000,adelay=15415:all=1[a1];[3:a]aresample=48000,adelay=28479:all=1[a2];[4:a]aresample=48000,adelay=41410:all=1[a3];[5:a]aresample=48000,adelay=56206:all=1[a4];[6:a]aresample=48000,adelay=68878:all=1[a5];[7:a]aresample=48000,adelay=82792:all=1[a6];[8:a]aresample=48000,adelay=96121:all=1[a7];[9:a]aresample=48000,adelay=109289:all=1[a8];[10:a]aresample=48000,adelay=124619:all=1[a9];[11:a]aresample=48000,adelay=142020:all=1[a10];[a0][a1][a2][a3][a4][a5][a6][a7][a8][a9][a10]amix=inputs=11:duration=longest:normalize=0,loudnorm=I=-16:TP=-1.5:LRA=7,apad[voice]",
-      "-map",
-      "0:v:0",
-      "-map",
-      "[voice]",
+      "INPUT.webm",
+      "-an",
       "-c:v",
-      "libx264",
-      "-preset",
-      "fast",
+      "libvpx",
+      "-b:v",
+      "0",
       "-crf",
-      "16",
-      "-pix_fmt",
-      "yuv420p",
+      "18",
       "-r",
-      "12",
+      "5",
       "-fps_mode",
       "cfr",
-      "-c:a",
-      "aac",
-      "-b:a",
-      "192k",
-      "-ar",
-      "48000",
-      "-t",
-      "154.104",
-      "-movflags",
-      "+faststart",
-      "tablaze-demo-hd.mp4"
-    ],
-    "frames": [
-      {
-        "file": "frames/0000.png",
-        "at_seconds": 0,
-        "sha256": "8ee8a7e6e74241919b7d7c77a88b28dc41da90a9eec1abd442fb2d6e02dd4c3e"
-      },
-      {
-        "file": "frames/0001.png",
-        "at_seconds": 0.353,
-        "sha256": "2587a389bdb32ac0fc067a943273f1cdb6ede0cd9d6496c5158f70f721c8deb0"
-      },
-      {
-        "file": "frames/0002.png",
-        "at_seconds": 0.939,
-        "sha256": "093ea1da75d59b56ddfb4a49c390e188e9ebec4fa2d4c61d9ca0f3e9f7a11247"
-      },
-      {
-        "file": "frames/0003.png",
-        "at_seconds": 1.042,
-        "sha256": "ee067b4fa41d47ceac8d7ae3de3c37ec8122b9296b1bf3254ed35181271badaa"
-      },
-      {
-        "file": "frames/0004.png",
-        "at_seconds": 1.185,
-        "sha256": "476f07400678a591b26848884ff7fe4aece778ccf1049ba19d5d8d5818bd51f9"
-      },
-      {
-        "file": "frames/0005.png",
-        "at_seconds": 1.296,
-        "sha256": "907782e976099091c572fd512f321b357ed35fedf0129433ba724be8205a7e43"
-      },
-      {
-        "file": "frames/0006.png",
-        "at_seconds": 1.446,
-        "sha256": "ef0202552ecc71079aa3352ba816a9b06e206969c8e699e3589f2a9eeccb8842"
-      },
-      {
-        "file": "frames/0007.png",
-        "at_seconds": 1.592,
-        "sha256": "2c4cb2733fc95894852647846671fb162db0b22a843d89a1a60ae7852eaa8246"
-      },
-      {
-        "file": "frames/0008.png",
-        "at_seconds": 14.696,
-        "sha256": "da543c8d565ef619dfc480c100b539ca3640118715990b946b185d4f65853b72"
-      },
-      {
-        "file": "frames/0009.png",
-        "at_seconds": 14.867,
-        "sha256": "9733d5ced254f419fdbc74afd7c6cd5df3f555eab9589c801331f47d1ce37db7"
-      },
-      {
-        "file": "frames/0010.png",
-        "at_seconds": 15.015,
-        "sha256": "215cb5cb644f12270b8e4c297b68830c488ca705509a37d0436a2a24c01c6289"
-      },
-      {
-        "file": "frames/0011.png",
-        "at_seconds": 26.449,
-        "sha256": "9733d5ced254f419fdbc74afd7c6cd5df3f555eab9589c801331f47d1ce37db7"
-      },
-      {
-        "file": "frames/0012.png",
-        "at_seconds": 26.642,
-        "sha256": "912dc4ebcc8ce2423de6708f077a3a0ad7ede4531f0dda32f12104fd7e042488"
-      },
-      {
-        "file": "frames/0013.png",
-        "at_seconds": 27.319,
-        "sha256": "38879788b91870702d5c141e2b91503202274cd4dd082bc83f7e16f69b8e1e87"
-      },
-      {
-        "file": "frames/0014.png",
-        "at_seconds": 27.465,
-        "sha256": "6c4930e7e2ecab96e5563255090083791139cc9d413d2150ab9fdebf12e9ad5b"
-      },
-      {
-        "file": "frames/0015.png",
-        "at_seconds": 27.635,
-        "sha256": "3d298be59c13e9c1b2571ffd1432365566352dd2d673397b9bf347ea281d5968"
-      },
-      {
-        "file": "frames/0016.png",
-        "at_seconds": 27.784,
-        "sha256": "b76c3dc2e8709eb00d15e3be120df248f5cc7dd812ac7f9f2ad2eae968cbaf68"
-      },
-      {
-        "file": "frames/0017.png",
-        "at_seconds": 27.931,
-        "sha256": "ef541cc331868367a13123032c1e7a115acba27833986649c401703a059fe4d5"
-      },
-      {
-        "file": "frames/0018.png",
-        "at_seconds": 28.08,
-        "sha256": "1c19929928c489eb498e3052aa493cd6510dd36ed0e806ae1726071208705feb"
-      },
-      {
-        "file": "frames/0019.png",
-        "at_seconds": 40.233,
-        "sha256": "ef541cc331868367a13123032c1e7a115acba27833986649c401703a059fe4d5"
-      },
-      {
-        "file": "frames/0020.png",
-        "at_seconds": 40.404,
-        "sha256": "fe0b522a78059025898830c71ad5b906fd7cc720d8e071b3e21f841a2be6f7e9"
-      },
-      {
-        "file": "frames/0021.png",
-        "at_seconds": 40.55,
-        "sha256": "f111bc5d6cbdd7cbb9b18f50ef434a59b2e6d94056f3864571d97f349379f373"
-      },
-      {
-        "file": "frames/0022.png",
-        "at_seconds": 40.709,
-        "sha256": "971bcbb8ddf5530b4093b8e88e78a9462be6f3a556b074a921113810e6d37c4a"
-      },
-      {
-        "file": "frames/0023.png",
-        "at_seconds": 40.87,
-        "sha256": "9b5aff64156daf174bd28c1b3b0541cfa28b3e97771e4cbada8e90b5c65cc550"
-      },
-      {
-        "file": "frames/0024.png",
-        "at_seconds": 41.012,
-        "sha256": "1713da8142289d07de531433e86c038e7e6013b07be67324a4d5f97c8247759e"
-      },
-      {
-        "file": "frames/0025.png",
-        "at_seconds": 55.166,
-        "sha256": "9b5aff64156daf174bd28c1b3b0541cfa28b3e97771e4cbada8e90b5c65cc550"
-      },
-      {
-        "file": "frames/0026.png",
-        "at_seconds": 55.354,
-        "sha256": "b142f0b56a659e1c5f0c0639938b8fa188d361eb56f0197100211a6edc72ea56"
-      },
-      {
-        "file": "frames/0027.png",
-        "at_seconds": 55.509,
-        "sha256": "2f0ba6b10def60fc58d8a27dce586cb48f1ad2b5d57d1a455448985c1013c972"
-      },
-      {
-        "file": "frames/0028.png",
-        "at_seconds": 55.659,
-        "sha256": "f7f69222d91955afa441e12b5425ddf23fa1231d7b52841d1e5e567ac39ecda6"
-      },
-      {
-        "file": "frames/0029.png",
-        "at_seconds": 55.81,
-        "sha256": "6f5f43b4a00d84e201997678b67a7152355fd0ac3c5abedd70251226dd01bf03"
-      },
-      {
-        "file": "frames/0030.png",
-        "at_seconds": 67.334,
-        "sha256": "2c373fa329e9820f557eaad150d62002383ff1bffe955222f2b5ca39c36eb6e3"
-      },
-      {
-        "file": "frames/0031.png",
-        "at_seconds": 67.546,
-        "sha256": "95c4d917ea46a0e1e9ef5ad2c6c1cd89ceead27175b16a059be327bbf6a725f9"
-      },
-      {
-        "file": "frames/0032.png",
-        "at_seconds": 67.713,
-        "sha256": "7c1c2728dad3db6bc510a7cd680d188df09b3f96ac70e99e7481bd821db8fa66"
-      },
-      {
-        "file": "frames/0033.png",
-        "at_seconds": 67.859,
-        "sha256": "cb23329d5880493a583a483b11fae5c03982b5788fc83d67427a97c493b344d2"
-      },
-      {
-        "file": "frames/0034.png",
-        "at_seconds": 68.034,
-        "sha256": "c91f666f706b2eed8edc887ca28f848cdbc244b54a454de3cc166748c2915617"
-      },
-      {
-        "file": "frames/0035.png",
-        "at_seconds": 68.18,
-        "sha256": "c91f666f706b2eed8edc887ca28f848cdbc244b54a454de3cc166748c2915617"
-      },
-      {
-        "file": "frames/0036.png",
-        "at_seconds": 68.327,
-        "sha256": "e2d1236d39f28b577232c398ffb51618f0327cfa74d117e3a21111572b6df6eb"
-      },
-      {
-        "file": "frames/0037.png",
-        "at_seconds": 68.479,
-        "sha256": "949f508ecd41c8510cb5f6fc19d6943772e445593dffd1d7b5a4edc14fac26be"
-      },
-      {
-        "file": "frames/0038.png",
-        "at_seconds": 81.633,
-        "sha256": "12a74c1503e25656a773a52e57a0f7b3324e3832f1c1dcec4a146b116e69d2df"
-      },
-      {
-        "file": "frames/0039.png",
-        "at_seconds": 81.903,
-        "sha256": "2a2dcb1461645d86e665d585b9fdb04b4537dcbc58a54f52f7f8c8f9b43ecce5"
-      },
-      {
-        "file": "frames/0040.png",
-        "at_seconds": 82.1,
-        "sha256": "7292d53db246dd6cb3c5677f0166f1d5063a0c7603d272b90a16689aa4613693"
-      },
-      {
-        "file": "frames/0041.png",
-        "at_seconds": 82.25,
-        "sha256": "6b4ae0f3e1d0ad43b5bdf2c860c4bee29bc494fe8cb00a652c9d8c040b6d5458"
-      },
-      {
-        "file": "frames/0042.png",
-        "at_seconds": 82.396,
-        "sha256": "1808f8307995fd66701f0caa6cfb9f8f03e9b8c107622df15762a1f91be793fc"
-      },
-      {
-        "file": "frames/0043.png",
-        "at_seconds": 93.812,
-        "sha256": "6b4ae0f3e1d0ad43b5bdf2c860c4bee29bc494fe8cb00a652c9d8c040b6d5458"
-      },
-      {
-        "file": "frames/0044.png",
-        "at_seconds": 93.98,
-        "sha256": "b277ed22023eaacacf3a8d53559475239fdf97da2b1277aac8d0d6b14ada8b37"
-      },
-      {
-        "file": "frames/0045.png",
-        "at_seconds": 94.186,
-        "sha256": "c04231dfa582c53caa1d274e01ca74231dce39d9ff771fe819785b3519d2759f"
-      },
-      {
-        "file": "frames/0046.png",
-        "at_seconds": 94.617,
-        "sha256": "7b4b8c3665692877dd3d83c363a209d12142df06fead7501e955483faffed1ef"
-      },
-      {
-        "file": "frames/0047.png",
-        "at_seconds": 94.771,
-        "sha256": "8ea8c45d8c96ac9cf75c708326d215f2c6943da6bf8a053ac6f8cd2714cee963"
-      },
-      {
-        "file": "frames/0048.png",
-        "at_seconds": 94.957,
-        "sha256": "ffca6b06c24e3943db00375849867f36554befbd7a781ed278bbaf2fb8209077"
-      },
-      {
-        "file": "frames/0049.png",
-        "at_seconds": 95.111,
-        "sha256": "be635d66c34056ed2f3c9a680ea53a9c57882b1c609f9583c4ff6bfa03d6a07d"
-      },
-      {
-        "file": "frames/0050.png",
-        "at_seconds": 95.283,
-        "sha256": "44b8b51a22fb5b20b7aba95be595ad1e3dc60b032b8f05346cc1277510dc1d97"
-      },
-      {
-        "file": "frames/0051.png",
-        "at_seconds": 95.424,
-        "sha256": "c8c8adeab730125a0a025f78cd2596d0a24f5434ba106cee2aa02a852cac420b"
-      },
-      {
-        "file": "frames/0052.png",
-        "at_seconds": 95.57,
-        "sha256": "da4078bc5888dc7fe3755f91a20428e7f5593ee1950034b1bcf18d084891b67e"
-      },
-      {
-        "file": "frames/0053.png",
-        "at_seconds": 95.724,
-        "sha256": "b72f873de12f47cf3938d94bb258f7dbe4486db2b2c53fd1986c3436c3368d9f"
-      },
-      {
-        "file": "frames/0054.png",
-        "at_seconds": 107.063,
-        "sha256": "da4078bc5888dc7fe3755f91a20428e7f5593ee1950034b1bcf18d084891b67e"
-      },
-      {
-        "file": "frames/0055.png",
-        "at_seconds": 107.227,
-        "sha256": "b7454f6a25b26bc12d7e63750c88a669233fddd4c4940a01036a4259d2c1fe35"
-      },
-      {
-        "file": "frames/0056.png",
-        "at_seconds": 107.819,
-        "sha256": "017a791670f7e34a98ce449990f49a37863c2bc4edb322f2d5b1a07b984f405a"
-      },
-      {
-        "file": "frames/0057.png",
-        "at_seconds": 107.994,
-        "sha256": "ff735fcadb0c73246ed911d5871b086cf38f51d02f862b8cf6ae452b7f8de35f"
-      },
-      {
-        "file": "frames/0058.png",
-        "at_seconds": 108.144,
-        "sha256": "6bd865bbd7728f180ee97ad46c4dc9dfc319ef2b33c9708da8b65920514dce9f"
-      },
-      {
-        "file": "frames/0059.png",
-        "at_seconds": 108.288,
-        "sha256": "5f59e6816d4c78594bf764700acd5ab35b22f43ee9d841cd246724ccda48694a"
-      },
-      {
-        "file": "frames/0060.png",
-        "at_seconds": 108.45,
-        "sha256": "21a437d41fd04abbfa9701480ba384aa438caaff69882ac7076f0ce6e7405c77"
-      },
-      {
-        "file": "frames/0061.png",
-        "at_seconds": 108.588,
-        "sha256": "d59fe0271cac272db0ac72c78238ca03e4a8f6ad47e6372327f658cfe69ed9be"
-      },
-      {
-        "file": "frames/0062.png",
-        "at_seconds": 108.741,
-        "sha256": "df8ce21fe67762ec71aad17bcccacb9178cefd03f28fcc3ceadd7bf0e8b64b5b"
-      },
-      {
-        "file": "frames/0063.png",
-        "at_seconds": 108.888,
-        "sha256": "035b707e1729b037be641cc21ca42711d4548c9eaf7fdc6c7b252d47f6cd6a58"
-      },
-      {
-        "file": "frames/0064.png",
-        "at_seconds": 122.04,
-        "sha256": "df8ce21fe67762ec71aad17bcccacb9178cefd03f28fcc3ceadd7bf0e8b64b5b"
-      },
-      {
-        "file": "frames/0065.png",
-        "at_seconds": 122.187,
-        "sha256": "a1b7fec23409fd10e7f52544889184ef7f1f5e9db73daeb9240f62cf6531a4ae"
-      },
-      {
-        "file": "frames/0066.png",
-        "at_seconds": 122.4,
-        "sha256": "6b2c6c79d5681d8d6165a35569356a58766839edd09d0f4ac096c5397007c41c"
-      },
-      {
-        "file": "frames/0067.png",
-        "at_seconds": 122.659,
-        "sha256": "b8337d0145f4b73c90337f59ae1a4f034ee411e405457e3a9c11caa162eed0da"
-      },
-      {
-        "file": "frames/0068.png",
-        "at_seconds": 122.804,
-        "sha256": "471724d1286875a3962a616b56f5a92ced412e8c8e5666e285400db3bb20d51b"
-      },
-      {
-        "file": "frames/0069.png",
-        "at_seconds": 123.242,
-        "sha256": "c255c945283c26a23f8779bd2333062bd3bd9e500f2b8838f8bc921e4c2aab6a"
-      },
-      {
-        "file": "frames/0070.png",
-        "at_seconds": 123.387,
-        "sha256": "d47316052a678cbd351f9247818037b6ec1baf2f8ef76ac1a6f41c145f72715b"
-      },
-      {
-        "file": "frames/0071.png",
-        "at_seconds": 123.577,
-        "sha256": "f251d4b5dde70280d3c8b68f965282bcbf6732f41703f820bc8bbf5a0c7c6b23"
-      },
-      {
-        "file": "frames/0072.png",
-        "at_seconds": 123.782,
-        "sha256": "81d6e9891f76b8c4374a4cb51baf472ee2977ebeb31f0184ee25b959d48dc0d7"
-      },
-      {
-        "file": "frames/0073.png",
-        "at_seconds": 123.929,
-        "sha256": "508ed9c89696fd5bd9b9df0444ffcf2b36b6ce8e557d8807c255d422b417df96"
-      },
-      {
-        "file": "frames/0074.png",
-        "at_seconds": 124.077,
-        "sha256": "9868d59ec1e54417e0bb1abf8140cde5a4a9bb28d7fb07c364b7c713ee67819d"
-      },
-      {
-        "file": "frames/0075.png",
-        "at_seconds": 124.22,
-        "sha256": "d587952048ed99a285cafaa8bc12d4c12ea7c51b1fffea60e596bbd3201f50fa"
-      },
-      {
-        "file": "frames/0076.png",
-        "at_seconds": 140.372,
-        "sha256": "9868d59ec1e54417e0bb1abf8140cde5a4a9bb28d7fb07c364b7c713ee67819d"
-      },
-      {
-        "file": "frames/0077.png",
-        "at_seconds": 140.55,
-        "sha256": "4c90710c5c4ab6da5804872aaf805bb736f5403a00b8712879e6a559ca193a6c"
-      },
-      {
-        "file": "frames/0078.png",
-        "at_seconds": 140.696,
-        "sha256": "4b1b91303cf251d2ca20f063fa953f5696d1de60ef2465baa948cbc2512f8ecd"
-      },
-      {
-        "file": "frames/0079.png",
-        "at_seconds": 140.835,
-        "sha256": "43b6e545cc0ddbd8ed72f2756d0e383ccda34a6d2068d1c1d89f93564930d8be"
-      },
-      {
-        "file": "frames/0080.png",
-        "at_seconds": 141.015,
-        "sha256": "1871490fcf429cd60820aaa9caba3ec3edc619b06f9525dfb17deed2436dda03"
-      },
-      {
-        "file": "frames/0081.png",
-        "at_seconds": 141.166,
-        "sha256": "3d1bf840204f0716931d3555cd662215e574214595168206a98b6657e9221050"
-      },
-      {
-        "file": "frames/0082.png",
-        "at_seconds": 141.318,
-        "sha256": "0c25380e81ac3c216728dc18d84f872096f01392a8042c4cfe97ec5964d9b90b"
-      },
-      {
-        "file": "frames/0083.png",
-        "at_seconds": 141.47,
-        "sha256": "4ffeb82e82bec01e15cd0e012639929bd8ad61520c6eee25638406ee2850e9c3"
-      },
-      {
-        "file": "frames/0084.png",
-        "at_seconds": 141.62,
-        "sha256": "dbac6d3544878627bdae62a55cd26fa5c7d7f32ec5610fa888e7d404634b4f9c"
-      },
-      {
-        "file": "frames/0085.png",
-        "at_seconds": 153.774,
-        "sha256": "4ffeb82e82bec01e15cd0e012639929bd8ad61520c6eee25638406ee2850e9c3"
-      }
-    ],
-    "narration": [
-      {
-        "index": 0,
-        "id": "overview",
-        "text": "用闪页安排一次里斯本差旅：两人住三晚，总预算九百欧元，酒店需要支持取消。接下来走完搜索、审批和文件核验的完整流程。",
-        "duration_seconds": 11.952472,
-        "voice": "Tingting",
-        "rate": 200,
-        "start_seconds": 1.992,
-        "file": "01-overview.aiff",
-        "sha256": "14ad7eaba3c19f186b5d44612453db59b378320e589e0c70ee974e28851ce64a"
-      },
-      {
-        "index": 1,
-        "id": "six-actions",
-        "text": "先填写城市、晚数、人数和预算，勾选可取消，再发起搜索。六个动作组成一次有序请求，按顺序执行。",
-        "duration_seconds": 10.280771,
-        "voice": "Tingting",
-        "rate": 200,
-        "start_seconds": 15.415,
-        "file": "02-six-actions.aiff",
-        "sha256": "fd4de68326c659791063156617cd5defd99922cc09b3999c3072878a1ec71c9e"
-      },
-      {
-        "index": 2,
-        "id": "batch-complete",
-        "text": "这一批六个动作全部完成，页面展示符合条件的酒店。服务器记录也确认，这批操作只产生了一次搜索请求。",
-        "duration_seconds": 9.846576,
-        "voice": "Tingting",
-        "rate": 200,
-        "start_seconds": 28.479,
-        "file": "03-batch-complete.aiff",
-        "sha256": "6adb6e9bd0d40fb0f73eb77feb098b6679ebb5c641be0291499972480d1f206b"
-      },
-      {
-        "index": 3,
-        "id": "result-checks",
-        "text": "结果验收同时检查网址、标题、页面文字、表单字段和酒店数量。五项检查全部通过，才把本次搜索记为成功。",
-        "duration_seconds": 10.584036,
-        "voice": "Tingting",
-        "rate": 200,
-        "start_seconds": 41.41,
-        "file": "04-result-checks.aiff",
-        "sha256": "dae0d3733a993571bbe6d150973a0aa82bd4dbf22e9a26bf3f5e75d37f69062c"
-      },
-      {
-        "index": 4,
-        "id": "node-replacement",
-        "text": "接下来模拟页面更新：保留按钮的外观，却替换它背后的页面节点。看起来还是同一个按钮，旧引用实际上已经失效。",
-        "duration_seconds": 10.375057,
-        "voice": "Tingting",
-        "rate": 200,
-        "start_seconds": 56.206,
-        "file": "05-node-replacement.aiff",
-        "sha256": "f180b644bfc41913a0fd692d4f0e08c9368adf1a38cbff1590f092d55062acf9"
-      },
-      {
-        "index": 5,
-        "id": "stale-rejected",
-        "text": "再次使用旧引用时，请求被拒绝。本次场景没有执行任何动作，也没有弹窗、提交或订单，避免误操作继续发生。",
-        "duration_seconds": 10.589161,
-        "voice": "Tingting",
-        "rate": 200,
-        "start_seconds": 68.878,
-        "file": "06-stale-rejected.aiff",
-        "sha256": "dc712b5c8259e2bb79d005f820992e53d9f70072034c87d3fe0da7d18c62aa70"
-      },
-      {
-        "index": 6,
-        "id": "fresh-observation",
-        "text": "恢复流程先重新观察页面，获取新的快照和按钮引用，再继续操作。让接下来的动作建立在当前页面状态之上。",
-        "duration_seconds": 10.266349,
-        "voice": "Tingting",
-        "rate": 200,
-        "start_seconds": 82.792,
-        "file": "07-fresh-observation.aiff",
-        "sha256": "c66fa8c2bfd3b9d89d649bc7bc0d871b21a1bc415752d16a3ca80764c7da3f38"
-      },
-      {
-        "index": 7,
-        "id": "popup-follow",
-        "text": "现在显式开启单弹窗跟随策略。审批页出现后，在同一个会话里保留原页面，并跟随新打开的审批页继续处理。",
-        "duration_seconds": 10.187891,
-        "voice": "Tingting",
-        "rate": 200,
-        "start_seconds": 96.121,
-        "file": "08-popup-follow.aiff",
-        "sha256": "bfe21cc41a489d1b166bf840e6ca43c1f694299b9b7a395fd879db0d71351490"
-      },
-      {
-        "index": 8,
-        "id": "approval",
-        "text": "审批依次填写姓名、成本中心，确认并批准，四个动作完成。回执三项检查通过，服务器只收到一次提交，生成一份订单。",
-        "duration_seconds": 11.741633,
-        "voice": "Tingting",
-        "rate": 200,
-        "start_seconds": 109.289,
-        "file": "09-approval.aiff",
-        "sha256": "e623ff98580ab3eb47899eb3cc0873b8b6b22a231374c5930178c5240e853e09"
-      },
-      {
-        "index": 9,
-        "id": "download-verify",
-        "text": "接着真实下载逗号分隔表格，读取实际字节，再核对内容和文件摘要。两者均匹配，确认拿到的文件就是预期结果。",
-        "duration_seconds": 10.456327,
-        "voice": "Tingting",
-        "rate": 200,
-        "start_seconds": 124.619,
-        "file": "10-download-verify.aiff",
-        "sha256": "76ed33db4a40ba023b3a8c3d05f3834bf9793f36e312bed6b84daad661ec5fff"
-      },
-      {
-        "index": 10,
-        "id": "summary-cleanup",
-        "text": "八项浏览器检查通过，完成一次审批和一个文件核验。最后关闭两个所属标签页，没有遗留页面，全程记录都可以核查。",
-        "duration_seconds": 10.836417,
-        "voice": "Tingting",
-        "rate": 200,
-        "start_seconds": 142.02,
-        "file": "11-summary-cleanup.aiff",
-        "sha256": "e9191580a3577881bac6e997691a5606fa59afc597d71308816c5f0a67625bb3"
-      }
+      "-deadline",
+      "good",
+      "-cpu-used",
+      "4",
+      "OUTPUT.webm"
     ]
   },
   "video": {
-    "file": "tablaze-demo-hd.mp4",
-    "sha256": "daa95f35d1005daaa4a87822bd4a955c36006962db1d9fc00e1579f9a22b9db8",
-    "size_bytes": 7243745,
-    "duration_seconds": 154.104,
-    "width": 2880,
-    "height": 1800,
-    "has_audio": true,
-    "chapter_timing": "Monotonic elapsed time since recorder page creation; first chapter starts at zero. Presentation frames and narration retain this timeline, quantized to the encoding frame rate."
+    "file": "tablaze-demo.webm",
+    "sha256": "1697146a68ae62a043b486093360ad43610995b0c403de0aee34ececcb06b419",
+    "size_bytes": 2910437,
+    "duration_seconds": 126,
+    "width": 1440,
+    "height": 900,
+    "chapter_timing": "Monotonic elapsed time since recorder page creation; first chapter starts at zero. Screen-capture frame scheduling may differ by a fraction of a second."
   },
-  "completed_at": "2026-09-22T17:02:02.696Z"
+  "completed_at": "2026-09-22T15:58:38.544Z"
 }

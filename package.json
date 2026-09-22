@@ -36,7 +36,10 @@
     "demo/fixture.mjs",
     "demo/viewer.html",
     "scripts/package-release.mjs",
-    "CHANGELOG.md"
+    "CHANGELOG.md",
+    "demo/render-video.mjs",
+    "demo/narrate.mjs",
+    "demo/narration.zh-CN.json"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",

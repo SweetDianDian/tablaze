@@ -166,8 +166,21 @@ function renderDemo() {
     : demoChapters.length === 0 ? words('Use the video controls to explore.', '可使用视频进度条观看。')
     : demoVideo.readyState < 1 ? words('Loading video…', '正在加载视频…')
     : words('Choose a chapter to play', '选择章节，直接观看');
+  renderDemoSound();
   updateCurrentChapter();
 }
+function renderDemoSound() {
+  const audible = !demoVideo.muted && demoVideo.volume > 0;
+  $('#demo-sound').textContent = audible ? words('Sound on', '声音已开启') : words('Enable sound', '开启声音');
+  $('#demo-sound').setAttribute('aria-pressed', String(audible));
+  $('#demo-sound').setAttribute('aria-label', audible ? words('Mute narration', '静音旁白') : words('Enable Chinese narration', '开启中文旁白'));
+}
+$('#demo-sound').addEventListener('click', () => {
+  if (demoVideo.muted || demoVideo.volume === 0) { demoVideo.muted = false; demoVideo.volume = 1; }
+  else demoVideo.muted = true;
+  renderDemoSound();
+});
+demoVideo.addEventListener('volumechange', renderDemoSound);
 async function playDemo(focusVideo = false) {
   if (!demoAvailable) return;
   if (focusVideo) demoVideo.focus({preventScroll: true});

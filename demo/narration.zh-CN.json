@@ -1,0 +1,79 @@
+[
+  {
+    "index": 0,
+    "id": "overview",
+    "text": "用闪页安排一次里斯本差旅：两人住三晚，总预算九百欧元，酒店需要支持取消。接下来走完搜索、审批和文件核验的完整流程。",
+    "voice": "Tingting",
+    "rate": 200
+  },
+  {
+    "index": 1,
+    "id": "six-actions",
+    "text": "先填写城市、晚数、人数和预算，勾选可取消，再发起搜索。六个动作组成一次有序请求，按顺序执行。",
+    "voice": "Tingting",
+    "rate": 200
+  },
+  {
+    "index": 2,
+    "id": "batch-complete",
+    "text": "这一批六个动作全部完成，页面展示符合条件的酒店。服务器记录也确认，这批操作只产生了一次搜索请求。",
+    "voice": "Tingting",
+    "rate": 200
+  },
+  {
+    "index": 3,
+    "id": "result-checks",
+    "text": "结果验收同时检查网址、标题、页面文字、表单字段和酒店数量。五项检查全部通过，才把本次搜索记为成功。",
+    "voice": "Tingting",
+    "rate": 200
+  },
+  {
+    "index": 4,
+    "id": "node-replacement",
+    "text": "接下来模拟页面更新：保留按钮的外观，却替换它背后的页面节点。看起来还是同一个按钮，旧引用实际上已经失效。",
+    "voice": "Tingting",
+    "rate": 200
+  },
+  {
+    "index": 5,
+    "id": "stale-rejected",
+    "text": "再次使用旧引用时，请求被拒绝。本次场景没有执行任何动作，也没有弹窗、提交或订单，避免误操作继续发生。",
+    "voice": "Tingting",
+    "rate": 200
+  },
+  {
+    "index": 6,
+    "id": "fresh-observation",
+    "text": "恢复流程先重新观察页面，获取新的快照和按钮引用，再继续操作。让接下来的动作建立在当前页面状态之上。",
+    "voice": "Tingting",
+    "rate": 200
+  },
+  {
+    "index": 7,
+    "id": "popup-follow",
+    "text": "现在显式开启单弹窗跟随策略。审批页出现后，在同一个会话里保留原页面，并跟随新打开的审批页继续处理。",
+    "voice": "Tingting",
+    "rate": 200
+  },
+  {
+    "index": 8,
+    "id": "approval",
+    "text": "审批依次填写姓名、成本中心，确认并批准，四个动作完成。回执三项检查通过，服务器只收到一次提交，生成一份订单。",
+    "voice": "Tingting",
+    "rate": 200
+  },
+  {
+    "index": 9,
+    "id": "download-verify",
+    "text": "接着真实下载逗号分隔表格，读取实际字节，再核对内容和文件摘要。两者均匹配，确认拿到的文件就是预期结果。",
+    "voice": "Tingting",
+    "rate": 200
+  },
+  {
+    "index": 10,
+    "id": "summary-cleanup",
+    "text": "八项浏览器检查通过，完成一次审批和一个文件核验。最后关闭两个所属标签页，没有遗留页面，全程记录都可以核查。",
+    "voice": "Tingting",
+    "rate": 200
+  }
+]

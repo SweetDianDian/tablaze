@@ -12,17 +12,24 @@ import { chromium } from 'playwright';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { startDemoFixture } from './fixture.mjs';
+import { renderVideo } from './render-video.mjs';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const output = resolve(root, process.env.TABLAZE_DEMO_OUTPUT || 'demo/output');
 const channel = process.env.TABLAZE_BROWSER_CHANNEL || undefined;
 const quick = process.env.TABLAZE_DEMO_QUICK === '1';
 const ffmpeg = process.env.TABLAZE_DEMO_FFMPEG;
+const narrationPath = process.env.TABLAZE_DEMO_NARRATION;
+const narrated = Boolean(narrationPath);
+if (narrated && (!ffmpeg || quick)) throw new Error('Narrated publication requires TABLAZE_DEMO_FFMPEG and normal timing.');
+const narration = narrated ? JSON.parse(await readFile(resolve(narrationPath), 'utf8')) : [];
+if (narrated && (!Array.isArray(narration) || narration.length !== 11 || narration.some((item, index) => item.index !== index || typeof item.text !== 'string' || !item.text.trim() || typeof item.file !== 'string' || !Number.isFinite(item.duration_seconds) || item.duration_seconds <= 0))) throw new Error('Provide eleven ordered narration segments.');
 await mkdir(output, { recursive: true });
 const recording = join(output, 'recording');
 await mkdir(recording, { recursive: true });
+if (narrated) await mkdir(join(output, 'frames'), { recursive: true });
 const sha256 = data => createHash('sha256').update(data).digest('hex');
-const sourceFiles = ['package.json', 'package-lock.json', 'demo/record.mjs', 'demo/viewer.html', 'demo/fixture.mjs',
+const sourceFiles = ['package.json', 'package-lock.json', 'demo/record.mjs', 'demo/render-video.mjs', 'demo/viewer.html', 'demo/fixture.mjs',
   ...(await readdir(join(root, 'src'))).filter(name => name.endsWith('.ts')).map(name => 'src/' + name),
   ...(await readdir(join(root, 'dist'))).filter(name => name.endsWith('.js')).map(name => 'dist/' + name)].sort();
 const sourceHashes = Object.fromEntries(await Promise.all(sourceFiles.map(async name => [name, sha256(await readFile(join(root, name)))])));
@@ -42,19 +49,30 @@ const report = {
 };
 const started = performance.now();
 let videoStarted, fixture, server, browser, context, viewer, client, video;
+const frames = [], voiceTimeline = [];
+let holdIndex = 0;
 const stdout = message => process.stdout.write(message + '\n');
 const elapsed = () => Number((performance.now() - started).toFixed(3));
 const videoTime = () => Number(((performance.now() - videoStarted) / 1000).toFixed(3));
-const present = state => viewer.evaluate(state => window.present(state), state);
+const present = async state => {
+  await viewer.evaluate(state => window.present(state), state);
+  if (narrated) {
+    const at = videoTime(), file = 'frames/' + String(frames.length).padStart(4, '0') + '.png';
+    await viewer.screenshot({ path: join(output, file), animations: 'disabled' });
+    frames.push({ file, at_seconds: frames.length ? at : 0 });
+  }
+};
 async function chapter(id, titleZh, titleEn, state = {}) {
   report.chapters.push({ id, start_seconds: id === 'overview' ? 0 : videoTime(), title_zh: titleZh, title_en: titleEn });
   await present({ stage: id, chapter: `${String(report.chapters.length).padStart(2, '0')} / ${id.toUpperCase()}`, title: titleZh, subtitle: titleEn, ...state });
   stdout('Chapter ' + id);
 }
 async function hold(seconds) {
-  const ms = quick ? 100 : seconds * 1000;
+  const segment = narration[holdIndex++];
+  const ms = quick ? 100 : Math.max(seconds, segment ? segment.duration_seconds + 1 : 0) * 1000;
   report.presentation_holds.push({ at_ms: elapsed(), duration_ms: ms });
-  await present({ hold: quick ? '快速校验 · 非发布录像' : `讲解停留 ${seconds}s · 工具耗时单独记录` });
+  await present({ hold: quick ? '快速校验 · 非发布录像' : `中文讲解 · 工具耗时单独记录` });
+  if (segment) voiceTimeline.push({ ...segment, start_seconds: videoTime() + 0.25 });
   await delay(ms);
   await present({ hold: '正常速度录制 · 无剪辑加速' });
 }
@@ -91,7 +109,7 @@ try {
   fixture = await startDemoFixture();
   const html = await readFile(join(root, 'demo/viewer.html'));
   server = http.createServer(async (request, response) => {
-    if (request.url === '/video.webm') { response.writeHead(200, { 'content-type': 'video/webm' }).end(await readFile(join(output, 'tablaze-demo.webm'))); return; }
+    if (request.url === '/video') { response.writeHead(200, { 'content-type': narrated ? 'video/mp4' : 'video/webm' }).end(await readFile(join(output, narrated ? 'tablaze-demo-hd.mp4' : 'tablaze-demo.webm'))); return; }
     response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' }).end(html);
   });
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
@@ -106,7 +124,7 @@ try {
   const expectedTools = ['tab_act', 'tab_capture', 'tab_close', 'tab_dialog', 'tab_downloads', 'tab_extract', 'tab_extract_structured', 'tab_list', 'tab_navigate', 'tab_open', 'tab_pdf', 'tab_snapshot', 'tab_state', 'tab_tabs', 'tab_verify'];
   assert.deepEqual(listed.tools.map(tool => tool.name).sort(), expectedTools);
   report.checks.handshake = { server: client.getServerVersion(), tools: listed.tools.map(tool => tool.name) };
-  context = await browser.newContext({ viewport: { width: 1440, height: 900 }, recordVideo: { dir: recording, size: { width: 1440, height: 900 } } });
+  context = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: narrated ? 2 : 1, ...(narrated ? {} : { recordVideo: { dir: recording, size: { width: 1440, height: 900 } } }) });
   videoStarted = performance.now();
   viewer = await context.newPage(); video = viewer.video();
   await viewer.goto('http://127.0.0.1:' + server.address().port);
@@ -267,8 +285,9 @@ try {
   report.status = 'passed'; report.recording_duration_ms = elapsed(); report.video_timeline_seconds = videoTime();
   stdout('All demo assertions passed; saving the full video.');
   await context.close(); context = undefined;
-  await video.saveAs(join(output, 'tablaze-demo.webm'));
-  if (ffmpeg) {
+  if (narrated) report.video_encoding = await renderVideo({ output, ffmpeg, frames, narration: voiceTimeline, duration: report.video_timeline_seconds });
+  else await video.saveAs(join(output, 'tablaze-demo.webm'));
+  if (ffmpeg && !narrated) {
     // Output frame-rate conversion retains timestamps; it does not speed up the recording.
     const original = join(output, 'tablaze-demo-original.webm');
     await rename(join(output, 'tablaze-demo.webm'), original);
@@ -279,11 +298,12 @@ try {
   await rm(recording, { recursive: true, force: true });
   const metadata = await browser.newPage();
   await metadata.goto('http://127.0.0.1:' + server.address().port);
-  const duration = await metadata.evaluate(() => new Promise((resolve, reject) => { const video = document.createElement('video'); video.preload = 'metadata'; video.onloadedmetadata = () => resolve(video.duration); video.onerror = () => reject(new Error('Could not read recorded video metadata')); video.src = '/video.webm'; document.body.append(video); }));
+  const duration = await metadata.evaluate(() => new Promise((resolve, reject) => { const video = document.createElement('video'); video.preload = 'metadata'; video.onloadedmetadata = () => resolve(video.duration); video.onerror = () => reject(new Error('Could not read recorded video metadata')); video.src = '/video'; document.body.append(video); }));
   await metadata.close(); assert.ok(Number.isFinite(duration) && duration > 0);
   for (const item of report.chapters) assert.ok(item.start_seconds < duration, 'Chapter outside video duration');
-  const videoBytes = await readFile(join(output, 'tablaze-demo.webm'));
-  report.video = { file: 'tablaze-demo.webm', sha256: sha256(videoBytes), size_bytes: videoBytes.length, duration_seconds: duration, width: 1440, height: 900, chapter_timing: 'Monotonic elapsed time since recorder page creation; first chapter starts at zero. Screen-capture frame scheduling may differ by a fraction of a second.' };
+  const videoFile = narrated ? 'tablaze-demo-hd.mp4' : 'tablaze-demo.webm';
+  const videoBytes = await readFile(join(output, videoFile));
+  report.video = { file: videoFile, sha256: sha256(videoBytes), size_bytes: videoBytes.length, duration_seconds: duration, width: narrated ? 2880 : 1440, height: narrated ? 1800 : 900, has_audio: narrated, chapter_timing: 'Monotonic elapsed time since recorder page creation; first chapter starts at zero. Presentation frames and narration retain this timeline, quantized to the encoding frame rate.' };
 } catch (error) {
   report.status = 'failed'; report.error = { message: error.message, stack: error.stack }; process.exitCode = 1; stdout('Demo failed: ' + error.message);
 } finally {

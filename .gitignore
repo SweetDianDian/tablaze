@@ -10,3 +10,4 @@ site/.sites-runtime/
 site/.openai/
 
 demo/output/
+demo/narration-output/

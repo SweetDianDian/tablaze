@@ -1,0 +1,235 @@
+{
+  "checks": [
+    {
+      "name": "layout-390-zh",
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "bodyWidth": 390,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-390-en",
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "bodyWidth": 390,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-768-zh",
+      "innerWidth": 768,
+      "scrollWidth": 768,
+      "bodyWidth": 768,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-768-en",
+      "innerWidth": 768,
+      "scrollWidth": 768,
+      "bodyWidth": 768,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-1440-zh",
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "bodyWidth": 1440,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-1440-en",
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "bodyWidth": 1440,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "hero-cta"
+    },
+    {
+      "name": "overlay-play"
+    },
+    {
+      "name": "hd-video-with-decoded-audio",
+      "muted": false,
+      "volume": 1,
+      "audioBytes": 8582,
+      "width": 2880,
+      "height": 1800,
+      "audioTracks": 1
+    },
+    {
+      "name": "sound-toggle-keyboard"
+    },
+    {
+      "name": "eleven-narration-captions"
+    },
+    {
+      "name": "native-control-pause"
+    },
+    {
+      "name": "chapter-overview",
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "name": "chapter-batch",
+      "expected": 14.866,
+      "actual": 14.866
+    },
+    {
+      "name": "chapter-verify",
+      "expected": 40.403,
+      "actual": 40.403
+    },
+    {
+      "name": "chapter-guard",
+      "expected": 55.658,
+      "actual": 55.658
+    },
+    {
+      "name": "chapter-popup",
+      "expected": 93.979,
+      "actual": 93.979
+    },
+    {
+      "name": "chapter-download",
+      "expected": 122.187,
+      "actual": 122.187
+    },
+    {
+      "name": "chapter-recap",
+      "expected": 141.47,
+      "actual": 141.47
+    },
+    {
+      "name": "decoded-frame-popup",
+      "time": 95.979,
+      "sourceWidth": 2880,
+      "sourceHeight": 1800,
+      "screenshot": "/private/tmp/tablaze-demo-hd-site-qa/decoded-popup-1440.png"
+    },
+    {
+      "name": "decoded-frame-download",
+      "time": 124.187,
+      "sourceWidth": 2880,
+      "sourceHeight": 1800,
+      "screenshot": "/private/tmp/tablaze-demo-hd-site-qa/decoded-download-1440.png"
+    },
+    {
+      "name": "language-keeps-progress",
+      "before": 124.187,
+      "after": 124.187
+    },
+    {
+      "name": "chapter-keyboard-Enter"
+    },
+    {
+      "name": "chapter-keyboard-Space"
+    },
+    {
+      "name": "missing-report-native-playback"
+    },
+    {
+      "name": "demo-false-no-video-load"
+    },
+    {
+      "name": "video-error-fallback",
+      "overlayVisible": false,
+      "status": "视频暂时无法播放，可使用下方链接下载。",
+      "downloads": 3
+    },
+    {
+      "name": "reduced-motion-no-autoplay"
+    },
+    {
+      "name": "overlay-keyboard-Enter"
+    },
+    {
+      "name": "complete-video-decode",
+      "duration": 154.104,
+      "error": null,
+      "playbackRateReset": 1
+    },
+    {
+      "name": "overlay-keyboard-Space-after-ended"
+    },
+    {
+      "name": "csv-and-method-links"
+    },
+    {
+      "name": "no-page-errors"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "demo-390-zh.png",
+      "sha256": "54fc43626a0d386a60468ddbbad60592d343c2e9f6c4406920df93ec73a668cb",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "demo-390-en.png",
+      "sha256": "9dfc5bea94da3a3334a1e1391ccadc6834a9e8874d56154f0b702364f07e5364",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "demo-768-zh.png",
+      "sha256": "1dd20274d25e57f0452384715cfd134149f72b199c4c440c801418c5f14b631b",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "demo-768-en.png",
+      "sha256": "91ac33331c4e6cfcfe4bfbe0ff157f83b8cca7f092b9fc0e1829daa1933ef6e4",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "demo-1440-zh.png",
+      "sha256": "fa3807827af33d149e93f63c90731b5c47091f521ef1bb3a5d256991c87d5716",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "demo-1440-en.png",
+      "sha256": "c4fff24eddfa25911ee2092d81149e34c43e1b3865c425705877d629d7d7aa18",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "hero-1440-zh.png",
+      "sha256": "9649a7bd0fb75e9883aec4b14f987cfae6ca85d37af53c5e1baab2fad1a0616c",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "decoded-popup-1440.png",
+      "sha256": "9d2ae437e20be4f38b43073ef16f3220f4b00a5ee214b62cc902906ad11a7b8e",
+      "retention": "Local QA artifact; not included in source repository."
+    },
+    {
+      "file": "decoded-download-1440.png",
+      "sha256": "dfb2259312c7101c4dd5469e09cf588f19b4e97c49f2da56899634c19cb71072",
+      "retention": "Local QA artifact; not included in source repository."
+    }
+  ],
+  "errors": [],
+  "browserClosed": true,
+  "localServerClosed": true,
+  "schema_version": 1,
+  "recorded_at": "2026-09-22T17:04:26.865195+00:00",
+  "scope": "Local Chrome checks against the final 2880x1800 H.264/AAC recording. Actual audio track, nonzero decoded audio, initially unmuted playback and keyboard sound toggle verified. Complete decode uses playbackRate 16 only for QA; published playback remains normal speed.",
+  "source_sha256": {
+    "site/index.html": "7d9e14ed63dada72901e533cdb56543dcbfe1051052496c047d4f108cca1a5f4",
+    "site/styles.css": "1371db059ff2d35730af2a256f6ffad5bd7eae94b67ad639818c46ce2736853f",
+    "site/app.js": "be001b2c88ac3755807e394937fe67c71348cf3d7b9d360838e58fc0d5f79dde"
+  },
+  "video_sha256": "daa95f35d1005daaa4a87822bd4a955c36006962db1d9fc00e1579f9a22b9db8",
+  "demo_report_sha256": "51eece587baa525fc0b403b071258790fc566c61cb578ccbc9e50a04629d6f9a"
+}

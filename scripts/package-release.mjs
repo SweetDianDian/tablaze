@@ -56,6 +56,7 @@ function forbidden(relative, { source = true } = {}) {
   if (excludedFiles.has(basename) || /^\.env(?:\.|$)/i.test(basename) || /\.env$/i.test(basename)) return true;
   if (/\.(?:tgz|zip)$/i.test(basename) || videoExtensions.has(path.extname(basename).toLowerCase())) return true;
   if (relative === 'demo/output' || relative.startsWith('demo/output/')) return true;
+  if (relative === 'demo/narration-output' || relative.startsWith('demo/narration-output/')) return true;
   return false;
 }
 
@@ -227,7 +228,7 @@ async function main() {
       source_exclusions: {
         directories: [...excludedDirectories].sort(),
         filenames: [...excludedFiles].sort(),
-        patterns: ['.env', '.env.*', '*.env', '*.tgz', '*.zip', 'demo/output/**', ...[...videoExtensions].sort().map((extension) => `*${extension}`), '*.gif larger than 2 MiB'],
+        patterns: ['.env', '.env.*', '*.env', '*.tgz', '*.zip', 'demo/output/**', 'demo/narration-output/**', ...[...videoExtensions].sort().map((extension) => `*${extension}`), '*.gif larger than 2 MiB'],
       },
     };
     await writeFile(path.join(staging, 'release-manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);

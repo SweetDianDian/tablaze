@@ -1,0 +1,64 @@
+{
+  "name": "tablaze",
+  "version": "0.1.0",
+  "description": "A compact browser MCP with persistent sessions, guarded references, and verifiable action batches.",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "tablaze": "dist/cli.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE",
+    "NOTICE",
+    "docs",
+    "CONTRIBUTING.md",
+    "SECURITY.md",
+    "src",
+    "tests",
+    "bench",
+    "tsconfig.json",
+    "demo/README.md",
+    "demo/record.mjs",
+    "demo/viewer.html",
+    "scripts/package-release.mjs",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test --test-concurrency=1 tests/*.test.mjs",
+    "bench": "npm run build && node bench/run.mjs",
+    "prepack": "npm run build",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "playwright": "1.63.0",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "typescript": "5.9.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SweetDianDian/tablaze.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SweetDianDian/tablaze/issues"
+  },
+  "homepage": "https://github.com/SweetDianDian/tablaze#readme"
+}

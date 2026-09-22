@@ -1,0 +1,86 @@
+{
+  "evidence_type": "release_runtime_equivalence",
+  "validated_source_archive_sha256": "0ef36054ef1327c996dc28b8ab7b90aef0ba535831d596a9ed1a87a2bfa12478",
+  "scope": "Core source, test fixtures, lockfile and TypeScript settings remain identical to the archive tested on Node 20/22/26. Compiled runtime remains byte-identical to the separately installed-and-tested preview tarball. Documentation, demo and release tooling were added; GitHub publication adds repository, issues and homepage metadata. package.json changes only the files allowlist and those public metadata fields.",
+  "equal_source_files": {
+    "package-lock.json": "65d975464764eb873f071de79afa40d58b02192c86d4a7327840dc2e5d11b9cb",
+    "src/browser.ts": "b1734e4e3c99dceb647c057b6639faef1b69fdc22cac46676e0f1f5725c5e279",
+    "src/cli.ts": "c423c7fef2a9ce03c9aecd46e1f89920147ed86511a073933c3d52dfb1292a07",
+    "src/index.ts": "72b57de45ec9476ca6cde893e1c13ea7dbb71748910e7f08b766cc2b07fa626a",
+    "src/server.ts": "a63d14ed834ad5cd4ec88a323ba91092ed8947d5cf9042ba8cbf836bab25ce74",
+    "src/snapshot.ts": "f763533ae6ebf8525508d421c4093baba5ac753577d6488f29c566acfc318583",
+    "tests/browser.test.mjs": "dd7bebb00f7691342df20549b983501fb38fd8578eacee2293711eac6818009b",
+    "tests/cdp.test.mjs": "0a3ee31cd09e8741cd4e2bf4f9072bbd70bddeb263e292fab90088c062bd2ea7",
+    "tests/fixture.mjs": "f0d47ed99f495f9f9a6bf47bd115a01986f22bec94246b82475831321480cace",
+    "tests/protocol.test.mjs": "f34e6b0aa4b67db7568eb14a53332d74cbf4e55f1feb12d94b3511b2febfe70e",
+    "tsconfig.json": "77b7f663cdcb5bf93d71b14db756d04f5405bca98479df9cbff4b743be8237e6"
+  },
+  "package_json_changed_fields": [
+    "bugs",
+    "files",
+    "homepage",
+    "repository"
+  ],
+  "equal_dist_files": [
+    {
+      "path": "dist/browser.js",
+      "sha256": "623f6bab281a52866ae97d40d6d449802523e10f7a2f4a4be42f633750f5402d"
+    },
+    {
+      "path": "dist/cli.js",
+      "sha256": "0676c073f3e054ba76fd771513e5e2abe17e4be4471bb6cb7d4d4ce2b63a5b00"
+    },
+    {
+      "path": "dist/index.js",
+      "sha256": "107817df3dffa68e728dc7b42bd5ddb34fda89f5a0b37c8a980ac33dde842b76"
+    },
+    {
+      "path": "dist/server.js",
+      "sha256": "5a67d281cb8e5c87d0d63af208fb5b1944c4ecd461cdb6ef95973273e8d36940"
+    },
+    {
+      "path": "dist/snapshot.js",
+      "sha256": "24c5f35c2c48b48465138ad883912708aedacfb8d094ce28e0fd6a244a334026"
+    },
+    {
+      "path": "dist/browser.js.map",
+      "sha256": "bc76c387aea4af9826f9949bec41bd9e161c5f3b42b3c514eb77b7481a2eb077"
+    },
+    {
+      "path": "dist/cli.js.map",
+      "sha256": "e4e0628b7e9cef14e4de7c9bd61470a8f726a305a8002ff6a9a62324c2432b34"
+    },
+    {
+      "path": "dist/index.js.map",
+      "sha256": "a760e0e9f8cf9127a7f49275470a89d6ca20a1d9f869709aa428fa8c49ddca19"
+    },
+    {
+      "path": "dist/server.js.map",
+      "sha256": "eda7b39763fc3d66be96a88a9044618157492ce57c9bd50b48748af171e2387f"
+    },
+    {
+      "path": "dist/snapshot.js.map",
+      "sha256": "4aa6b8cd5fa8610cbfd37e87ed257e21e5716f2c97c26359b24e1c7a10ba6fc1"
+    },
+    {
+      "path": "dist/browser.d.ts",
+      "sha256": "f5894ac252eac181968d864978042734bc7e6b14edcdc4cd8249dd4570ca775e"
+    },
+    {
+      "path": "dist/cli.d.ts",
+      "sha256": "43e818adf60173644896298637f47b01d5819b17eda46eaa32d0c7d64724d012"
+    },
+    {
+      "path": "dist/index.d.ts",
+      "sha256": "72b57de45ec9476ca6cde893e1c13ea7dbb71748910e7f08b766cc2b07fa626a"
+    },
+    {
+      "path": "dist/server.d.ts",
+      "sha256": "16162652b632823808704b0bd39d2138c4243e6e814f3a91defea007c2c7b9ea"
+    },
+    {
+      "path": "dist/snapshot.d.ts",
+      "sha256": "0f7580a71e8a2ed01161f3cd39210720208869f2db2c7f346a8201941f440144"
+    }
+  ]
+}

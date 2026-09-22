@@ -1,0 +1,38 @@
+Tablaze / 闪页
+Copyright (c) 2026 Tablaze contributors
+Project source is distributed under the MIT License in LICENSE.
+
+Direct runtime dependencies at version 0.1.0:
+
+* @modelcontextprotocol/sdk 1.30.0 — MIT
+  Copyright (c) 2024 Anthropic, PBC
+  https://github.com/modelcontextprotocol/typescript-sdk
+
+* playwright 1.63.0 and playwright-core 1.63.0 — Apache-2.0
+  Copyright (c) Microsoft Corporation
+  https://github.com/microsoft/playwright
+  Playwright's own NOTICE also credits code derived from Puppeteer.
+
+* zod 3.25.76 — MIT
+  Copyright (c) 2025 Colin McDonnell
+  https://github.com/colinhacks/zod
+
+Dependencies and browser binaries retain their own licenses and notices.
+They are installed separately; this TypeScript build does not bundle their
+source into Tablaze's dist files. This notice does not replace the license
+and notice files delivered by those packages. Transitive dependencies are
+recorded in package-lock.json; inspect their installed package licenses
+when redistributing them or changing the packaging method.
+
+Project context:
+https://github.com/browser-use/jev-ultrafast prompted the exploration of a
+smaller browser control loop. Tablaze is a separate implementation. This
+release does not include or call Jev models or the TypeSafe API. No Jev
+Ultrafast benchmark is represented as a Tablaze result.
+
+OpenAI, Codex, Microsoft, Playwright, Browser Use, TypeSafe and Jev are names
+of their respective projects or owners. This project does not claim their
+endorsement or affiliation.
+
+中文说明：Tablaze 源码采用 MIT；依赖与浏览器二进制保留各自许可。
+本版本没有接入 Jev，不把 Jev Ultrafast 的基准结果当作 Tablaze 的性能。

@@ -1,0 +1,488 @@
+{
+  "schema_version": 1,
+  "status": "completed",
+  "started_at": "2026-09-22T04:40:40.573Z",
+  "methodology": {
+    "workload": "Local hotel form: Lisbon, 3 nights, free cancellation, search; independently check URL and DOM.",
+    "cold_open": "New BrowserEngine and browser process per repetition; includes launch, context/page creation, local navigation and first snapshot. This is process-cold, not an empty OS cache or first npm installation.",
+    "warm_snapshot": "Three snapshots in the same existing session before input.",
+    "batch": "Four sequential actions: fill, select, check, click. Includes navigation and the default returned snapshot. No rollback.",
+    "verify": "Fresh outcome checks against URL, rendered text, field value and result count, outside batch timing.",
+    "transport": "BrowserEngine API called in-process. Timings exclude MCP transport, model inference, package installation and internet websites.",
+    "payload": "UTF-8 JSON bytes as serialized by this benchmark; these are not model tokens.",
+    "failures": "All repetitions retained, including failure stage and error; summaries report successful samples separately."
+  },
+  "environment": {
+    "tablaze": "0.1.0",
+    "playwright": "1.63.0",
+    "node": "v26.8.1",
+    "platform": "darwin",
+    "arch": "arm64",
+    "os_release": "25.6.0",
+    "cpu": "Apple M3 Max",
+    "browser_channel": "chrome",
+    "headless": true,
+    "browser_version": "153.0.8010.53"
+  },
+  "source_sha256": {
+    "dist/browser.js": "623f6bab281a52866ae97d40d6d449802523e10f7a2f4a4be42f633750f5402d",
+    "dist/snapshot.js": "24c5f35c2c48b48465138ad883912708aedacfb8d094ce28e0fd6a244a334026",
+    "dist/server.js": "5a67d281cb8e5c87d0d63af208fb5b1944c4ecd461cdb6ef95973273e8d36940",
+    "dist/cli.js": "0676c073f3e054ba76fd771513e5e2abe17e4be4471bb6cb7d4d4ce2b63a5b00",
+    "tests/fixture.mjs": "f0d47ed99f495f9f9a6bf47bd115a01986f22bec94246b82475831321480cace",
+    "bench/run.mjs": "1790e9ad3aebef4f9b84a3c6d6c7b9bc2df86c87cc69d3ed26ad61da8b65e4fd",
+    "package-lock.json": "65d975464764eb873f071de79afa40d58b02192c86d4a7327840dc2e5d11b9cb"
+  },
+  "requested_repetitions": 5,
+  "samples": [
+    {
+      "iteration": 1,
+      "passed": true,
+      "warm_snapshot_ms": [
+        9.906,
+        7.385,
+        6.727
+      ],
+      "payload_bytes": {
+        "open_snapshot": 1428,
+        "warm_snapshots": [
+          1401,
+          1401,
+          1401
+        ],
+        "batch": 1660,
+        "verification": 675
+      },
+      "cold_open_ms": 476.026,
+      "batch_ms": 245.464,
+      "action_results": [
+        {
+          "index": 0,
+          "type": "fill",
+          "status": "completed"
+        },
+        {
+          "index": 1,
+          "type": "select",
+          "status": "completed"
+        },
+        {
+          "index": 2,
+          "type": "check",
+          "status": "completed"
+        },
+        {
+          "index": 3,
+          "type": "click",
+          "status": "completed"
+        }
+      ],
+      "verification_ms": 15.071,
+      "verification": {
+        "ok": true,
+        "session_id": "8862e9f7-8ce4-4edd-a36e-3075eda81022",
+        "passed": true,
+        "checks": [
+          {
+            "index": 0,
+            "kind": "url",
+            "pass": true,
+            "actual": "http://127.0.0.1:61844/results?destination=Lisbon&nights=3&flexible=yes"
+          },
+          {
+            "index": 1,
+            "kind": "title",
+            "pass": true,
+            "actual": "Hotel results — Tablaze"
+          },
+          {
+            "index": 2,
+            "kind": "text",
+            "pass": true,
+            "actual": "Stays in Lisbon\n\n3 nights · Free cancellation\n\nDestination \nCasa Flora\n\nLisbon · Design hotel · Free cancellation\n\nView Casa Flora\nAvailable stays\nProperty\tCity\tNights\nCasa Flora\tLisbon\t3\nNew search"
+          },
+          {
+            "index": 3,
+            "kind": "value",
+            "pass": true,
+            "actual": "Lisbon"
+          },
+          {
+            "index": 4,
+            "kind": "count",
+            "pass": true,
+            "actual": 1
+          }
+        ],
+        "elapsed_ms": 15
+      }
+    },
+    {
+      "iteration": 2,
+      "passed": true,
+      "warm_snapshot_ms": [
+        8.119,
+        5.432,
+        4.635
+      ],
+      "payload_bytes": {
+        "open_snapshot": 1428,
+        "warm_snapshots": [
+          1401,
+          1401,
+          1401
+        ],
+        "batch": 1660,
+        "verification": 675
+      },
+      "cold_open_ms": 446.804,
+      "batch_ms": 235.408,
+      "action_results": [
+        {
+          "index": 0,
+          "type": "fill",
+          "status": "completed"
+        },
+        {
+          "index": 1,
+          "type": "select",
+          "status": "completed"
+        },
+        {
+          "index": 2,
+          "type": "check",
+          "status": "completed"
+        },
+        {
+          "index": 3,
+          "type": "click",
+          "status": "completed"
+        }
+      ],
+      "verification_ms": 11.187,
+      "verification": {
+        "ok": true,
+        "session_id": "f510c88d-6ab9-49cc-8af4-83b8462e66d2",
+        "passed": true,
+        "checks": [
+          {
+            "index": 0,
+            "kind": "url",
+            "pass": true,
+            "actual": "http://127.0.0.1:61844/results?destination=Lisbon&nights=3&flexible=yes"
+          },
+          {
+            "index": 1,
+            "kind": "title",
+            "pass": true,
+            "actual": "Hotel results — Tablaze"
+          },
+          {
+            "index": 2,
+            "kind": "text",
+            "pass": true,
+            "actual": "Stays in Lisbon\n\n3 nights · Free cancellation\n\nDestination \nCasa Flora\n\nLisbon · Design hotel · Free cancellation\n\nView Casa Flora\nAvailable stays\nProperty\tCity\tNights\nCasa Flora\tLisbon\t3\nNew search"
+          },
+          {
+            "index": 3,
+            "kind": "value",
+            "pass": true,
+            "actual": "Lisbon"
+          },
+          {
+            "index": 4,
+            "kind": "count",
+            "pass": true,
+            "actual": 1
+          }
+        ],
+        "elapsed_ms": 11
+      }
+    },
+    {
+      "iteration": 3,
+      "passed": true,
+      "warm_snapshot_ms": [
+        6.472,
+        6.314,
+        6.326
+      ],
+      "payload_bytes": {
+        "open_snapshot": 1428,
+        "warm_snapshots": [
+          1401,
+          1401,
+          1401
+        ],
+        "batch": 1660,
+        "verification": 675
+      },
+      "cold_open_ms": 405.963,
+      "batch_ms": 256.085,
+      "action_results": [
+        {
+          "index": 0,
+          "type": "fill",
+          "status": "completed"
+        },
+        {
+          "index": 1,
+          "type": "select",
+          "status": "completed"
+        },
+        {
+          "index": 2,
+          "type": "check",
+          "status": "completed"
+        },
+        {
+          "index": 3,
+          "type": "click",
+          "status": "completed"
+        }
+      ],
+      "verification_ms": 10.805,
+      "verification": {
+        "ok": true,
+        "session_id": "64793592-1ab1-4917-a10c-10b24e77cdff",
+        "passed": true,
+        "checks": [
+          {
+            "index": 0,
+            "kind": "url",
+            "pass": true,
+            "actual": "http://127.0.0.1:61844/results?destination=Lisbon&nights=3&flexible=yes"
+          },
+          {
+            "index": 1,
+            "kind": "title",
+            "pass": true,
+            "actual": "Hotel results — Tablaze"
+          },
+          {
+            "index": 2,
+            "kind": "text",
+            "pass": true,
+            "actual": "Stays in Lisbon\n\n3 nights · Free cancellation\n\nDestination \nCasa Flora\n\nLisbon · Design hotel · Free cancellation\n\nView Casa Flora\nAvailable stays\nProperty\tCity\tNights\nCasa Flora\tLisbon\t3\nNew search"
+          },
+          {
+            "index": 3,
+            "kind": "value",
+            "pass": true,
+            "actual": "Lisbon"
+          },
+          {
+            "index": 4,
+            "kind": "count",
+            "pass": true,
+            "actual": 1
+          }
+        ],
+        "elapsed_ms": 11
+      }
+    },
+    {
+      "iteration": 4,
+      "passed": true,
+      "warm_snapshot_ms": [
+        5.294,
+        4.444,
+        3.789
+      ],
+      "payload_bytes": {
+        "open_snapshot": 1428,
+        "warm_snapshots": [
+          1401,
+          1401,
+          1401
+        ],
+        "batch": 1660,
+        "verification": 675
+      },
+      "cold_open_ms": 415.013,
+      "batch_ms": 240.455,
+      "action_results": [
+        {
+          "index": 0,
+          "type": "fill",
+          "status": "completed"
+        },
+        {
+          "index": 1,
+          "type": "select",
+          "status": "completed"
+        },
+        {
+          "index": 2,
+          "type": "check",
+          "status": "completed"
+        },
+        {
+          "index": 3,
+          "type": "click",
+          "status": "completed"
+        }
+      ],
+      "verification_ms": 10.659,
+      "verification": {
+        "ok": true,
+        "session_id": "d94f3557-2da1-4448-b429-1cf43707577a",
+        "passed": true,
+        "checks": [
+          {
+            "index": 0,
+            "kind": "url",
+            "pass": true,
+            "actual": "http://127.0.0.1:61844/results?destination=Lisbon&nights=3&flexible=yes"
+          },
+          {
+            "index": 1,
+            "kind": "title",
+            "pass": true,
+            "actual": "Hotel results — Tablaze"
+          },
+          {
+            "index": 2,
+            "kind": "text",
+            "pass": true,
+            "actual": "Stays in Lisbon\n\n3 nights · Free cancellation\n\nDestination \nCasa Flora\n\nLisbon · Design hotel · Free cancellation\n\nView Casa Flora\nAvailable stays\nProperty\tCity\tNights\nCasa Flora\tLisbon\t3\nNew search"
+          },
+          {
+            "index": 3,
+            "kind": "value",
+            "pass": true,
+            "actual": "Lisbon"
+          },
+          {
+            "index": 4,
+            "kind": "count",
+            "pass": true,
+            "actual": 1
+          }
+        ],
+        "elapsed_ms": 11
+      }
+    },
+    {
+      "iteration": 5,
+      "passed": true,
+      "warm_snapshot_ms": [
+        6.67,
+        7.085,
+        4.204
+      ],
+      "payload_bytes": {
+        "open_snapshot": 1428,
+        "warm_snapshots": [
+          1401,
+          1401,
+          1401
+        ],
+        "batch": 1660,
+        "verification": 675
+      },
+      "cold_open_ms": 412.137,
+      "batch_ms": 229.927,
+      "action_results": [
+        {
+          "index": 0,
+          "type": "fill",
+          "status": "completed"
+        },
+        {
+          "index": 1,
+          "type": "select",
+          "status": "completed"
+        },
+        {
+          "index": 2,
+          "type": "check",
+          "status": "completed"
+        },
+        {
+          "index": 3,
+          "type": "click",
+          "status": "completed"
+        }
+      ],
+      "verification_ms": 10.356,
+      "verification": {
+        "ok": true,
+        "session_id": "f7ab2016-e793-47c8-b9a3-7199fc8b179e",
+        "passed": true,
+        "checks": [
+          {
+            "index": 0,
+            "kind": "url",
+            "pass": true,
+            "actual": "http://127.0.0.1:61844/results?destination=Lisbon&nights=3&flexible=yes"
+          },
+          {
+            "index": 1,
+            "kind": "title",
+            "pass": true,
+            "actual": "Hotel results — Tablaze"
+          },
+          {
+            "index": 2,
+            "kind": "text",
+            "pass": true,
+            "actual": "Stays in Lisbon\n\n3 nights · Free cancellation\n\nDestination \nCasa Flora\n\nLisbon · Design hotel · Free cancellation\n\nView Casa Flora\nAvailable stays\nProperty\tCity\tNights\nCasa Flora\tLisbon\t3\nNew search"
+          },
+          {
+            "index": 3,
+            "kind": "value",
+            "pass": true,
+            "actual": "Lisbon"
+          },
+          {
+            "index": 4,
+            "kind": "count",
+            "pass": true,
+            "actual": 1
+          }
+        ],
+        "elapsed_ms": 10
+      }
+    }
+  ],
+  "summary": {
+    "attempted": 5,
+    "succeeded": 5,
+    "failed": 0,
+    "success_rate": 1,
+    "successful_samples_only": {
+      "cold_open_ms": {
+        "count": 5,
+        "min": 405.963,
+        "median": 415.013,
+        "max": 476.026
+      },
+      "warm_snapshot_ms": {
+        "count": 15,
+        "min": 3.789,
+        "median": 6.326,
+        "max": 9.906
+      },
+      "four_action_batch_ms": {
+        "count": 5,
+        "min": 229.927,
+        "median": 240.455,
+        "max": 256.085
+      },
+      "verification_ms": {
+        "count": 5,
+        "min": 10.356,
+        "median": 10.805,
+        "max": 15.071
+      },
+      "warm_snapshot_utf8_bytes": {
+        "count": 15,
+        "min": 1401,
+        "median": 1401,
+        "max": 1401
+      }
+    }
+  },
+  "completed_at": "2026-09-22T04:40:45.256Z"
+}

@@ -1,0 +1,69 @@
+name: Bug report / 问题报告
+description: Report a reproducible failure in installation, browser actions, or MCP. / 报告可复现的安装、浏览器操作或 MCP 问题。
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        English or 中文 are both welcome. A small public/local fixture helps us reproduce the issue.
+        请尽量提供最小公开页面或本地 HTML。只分享必要日志；移除密钥、Cookie、个人页面内容及带凭证的 CDP URL。
+  - type: input
+    id: version
+    attributes:
+      label: Tablaze version or commit / 版本或提交
+      description: Output of tablaze --version, or the source commit. / --version 输出或源码提交。
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment / 环境
+      description: OS, Node version, browser/version, MCP client/version and launch arguments. / 系统、Node、浏览器、MCP 客户端的版本及启动参数。
+      placeholder: |
+        OS:
+        Node:
+        Browser:
+        MCP client:
+        Launch arguments:
+    validations:
+      required: true
+  - type: dropdown
+    id: connection
+    attributes:
+      label: Browser mode / 浏览器模式
+      options:
+        - Managed Chromium / 管理的 Chromium
+        - Installed browser channel / 已安装浏览器渠道
+        - Explicit CDP attachment / 显式 CDP 连接
+        - Fails before browser selection / 在选择浏览器前失败
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction / 最小复现
+      description: Starting URL or fixture, tool sequence and inputs. Include snapshot_id/ref relationships if relevant. / 起始页面或 fixture、工具顺序和参数；引用问题请保留 snapshot_id/ref 的对应关系。
+      placeholder: |
+        1. Start the server with ...
+        2. Call tab_open ...
+        3. Call tab_act ...
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior / 预期与实际行为
+      description: State what changed on the page, including whether earlier batch actions completed. / 说明页面实际变化，以及批次中哪些前序动作已执行。
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Error and evidence / 错误与证据
+      description: Error code, relevant structured tool result, doctor output or a short screenshot. / 错误码、必要的工具返回、doctor 输出或截图。
+      render: text
+  - type: textarea
+    id: scope
+    attributes:
+      label: Frequency and workaround / 频率与临时解决方法
+      description: Does it happen every time? Did an earlier version work? / 是否每次发生？之前哪个版本正常？

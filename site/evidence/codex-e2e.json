@@ -1,0 +1,414 @@
+{
+  "evidence_type": "real_codex_exec_model_selected_mcp_tools",
+  "started_at": "2026-09-22T05:22:29.923Z",
+  "finished_at": "2026-09-22T05:26:23.859Z",
+  "codex_version": "codex-cli 0.154.0",
+  "node": "v26.8.1",
+  "environment": {
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "model_selection": "existing default; no model override",
+  "sandbox": "read-only",
+  "ephemeral": true,
+  "user_config_written": false,
+  "codex_home_modified_or_redirected": false,
+  "approval_setup": {
+    "policy": "on-request",
+    "reviewer": "auto_review",
+    "scope": "invocation-only -c overrides",
+    "shortcut_not_used": "--approve-for-me selects workspace-write per local help; explicit official settings preserve read-only",
+    "custom_reviewer_policy": false,
+    "bypass": false
+  },
+  "documentation": "https://learn.chatgpt.com/docs/sandboxing/auto-review",
+  "result": "passed",
+  "runtime_sha256": "0676c073f3e054ba76fd771513e5e2abe17e4be4471bb6cb7d4d4ce2b63a5b00",
+  "prompt": "Complete this one local browser acceptance test using ONLY the tab_* tools from the tablaze MCP server. Do not use shell, filesystem, web search, other MCPs, external websites, messaging, or project edits. Do not inspect private data. The service uses isolated Chrome, and the HTTP fixture is owned by this test.\n\nCall tab_list and confirm no sessions. Open http://127.0.0.1:51621/. Observe the returned refs, then fill Destination with Lisbon, select Nights option value 3, check Free cancellation, and click Search stays. Use only refs and snapshot_id from actual tool results; do not invent them.\n\nAfter navigation, use one tab_verify call with exactly these five checks: (1) kind=url value=http://127.0.0.1:51621/results?destination=Lisbon&nights=3&flexible=yes, (2) kind=title contains=Hotel results, (3) kind=text contains=3 nights · Free cancellation, (4) kind=value selector=#destination value=Lisbon, (5) kind=count selector=article[data-hotel] value=1. Require all five to pass. Then tab_close the owned session and tab_list to confirm zero remaining sessions. If any step fails, report the actual failure and still close any session you own; do not switch to a different tool or route.\n\nFinish with a short JSON object describing success, observed result URL, passed check count, and remaining session count. Base every claim on actual MCP results.\nIf the native approval reviewer denies any operation, stop immediately, do not retry it or use another route, and include the full rejection reason in your final response. This local fixture and its isolated browser form workflow are authorized; no external host, user profile, secret, or project modification is in scope.",
+  "exit_code": 0,
+  "timed_out": false,
+  "fixture_closed": true,
+  "temporary_directory_removed": true,
+  "workflow_passed": true,
+  "duration_seconds": 233.936,
+  "evidence_review": {
+    "model_selected_tablaze_tools": true,
+    "completed_tool_sequence": [
+      "tab_list",
+      "tab_open",
+      "tab_act",
+      "tab_verify",
+      "tab_close",
+      "tab_list"
+    ],
+    "observed_ref_and_revision_use_verified": true,
+    "form_actions_completed": 4,
+    "verification_checks_passed": 5,
+    "verification_kinds": [
+      "url",
+      "title",
+      "text",
+      "value",
+      "count"
+    ],
+    "tab_close_succeeded": true,
+    "remaining_sessions_verified": 0,
+    "observed_result_url": "http://127.0.0.1:51621/results?destination=Lisbon&nights=3&flexible=yes",
+    "other_tools_used": false,
+    "scope": "One actual Codex model-driven local fixture flow with invocation-only on-request/auto_review configuration and read-only sandbox; distinct from direct engine/SDK tests."
+  },
+  "limitations": [
+    "One deterministic local fixture run; not a claim about arbitrary websites, all Codex versions, or end-to-end speed.",
+    "The CLI recovered from sampling timeouts via its built-in HTTP fallback.",
+    "The JSONL event stream does not include per-action approval rationales. Stderr records guardian activity and warnings that ephemeral session persistence prevents refreshing its trunk rollout snapshot; no approval rejection was returned, and all six MCP calls completed."
+  ],
+  "tools": [
+    {
+      "tool": "tab_list",
+      "arguments": {},
+      "result": {
+        "ok": true,
+        "sessions": []
+      },
+      "status": "completed",
+      "error": null
+    },
+    {
+      "tool": "tab_open",
+      "arguments": {
+        "url": "http://127.0.0.1:51621/"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "ce7779d4-0ac2-42b2-b9be-3492928b775b",
+        "snapshot_id": "ce7779d4-0ac2-42b2-b9be-3492928b775b:1",
+        "mode": "full",
+        "frame_id": "f0",
+        "url": "http://127.0.0.1:51621/",
+        "title": "Tablaze hotel search",
+        "frames": [
+          {
+            "frame_id": "f0",
+            "url": "http://127.0.0.1:51621/",
+            "name": "",
+            "is_main": true
+          }
+        ],
+        "frame_count": 1,
+        "elements": [
+          {
+            "ref": "r1",
+            "role": "heading",
+            "name": "Find your next stay"
+          },
+          {
+            "ref": "r2",
+            "role": "textbox",
+            "name": "Destination",
+            "value": ""
+          },
+          {
+            "ref": "r3",
+            "role": "combobox",
+            "name": "Nights",
+            "value": "1",
+            "options": [
+              {
+                "value": "1",
+                "label": "1 night",
+                "selected": true,
+                "disabled": false
+              },
+              {
+                "value": "3",
+                "label": "3 nights",
+                "selected": false,
+                "disabled": false
+              },
+              {
+                "value": "7",
+                "label": "7 nights",
+                "selected": false,
+                "disabled": false
+              }
+            ]
+          },
+          {
+            "ref": "r4",
+            "role": "checkbox",
+            "name": "Free cancellation",
+            "value": "yes",
+            "checked": false
+          },
+          {
+            "ref": "r5",
+            "role": "textbox",
+            "name": "Private note",
+            "value_redacted": true
+          },
+          {
+            "ref": "r6",
+            "role": "button",
+            "name": "Search stays"
+          },
+          {
+            "ref": "r7",
+            "role": "link",
+            "name": "Interaction lab",
+            "href": "http://127.0.0.1:51621/lab?token=manual"
+          }
+        ],
+        "text": "Find your next stay A deterministic local browser fixture. No bookings or external services. Destination Nights Free cancellation Private note Search stays Interaction lab",
+        "truncated": false,
+        "truncation": {
+          "elements": false,
+          "text": false,
+          "fields": false,
+          "scan": false,
+          "metadata": false
+        },
+        "budgets": {
+          "max_elements": 150,
+          "text_limit": 6000,
+          "max_frames": 100
+        },
+        "elapsed_ms": 85,
+        "session_mode": "isolated"
+      },
+      "status": "completed",
+      "error": null
+    },
+    {
+      "tool": "tab_act",
+      "arguments": {
+        "session_id": "ce7779d4-0ac2-42b2-b9be-3492928b775b",
+        "snapshot_id": "ce7779d4-0ac2-42b2-b9be-3492928b775b:1",
+        "actions": [
+          {
+            "type": "fill",
+            "ref": "r2",
+            "value": "Lisbon"
+          },
+          {
+            "type": "select",
+            "ref": "r3",
+            "values": [
+              "3"
+            ]
+          },
+          {
+            "type": "check",
+            "ref": "r4",
+            "checked": true
+          },
+          {
+            "type": "click",
+            "ref": "r6"
+          }
+        ],
+        "include_snapshot": true
+      },
+      "result": {
+        "ok": true,
+        "session_id": "ce7779d4-0ac2-42b2-b9be-3492928b775b",
+        "snapshot_id": "ce7779d4-0ac2-42b2-b9be-3492928b775b:1",
+        "partial": false,
+        "completed": 4,
+        "failed": null,
+        "failed_action_may_have_side_effects": false,
+        "results": [
+          {
+            "index": 0,
+            "type": "fill",
+            "status": "completed"
+          },
+          {
+            "index": 1,
+            "type": "select",
+            "status": "completed"
+          },
+          {
+            "index": 2,
+            "type": "check",
+            "status": "completed"
+          },
+          {
+            "index": 3,
+            "type": "click",
+            "status": "completed"
+          }
+        ],
+        "elapsed_ms": 352,
+        "snapshot": {
+          "ok": true,
+          "session_id": "ce7779d4-0ac2-42b2-b9be-3492928b775b",
+          "snapshot_id": "ce7779d4-0ac2-42b2-b9be-3492928b775b:2",
+          "mode": "full",
+          "frame_id": "f0",
+          "url": "http://127.0.0.1:51621/results?destination=Lisbon&nights=3&flexible=yes",
+          "title": "Hotel results — Tablaze",
+          "frames": [
+            {
+              "frame_id": "f0",
+              "url": "http://127.0.0.1:51621/results?destination=Lisbon&nights=3&flexible=yes",
+              "name": "",
+              "is_main": true
+            }
+          ],
+          "frame_count": 1,
+          "elements": [
+            {
+              "ref": "r8",
+              "role": "heading",
+              "name": "Stays in Lisbon"
+            },
+            {
+              "ref": "r9",
+              "role": "textbox",
+              "name": "Destination",
+              "value": "Lisbon"
+            },
+            {
+              "ref": "r10",
+              "role": "heading",
+              "name": "Casa Flora"
+            },
+            {
+              "ref": "r11",
+              "role": "link",
+              "name": "View Casa Flora",
+              "href": "http://127.0.0.1:51621/hotel/casa-flora?destination=Lisbon&nights=3&flexible=yes"
+            },
+            {
+              "ref": "r12",
+              "role": "link",
+              "name": "New search",
+              "href": "http://127.0.0.1:51621/"
+            }
+          ],
+          "text": "Stays in Lisbon 3 nights · Free cancellation Destination Casa Flora Lisbon · Design hotel · Free cancellation View Casa Flora Available stays Property City Nights Casa Flora Lisbon 3 New search",
+          "truncated": false,
+          "truncation": {
+            "elements": false,
+            "text": false,
+            "fields": false,
+            "scan": false,
+            "metadata": false
+          },
+          "budgets": {
+            "max_elements": 150,
+            "text_limit": 6000,
+            "max_frames": 100
+          },
+          "elapsed_ms": 35
+        }
+      },
+      "status": "completed",
+      "error": null
+    },
+    {
+      "tool": "tab_verify",
+      "arguments": {
+        "session_id": "ce7779d4-0ac2-42b2-b9be-3492928b775b",
+        "checks": [
+          {
+            "kind": "url",
+            "value": "http://127.0.0.1:51621/results?destination=Lisbon&nights=3&flexible=yes"
+          },
+          {
+            "kind": "title",
+            "contains": "Hotel results"
+          },
+          {
+            "kind": "text",
+            "contains": "3 nights · Free cancellation"
+          },
+          {
+            "kind": "value",
+            "selector": "#destination",
+            "value": "Lisbon"
+          },
+          {
+            "kind": "count",
+            "selector": "article[data-hotel]",
+            "value": 1
+          }
+        ]
+      },
+      "result": {
+        "ok": true,
+        "session_id": "ce7779d4-0ac2-42b2-b9be-3492928b775b",
+        "passed": true,
+        "checks": [
+          {
+            "index": 0,
+            "kind": "url",
+            "pass": true,
+            "actual": "http://127.0.0.1:51621/results?destination=Lisbon&nights=3&flexible=yes"
+          },
+          {
+            "index": 1,
+            "kind": "title",
+            "pass": true,
+            "actual": "Hotel results — Tablaze"
+          },
+          {
+            "index": 2,
+            "kind": "text",
+            "pass": true,
+            "actual": "Stays in Lisbon\n\n3 nights · Free cancellation\n\nDestination \nCasa Flora\n\nLisbon · Design hotel · Free cancellation\n\nView Casa Flora\nAvailable stays\nProperty\tCity\tNights\nCasa Flora\tLisbon\t3\nNew search"
+          },
+          {
+            "index": 3,
+            "kind": "value",
+            "pass": true,
+            "actual": "Lisbon"
+          },
+          {
+            "index": 4,
+            "kind": "count",
+            "pass": true,
+            "actual": 1
+          }
+        ],
+        "elapsed_ms": 15
+      },
+      "status": "completed",
+      "error": null
+    },
+    {
+      "tool": "tab_close",
+      "arguments": {
+        "session_id": "ce7779d4-0ac2-42b2-b9be-3492928b775b"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "ce7779d4-0ac2-42b2-b9be-3492928b775b",
+        "closed": true
+      },
+      "status": "completed",
+      "error": null
+    },
+    {
+      "tool": "tab_list",
+      "arguments": {},
+      "result": {
+        "ok": true,
+        "sessions": []
+      },
+      "status": "completed",
+      "error": null
+    }
+  ],
+  "initial_attempt": {
+    "result": "client_policy_rejection",
+    "successful_calls": [
+      "tab_list",
+      "tab_list"
+    ],
+    "rejected_tool": "tab_open",
+    "reason": "MCP tool call requires approval, but approval policy is never",
+    "browser_workflow_passed": false
+  },
+  "timing_note": "Includes model connection retries and inference; not a browser speed benchmark."
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+artifacts/
+*.tgz
+.env
+.env.*
+!.env.example
+.DS_Store
+site/.sites-runtime/
+site/.openai/
+
+demo/output/

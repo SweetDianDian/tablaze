@@ -1,0 +1,44 @@
+name: Feature request / 功能建议
+description: Describe the user task and the result a new capability should enable. / 说明要完成的任务和新能力应带来的结果。
+title: "[Feature]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        English or 中文 are both welcome. Describe the workflow first; an implementation proposal is optional.
+        先描述实际任务；不必提前设计完整实现。可复现的网页交互示例比功能名称更有帮助。
+  - type: textarea
+    id: task
+    attributes:
+      label: User task / 用户任务
+      description: Who needs this, and what are they trying to complete? / 谁会使用，需要完成什么？
+    validations:
+      required: true
+  - type: textarea
+    id: gap
+    attributes:
+      label: Current limitation / 当前限制
+      description: What happens with the existing tools, and what workaround is required? / 现有工具会怎样，当前如何绕过？
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Observable completion condition / 可观察的完成条件
+      description: Give an example input, expected result and a way to verify it. / 举例说明输入、预期结果及验收方法。
+    validations:
+      required: true
+  - type: textarea
+    id: design
+    attributes:
+      label: Proposed interface or tradeoffs / 建议接口或取舍
+      description: Optional. Consider output size, browser compatibility and behavior after partial failure. / 可选，可讨论输出体积、浏览器兼容性及部分失败后的行为。
+  - type: dropdown
+    id: contribution
+    attributes:
+      label: How could you help? / 你可以如何参与？
+      options:
+        - Share a reproducible fixture / 提供复现页面
+        - Test a proposed implementation / 验证实现
+        - Contribute code or documentation / 贡献代码或文档
+        - Describe the use case only / 仅提供使用场景

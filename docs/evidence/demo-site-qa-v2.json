@@ -1,0 +1,196 @@
+{
+  "checks": [
+    {
+      "name": "layout-390-zh",
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "bodyWidth": 390,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-390-en",
+      "innerWidth": 390,
+      "scrollWidth": 390,
+      "bodyWidth": 390,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-768-zh",
+      "innerWidth": 768,
+      "scrollWidth": 768,
+      "bodyWidth": 768,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-768-en",
+      "innerWidth": 768,
+      "scrollWidth": 768,
+      "bodyWidth": 768,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-1440-zh",
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "bodyWidth": 1440,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "layout-1440-en",
+      "innerWidth": 1440,
+      "scrollWidth": 1440,
+      "bodyWidth": 1440,
+      "paused": true,
+      "time": 0,
+      "chapterCount": 7
+    },
+    {
+      "name": "hero-cta"
+    },
+    {
+      "name": "overlay-play"
+    },
+    {
+      "name": "native-control-pause"
+    },
+    {
+      "name": "chapter-overview",
+      "expected": 0,
+      "actual": 0
+    },
+    {
+      "name": "chapter-batch",
+      "expected": 10.745,
+      "actual": 10.745
+    },
+    {
+      "name": "chapter-verify",
+      "expected": 29.362,
+      "actual": 29.362
+    },
+    {
+      "name": "chapter-guard",
+      "expected": 43.446,
+      "actual": 43.446
+    },
+    {
+      "name": "chapter-popup",
+      "expected": 71.571,
+      "actual": 71.571
+    },
+    {
+      "name": "chapter-download",
+      "expected": 95.447,
+      "actual": 95.447
+    },
+    {
+      "name": "chapter-recap",
+      "expected": 111.873,
+      "actual": 111.873
+    },
+    {
+      "name": "language-keeps-progress",
+      "before": 111.873,
+      "after": 111.873
+    },
+    {
+      "name": "chapter-keyboard-Enter"
+    },
+    {
+      "name": "chapter-keyboard-Space"
+    },
+    {
+      "name": "missing-report-native-playback"
+    },
+    {
+      "name": "demo-false-no-video-load"
+    },
+    {
+      "name": "video-error-fallback",
+      "overlayVisible": false,
+      "status": "视频暂时无法播放，可使用下方链接下载。",
+      "downloads": 3
+    },
+    {
+      "name": "reduced-motion-no-autoplay"
+    },
+    {
+      "name": "overlay-keyboard-Enter"
+    },
+    {
+      "name": "complete-video-decode",
+      "duration": 125.6,
+      "error": null,
+      "playbackRateReset": 1
+    },
+    {
+      "name": "overlay-keyboard-Space-after-ended"
+    },
+    {
+      "name": "csv-and-method-links"
+    },
+    {
+      "name": "no-page-errors"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "demo-390-zh.png",
+      "sha256": "579f7e1d69b926554f3fe2d7f70474311cdb5c884493eb10fddba7badaf70e73",
+      "retention": "Local QA artifact; not included in this source repository."
+    },
+    {
+      "file": "demo-390-en.png",
+      "sha256": "0d67e5eada040853f808e84cd8746a8e22a6a2220159401d00e50d72a1b08a47",
+      "retention": "Local QA artifact; not included in this source repository."
+    },
+    {
+      "file": "demo-768-zh.png",
+      "sha256": "2cbcc455ace1f2acc0148402708d159e1badc0fd23cda769f4efe6b27e1b6e4a",
+      "retention": "Local QA artifact; not included in this source repository."
+    },
+    {
+      "file": "demo-768-en.png",
+      "sha256": "d6ef963bad3c3b9b4237959af0229ed5babb7c3d6bf9f76b322d02772db13ef9",
+      "retention": "Local QA artifact; not included in this source repository."
+    },
+    {
+      "file": "demo-1440-zh.png",
+      "sha256": "8d82b0803daddbe064bcd42718593eab13547eef5f669d504c1a29faebba1c55",
+      "retention": "Local QA artifact; not included in this source repository."
+    },
+    {
+      "file": "demo-1440-en.png",
+      "sha256": "2a58b1febbdf6f82f478371d8d87673ba484afa16baf8caa6549ca645d968b92",
+      "retention": "Local QA artifact; not included in this source repository."
+    },
+    {
+      "file": "hero-1440-zh.png",
+      "sha256": "9649a7bd0fb75e9883aec4b14f987cfae6ca85d37af53c5e1baab2fad1a0616c",
+      "retention": "Local QA artifact; not included in this source repository."
+    }
+  ],
+  "errors": [],
+  "browserClosed": true,
+  "localServerClosed": true,
+  "schema_version": 1,
+  "recorded_at": "2026-09-22T15:34:13.162873+00:00",
+  "scope": "Local Chrome browser checks for the expanded static website. The complete decode check used playbackRate 16 only during verification; the published media is unchanged and plays at normal speed.",
+  "source_sha256": {
+    "site/index.html": "832914eda9478fe19db4c07400d5d5604b9b440e4984f0f14060c60a8a74e5ae",
+    "site/styles.css": "40bd01304f73e2b9e3655867972f822d7f0545c7a0eba5ac892755aadd6b7ccb",
+    "site/app.js": "411c494ff110ee353bcee3268bcf0ec641f08677babe5dfaf1890b318d7a4d3c"
+  },
+  "video_sha256": "a28c40b3296dd0cfe6a15a890b2209dbf8c19d3c95f0fe6e85142ccec33647cf",
+  "demo_report_sha256": "6aaf36a53941984820b2430223a8c509445c4da8f217da9c91898a2712e8177f"
+}

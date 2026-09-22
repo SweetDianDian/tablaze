@@ -1,0 +1,1071 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-09-22T05:08:12.751Z",
+  "status": "passed",
+  "source_sha256": {
+    "dist/browser.js": "623f6bab281a52866ae97d40d6d449802523e10f7a2f4a4be42f633750f5402d",
+    "dist/snapshot.js": "24c5f35c2c48b48465138ad883912708aedacfb8d094ce28e0fd6a244a334026",
+    "dist/server.js": "5a67d281cb8e5c87d0d63af208fb5b1944c4ecd461cdb6ef95973273e8d36940",
+    "dist/cli.js": "0676c073f3e054ba76fd771513e5e2abe17e4be4471bb6cb7d4d4ce2b63a5b00",
+    "demo/record.mjs": "6ba97c9639d65b8f1c7826e34af4e18cc0d5c0b159ba0ed56ad421de44e3991f",
+    "demo/viewer.html": "a01020987424de4e0c14549c568e9ce30e1f5a395d272213ccfa2558cdfa468d",
+    "tests/fixture.mjs": "f0d47ed99f495f9f9a6bf47bd115a01986f22bec94246b82475831321480cace",
+    "package-lock.json": "65d975464764eb873f071de79afa40d58b02192c86d4a7327840dc2e5d11b9cb"
+  },
+  "environment": {
+    "node": "v26.8.1",
+    "platform": "darwin",
+    "arch": "arm64",
+    "browser_channel": "chrome",
+    "browser_version": "153.0.8010.53"
+  },
+  "method": {
+    "client": "Real MCP TypeScript SDK client over stdio. No Codex/model inference.",
+    "display": "Normal-speed recording of a presentation that renders actual MCP responses and tab_capture images. It is not a continuous video feed from the controlled tab.",
+    "fixture": "Bundled localhost hotel form and DOM replacement lab. No external service, booking or payment.",
+    "pauses": "Explicit presentation holds provide reading time; excluded from each tool elapsed_ms. No timeline acceleration.",
+    "quick_mode": false
+  },
+  "events": [
+    {
+      "at_ms": 8148.322,
+      "name": "tab_open",
+      "arguments": {
+        "url": "http://127.0.0.1:59852/"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
+        "snapshot_id": "23556bea-f586-4f8f-b51f-14e37fce5edb:1",
+        "mode": "full",
+        "frame_id": "f0",
+        "url": "http://127.0.0.1:59852/",
+        "title": "Tablaze hotel search",
+        "frames": [
+          {
+            "frame_id": "f0",
+            "url": "http://127.0.0.1:59852/",
+            "name": "",
+            "is_main": true
+          }
+        ],
+        "frame_count": 1,
+        "elements": [
+          {
+            "ref": "r1",
+            "role": "heading",
+            "name": "Find your next stay"
+          },
+          {
+            "ref": "r2",
+            "role": "textbox",
+            "name": "Destination",
+            "value": ""
+          },
+          {
+            "ref": "r3",
+            "role": "combobox",
+            "name": "Nights",
+            "value": "1",
+            "options": [
+              {
+                "value": "1",
+                "label": "1 night",
+                "selected": true,
+                "disabled": false
+              },
+              {
+                "value": "3",
+                "label": "3 nights",
+                "selected": false,
+                "disabled": false
+              },
+              {
+                "value": "7",
+                "label": "7 nights",
+                "selected": false,
+                "disabled": false
+              }
+            ]
+          },
+          {
+            "ref": "r4",
+            "role": "checkbox",
+            "name": "Free cancellation",
+            "value": "yes",
+            "checked": false
+          },
+          {
+            "ref": "r5",
+            "role": "textbox",
+            "name": "Private note",
+            "value_redacted": true
+          },
+          {
+            "ref": "r6",
+            "role": "button",
+            "name": "Search stays"
+          },
+          {
+            "ref": "r7",
+            "role": "link",
+            "name": "Interaction lab",
+            "href": "http://127.0.0.1:59852/lab?token=manual"
+          }
+        ],
+        "text": "Find your next stay A deterministic local browser fixture. No bookings or external services. Destination Nights Free cancellation Private note Search stays Interaction lab",
+        "truncated": false,
+        "truncation": {
+          "elements": false,
+          "text": false,
+          "fields": false,
+          "scan": false,
+          "metadata": false
+        },
+        "budgets": {
+          "max_elements": 150,
+          "text_limit": 6000,
+          "max_frames": 100
+        },
+        "elapsed_ms": 89,
+        "session_mode": "isolated"
+      },
+      "is_error": false,
+      "elapsed_ms": 708.023
+    },
+    {
+      "at_ms": 8196.84,
+      "name": "tab_capture",
+      "arguments": {
+        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
+        "url": "http://127.0.0.1:59852/",
+        "mime_type": "image/jpeg",
+        "bytes": 26687
+      },
+      "is_error": false,
+      "elapsed_ms": 45.49,
+      "image_file": "01-observe.jpg"
+    },
+    {
+      "at_ms": 17576.641,
+      "name": "tab_act",
+      "arguments": {
+        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
+        "snapshot_id": "23556bea-f586-4f8f-b51f-14e37fce5edb:1",
+        "actions": [
+          {
+            "type": "fill",
+            "ref": "r2",
+            "value": "Lisbon"
+          },
+          {
+            "type": "select",
+            "ref": "r3",
+            "values": [
+              "3"
+            ]
+          },
+          {
+            "type": "check",
+            "ref": "r4",
+            "checked": true
+          },
+          {
+            "type": "click",
+            "ref": "r6"
+          }
+        ]
+      },
+      "result": {
+        "ok": true,
+        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
+        "snapshot_id": "23556bea-f586-4f8f-b51f-14e37fce5edb:1",
+        "partial": false,
+        "completed": 4,
+        "failed": null,
+        "failed_action_may_have_side_effects": false,
+        "results": [
+          {
+            "index": 0,
+            "type": "fill",
+            "status": "completed"
+          },
+          {
+            "index": 1,
+            "type": "select",
+            "status": "completed"
+          },
+          {
+            "index": 2,
+            "type": "check",
+            "status": "completed"
+          },
+          {
+            "index": 3,
+            "type": "click",
+            "status": "completed"
+          }
+        ],
+        "elapsed_ms": 362,
+        "snapshot": {
+          "ok": true,
+          "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
+          "snapshot_id": "23556bea-f586-4f8f-b51f-14e37fce5edb:2",
+          "mode": "full",
+          "frame_id": "f0",
+          "url": "http://127.0.0.1:59852/results?destination=Lisbon&nights=3&flexible=yes",
+          "title": "Hotel results — Tablaze",
+          "frames": [
+            {
+              "frame_id": "f0",
+              "url": "http://127.0.0.1:59852/results?destination=Lisbon&nights=3&flexible=yes",
+              "name": "",
+              "is_main": true
+            }
+          ],
+          "frame_count": 1,
+          "elements": [
+            {
+              "ref": "r8",
+              "role": "heading",
+              "name": "Stays in Lisbon"
+            },
+            {
+              "ref": "r9",
+              "role": "textbox",
+              "name": "Destination",
+              "value": "Lisbon"
+            },
+            {
+              "ref": "r10",
+              "role": "heading",
+              "name": "Casa Flora"
+            },
+            {
+              "ref": "r11",
+              "role": "link",
+              "name": "View Casa Flora",
+              "href": "http://127.0.0.1:59852/hotel/casa-flora?destination=Lisbon&nights=3&flexible=yes"
+            },
+            {
+              "ref": "r12",
+              "role": "link",
+              "name": "New search",
+              "href": "http://127.0.0.1:59852/"
+            }
+          ],
+          "text": "Stays in Lisbon 3 nights · Free cancellation Destination Casa Flora Lisbon · Design hotel · Free cancellation View Casa Flora Available stays Property City Nights Casa Flora Lisbon 3 New search",
+          "truncated": false,
+          "truncation": {
+            "elements": false,
+            "text": false,
+            "fields": false,
+            "scan": false,
+            "metadata": false
+          },
+          "budgets": {
+            "max_elements": 150,
+            "text_limit": 6000,
+            "max_frames": 100
+          },
+          "elapsed_ms": 41
+        }
+      },
+      "is_error": false,
+      "elapsed_ms": 366.771
+    },
+    {
+      "at_ms": 17594.771,
+      "name": "tab_verify",
+      "arguments": {
+        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
+        "checks": [
+          {
+            "kind": "url",
+            "value": "http://127.0.0.1:59852/results?destination=Lisbon&nights=3&flexible=yes"
+          },
+          {
+            "kind": "title",
+            "contains": "Hotel results"
+          },
+          {
+            "kind": "text",
+            "contains": "3 nights · Free cancellation"
+          },
+          {
+            "kind": "value",
+            "selector": "#destination",
+            "value": "Lisbon"
+          },
+          {
+            "kind": "count",
+            "selector": "[data-hotel=\"casa-flora\"]",
+            "value": 1
+          }
+        ]
+      },
+      "result": {
+        "ok": true,
+        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
+        "passed": true,
+        "checks": [
+          {
+            "index": 0,
+            "kind": "url",
+            "pass": true,
+            "actual": "http://127.0.0.1:59852/results?destination=Lisbon&nights=3&flexible=yes"
+          },
+          {
+            "index": 1,
+            "kind": "title",
+            "pass": true,
+            "actual": "Hotel results — Tablaze"
+          },
+          {
+            "index": 2,
+            "kind": "text",
+            "pass": true,
+            "actual": "Stays in Lisbon\n\n3 nights · Free cancellation\n\nDestination \nCasa Flora\n\nLisbon · Design hotel · Free cancellation\n\nView Casa Flora\nAvailable stays\nProperty\tCity\tNights\nCasa Flora\tLisbon\t3\nNew search"
+          },
+          {
+            "index": 3,
+            "kind": "value",
+            "pass": true,
+            "actual": "Lisbon"
+          },
+          {
+            "index": 4,
+            "kind": "count",
+            "pass": true,
+            "actual": 1
+          }
+        ],
+        "elapsed_ms": 14
+      },
+      "is_error": false,
+      "elapsed_ms": 15.538
+    },
+    {
+      "at_ms": 17612.225,
+      "name": "tab_capture",
+      "arguments": {
+        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
+        "url": "http://127.0.0.1:59852/results?destination=Lisbon&nights=3&flexible=yes",
+        "mime_type": "image/jpeg",
+        "bytes": 28889
+      },
+      "is_error": false,
+      "elapsed_ms": 13.954,
+      "image_file": "02-verified.jpg"
+    },
+    {
+      "at_ms": 26887.034,
+      "name": "tab_open",
+      "arguments": {
+        "url": "http://127.0.0.1:59852/lab?token=recorded-demo"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+        "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:1",
+        "mode": "full",
+        "frame_id": "f0",
+        "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
+        "title": "Tablaze interaction lab",
+        "frames": [
+          {
+            "frame_id": "f0",
+            "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
+            "name": "",
+            "is_main": true
+          },
+          {
+            "frame_id": "f1",
+            "url": "",
+            "name": "",
+            "is_main": false
+          }
+        ],
+        "frame_count": 2,
+        "elements": [
+          {
+            "ref": "r1",
+            "role": "heading",
+            "name": "Interaction lab"
+          },
+          {
+            "ref": "r2",
+            "role": "textbox",
+            "name": "Memo",
+            "value": "initial"
+          },
+          {
+            "ref": "r3",
+            "role": "button",
+            "name": "Target action"
+          },
+          {
+            "ref": "r4",
+            "role": "button",
+            "name": "Tail action"
+          },
+          {
+            "ref": "r5",
+            "role": "button",
+            "name": "Add item"
+          },
+          {
+            "ref": "r6",
+            "role": "button",
+            "name": "Remove item"
+          },
+          {
+            "ref": "r7",
+            "role": "link",
+            "name": "Relative destination",
+            "href": "http://127.0.0.1:59852/safe/target"
+          },
+          {
+            "ref": "r8",
+            "role": "button",
+            "name": "Shadow action"
+          }
+        ],
+        "text": "Interaction lab Memo Target action Tail action Add item Remove item Relative destination Link count: 0 Target count: 0 Tail count: 0 Gate is closed Shadow action Shadow idle",
+        "truncated": false,
+        "truncation": {
+          "elements": false,
+          "text": false,
+          "fields": false,
+          "scan": false,
+          "metadata": false
+        },
+        "budgets": {
+          "max_elements": 150,
+          "text_limit": 6000,
+          "max_frames": 100
+        },
+        "elapsed_ms": 53,
+        "session_mode": "isolated"
+      },
+      "is_error": false,
+      "elapsed_ms": 259.91
+    },
+    {
+      "at_ms": 26932.794,
+      "name": "tab_capture",
+      "arguments": {
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+        "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
+        "mime_type": "image/jpeg",
+        "bytes": 28628
+      },
+      "is_error": false,
+      "elapsed_ms": 42.51,
+      "image_file": "03-before-replacement.jpg"
+    },
+    {
+      "at_ms": 32949.385,
+      "name": "fixture.replace",
+      "arguments": {
+        "target": "#target"
+      },
+      "result": {
+        "acknowledged": true
+      },
+      "is_error": false,
+      "elapsed_ms": 0,
+      "not_mcp": true
+    },
+    {
+      "at_ms": 32960.418,
+      "name": "tab_act",
+      "arguments": {
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+        "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:1",
+        "actions": [
+          {
+            "type": "click",
+            "ref": "r3"
+          }
+        ]
+      },
+      "result": {
+        "ok": false,
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+        "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:1",
+        "partial": false,
+        "completed": 0,
+        "failed": {
+          "index": 0,
+          "action": "click",
+          "error": {
+            "code": "STALE_REFERENCE",
+            "message": "The element was detached, hidden, or its identity changed. Take a fresh snapshot."
+          }
+        },
+        "failed_action_may_have_side_effects": false,
+        "results": [
+          {
+            "index": 0,
+            "type": "click",
+            "status": "failed",
+            "error": {
+              "code": "STALE_REFERENCE",
+              "message": "The element was detached, hidden, or its identity changed. Take a fresh snapshot."
+            }
+          }
+        ],
+        "elapsed_ms": 10,
+        "snapshot": {
+          "ok": true,
+          "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+          "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:2",
+          "mode": "full",
+          "frame_id": "f0",
+          "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
+          "title": "Tablaze interaction lab",
+          "frames": [
+            {
+              "frame_id": "f0",
+              "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
+              "name": "",
+              "is_main": true
+            },
+            {
+              "frame_id": "f1",
+              "url": "http://127.0.0.1:59852/frame",
+              "name": "",
+              "is_main": false
+            }
+          ],
+          "frame_count": 2,
+          "elements": [
+            {
+              "ref": "r1",
+              "role": "heading",
+              "name": "Interaction lab"
+            },
+            {
+              "ref": "r2",
+              "role": "textbox",
+              "name": "Memo",
+              "value": "initial"
+            },
+            {
+              "ref": "r9",
+              "role": "button",
+              "name": "Target action"
+            },
+            {
+              "ref": "r4",
+              "role": "button",
+              "name": "Tail action"
+            },
+            {
+              "ref": "r5",
+              "role": "button",
+              "name": "Add item"
+            },
+            {
+              "ref": "r6",
+              "role": "button",
+              "name": "Remove item"
+            },
+            {
+              "ref": "r7",
+              "role": "link",
+              "name": "Relative destination",
+              "href": "http://127.0.0.1:59852/safe/target"
+            },
+            {
+              "ref": "r8",
+              "role": "button",
+              "name": "Shadow action"
+            }
+          ],
+          "text": "Interaction lab Memo Target action Tail action Add item Remove item Relative destination Link count: 0 Target count: 0 Tail count: 0 Gate is closed Shadow action Shadow idle",
+          "truncated": false,
+          "truncation": {
+            "elements": false,
+            "text": false,
+            "fields": false,
+            "scan": false,
+            "metadata": false
+          },
+          "budgets": {
+            "max_elements": 150,
+            "text_limit": 6000,
+            "max_frames": 100
+          },
+          "elapsed_ms": 7
+        }
+      },
+      "is_error": true,
+      "elapsed_ms": 11.014
+    },
+    {
+      "at_ms": 32975.288,
+      "name": "tab_verify",
+      "arguments": {
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+        "checks": [
+          {
+            "kind": "text",
+            "contains": "Target count: 0"
+          }
+        ]
+      },
+      "result": {
+        "ok": true,
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+        "passed": true,
+        "checks": [
+          {
+            "index": 0,
+            "kind": "text",
+            "pass": true,
+            "actual": "Interaction lab\nMemo \nTarget actionTail action Add itemRemove item Relative destination\n\nLink count: 0\n\nTarget count: 0\n\nTail count: 0\n\nGate is closed"
+          }
+        ],
+        "elapsed_ms": 10
+      },
+      "is_error": false,
+      "elapsed_ms": 10.8
+    },
+    {
+      "at_ms": 33000.111,
+      "name": "tab_capture",
+      "arguments": {
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+        "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
+        "mime_type": "image/jpeg",
+        "bytes": 28628
+      },
+      "is_error": false,
+      "elapsed_ms": 21.489,
+      "image_file": "04-refused.jpg"
+    },
+    {
+      "at_ms": 41020.593,
+      "name": "tab_snapshot",
+      "arguments": {
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+        "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:3",
+        "mode": "full",
+        "frame_id": "f0",
+        "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
+        "title": "Tablaze interaction lab",
+        "frames": [
+          {
+            "frame_id": "f0",
+            "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
+            "name": "",
+            "is_main": true
+          },
+          {
+            "frame_id": "f1",
+            "url": "http://127.0.0.1:59852/frame",
+            "name": "",
+            "is_main": false
+          }
+        ],
+        "frame_count": 2,
+        "elements": [
+          {
+            "ref": "r1",
+            "role": "heading",
+            "name": "Interaction lab"
+          },
+          {
+            "ref": "r2",
+            "role": "textbox",
+            "name": "Memo",
+            "value": "initial"
+          },
+          {
+            "ref": "r9",
+            "role": "button",
+            "name": "Target action"
+          },
+          {
+            "ref": "r4",
+            "role": "button",
+            "name": "Tail action"
+          },
+          {
+            "ref": "r5",
+            "role": "button",
+            "name": "Add item"
+          },
+          {
+            "ref": "r6",
+            "role": "button",
+            "name": "Remove item"
+          },
+          {
+            "ref": "r7",
+            "role": "link",
+            "name": "Relative destination",
+            "href": "http://127.0.0.1:59852/safe/target"
+          },
+          {
+            "ref": "r8",
+            "role": "button",
+            "name": "Shadow action"
+          }
+        ],
+        "text": "Interaction lab Memo Target action Tail action Add item Remove item Relative destination Link count: 0 Target count: 0 Tail count: 0 Gate is closed Shadow action Shadow idle",
+        "truncated": false,
+        "truncation": {
+          "elements": false,
+          "text": false,
+          "fields": false,
+          "scan": false,
+          "metadata": false
+        },
+        "budgets": {
+          "max_elements": 150,
+          "text_limit": 6000,
+          "max_frames": 100
+        },
+        "elapsed_ms": 8
+      },
+      "is_error": false,
+      "elapsed_ms": 10.281
+    },
+    {
+      "at_ms": 41158.772,
+      "name": "tab_act",
+      "arguments": {
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+        "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:3",
+        "actions": [
+          {
+            "type": "click",
+            "ref": "r9"
+          }
+        ]
+      },
+      "result": {
+        "ok": true,
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+        "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:3",
+        "partial": false,
+        "completed": 1,
+        "failed": null,
+        "failed_action_may_have_side_effects": false,
+        "results": [
+          {
+            "index": 0,
+            "type": "click",
+            "status": "completed"
+          }
+        ],
+        "elapsed_ms": 125,
+        "snapshot": {
+          "ok": true,
+          "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+          "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:4",
+          "mode": "full",
+          "frame_id": "f0",
+          "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
+          "title": "Tablaze interaction lab",
+          "frames": [
+            {
+              "frame_id": "f0",
+              "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
+              "name": "",
+              "is_main": true
+            },
+            {
+              "frame_id": "f1",
+              "url": "http://127.0.0.1:59852/frame",
+              "name": "",
+              "is_main": false
+            }
+          ],
+          "frame_count": 2,
+          "elements": [
+            {
+              "ref": "r1",
+              "role": "heading",
+              "name": "Interaction lab"
+            },
+            {
+              "ref": "r2",
+              "role": "textbox",
+              "name": "Memo",
+              "value": "initial"
+            },
+            {
+              "ref": "r9",
+              "role": "button",
+              "name": "Target action"
+            },
+            {
+              "ref": "r4",
+              "role": "button",
+              "name": "Tail action"
+            },
+            {
+              "ref": "r5",
+              "role": "button",
+              "name": "Add item"
+            },
+            {
+              "ref": "r6",
+              "role": "button",
+              "name": "Remove item"
+            },
+            {
+              "ref": "r7",
+              "role": "link",
+              "name": "Relative destination",
+              "href": "http://127.0.0.1:59852/safe/target"
+            },
+            {
+              "ref": "r8",
+              "role": "button",
+              "name": "Shadow action"
+            }
+          ],
+          "text": "Interaction lab Memo Target action Tail action Add item Remove item Relative destination Link count: 0 Target count: 1 Tail count: 0 Gate is closed Shadow action Shadow idle",
+          "truncated": false,
+          "truncation": {
+            "elements": false,
+            "text": false,
+            "fields": false,
+            "scan": false,
+            "metadata": false
+          },
+          "budgets": {
+            "max_elements": 150,
+            "text_limit": 6000,
+            "max_frames": 100
+          },
+          "elapsed_ms": 76
+        }
+      },
+      "is_error": false,
+      "elapsed_ms": 126.759
+    },
+    {
+      "at_ms": 41169.813,
+      "name": "tab_verify",
+      "arguments": {
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+        "checks": [
+          {
+            "kind": "text",
+            "contains": "Target count: 1"
+          }
+        ]
+      },
+      "result": {
+        "ok": true,
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+        "passed": true,
+        "checks": [
+          {
+            "index": 0,
+            "kind": "text",
+            "pass": true,
+            "actual": "Interaction lab\nMemo \nTarget actionTail action Add itemRemove item Relative destination\n\nLink count: 0\n\nTarget count: 1\n\nTail count: 0\n\nGate is closed"
+          }
+        ],
+        "elapsed_ms": 1
+      },
+      "is_error": false,
+      "elapsed_ms": 1.924
+    },
+    {
+      "at_ms": 41202,
+      "name": "tab_capture",
+      "arguments": {
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+        "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
+        "mime_type": "image/jpeg",
+        "bytes": 28618
+      },
+      "is_error": false,
+      "elapsed_ms": 21.405,
+      "image_file": "05-recovered.jpg"
+    },
+    {
+      "at_ms": 49234.76,
+      "name": "tab_close",
+      "arguments": {
+        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
+        "closed": true
+      },
+      "is_error": false,
+      "elapsed_ms": 21.117
+    },
+    {
+      "at_ms": 49262.259,
+      "name": "tab_close",
+      "arguments": {
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
+        "closed": true
+      },
+      "is_error": false,
+      "elapsed_ms": 21.821
+    },
+    {
+      "at_ms": 49267.322,
+      "name": "tab_list",
+      "arguments": {},
+      "result": {
+        "ok": true,
+        "sessions": []
+      },
+      "is_error": false,
+      "elapsed_ms": 0.574
+    }
+  ],
+  "presentation_holds": [
+    {
+      "at_ms": 1435.35,
+      "duration_ms": 6000
+    },
+    {
+      "at_ms": 8202.801,
+      "duration_ms": 6000
+    },
+    {
+      "at_ms": 14207.512,
+      "duration_ms": 3000
+    },
+    {
+      "at_ms": 17624.532,
+      "duration_ms": 9000
+    },
+    {
+      "at_ms": 26941.173,
+      "duration_ms": 6000
+    },
+    {
+      "at_ms": 33005.529,
+      "duration_ms": 8000
+    },
+    {
+      "at_ms": 41210.694,
+      "duration_ms": 8000
+    },
+    {
+      "at_ms": 49274.002,
+      "duration_ms": 8000
+    }
+  ],
+  "checks": {
+    "handshake": {
+      "server": {
+        "name": "tablaze",
+        "version": "0.1.0"
+      },
+      "tools": [
+        "tab_open",
+        "tab_snapshot",
+        "tab_act",
+        "tab_extract",
+        "tab_verify",
+        "tab_capture",
+        "tab_list",
+        "tab_close"
+      ]
+    },
+    "hotel": {
+      "completed": 4,
+      "verification": {
+        "ok": true,
+        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
+        "passed": true,
+        "checks": [
+          {
+            "index": 0,
+            "kind": "url",
+            "pass": true,
+            "actual": "http://127.0.0.1:59852/results?destination=Lisbon&nights=3&flexible=yes"
+          },
+          {
+            "index": 1,
+            "kind": "title",
+            "pass": true,
+            "actual": "Hotel results — Tablaze"
+          },
+          {
+            "index": 2,
+            "kind": "text",
+            "pass": true,
+            "actual": "Stays in Lisbon\n\n3 nights · Free cancellation\n\nDestination \nCasa Flora\n\nLisbon · Design hotel · Free cancellation\n\nView Casa Flora\nAvailable stays\nProperty\tCity\tNights\nCasa Flora\tLisbon\t3\nNew search"
+          },
+          {
+            "index": 3,
+            "kind": "value",
+            "pass": true,
+            "actual": "Lisbon"
+          },
+          {
+            "index": 4,
+            "kind": "count",
+            "pass": true,
+            "actual": 1
+          }
+        ],
+        "elapsed_ms": 14
+      }
+    },
+    "changed_target": {
+      "refused_code": "STALE_REFERENCE",
+      "completed": 0,
+      "unchanged": true
+    },
+    "recovery": {
+      "completed": 1,
+      "passed": true
+    },
+    "cleanup": {
+      "remaining_sessions": 0,
+      "stderr_empty": true
+    }
+  },
+  "recording_duration_ms": 57279.224,
+  "video": {
+    "file": "tablaze-demo.webm",
+    "sha256": "2232b7b23bb388a620da6f2f4c988a2c96e569fd5f600611f724b22838df28b1"
+  },
+  "completed_at": "2026-09-22T05:09:11.143Z"
+}

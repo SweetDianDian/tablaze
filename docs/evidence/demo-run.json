@@ -1,50 +1,95 @@
 {
-  "schema_version": 1,
-  "started_at": "2026-09-22T05:08:12.751Z",
+  "schema_version": 2,
+  "started_at": "2026-09-22T15:21:19.031Z",
   "status": "passed",
   "source_sha256": {
-    "dist/browser.js": "623f6bab281a52866ae97d40d6d449802523e10f7a2f4a4be42f633750f5402d",
-    "dist/snapshot.js": "24c5f35c2c48b48465138ad883912708aedacfb8d094ce28e0fd6a244a334026",
-    "dist/server.js": "5a67d281cb8e5c87d0d63af208fb5b1944c4ecd461cdb6ef95973273e8d36940",
-    "dist/cli.js": "0676c073f3e054ba76fd771513e5e2abe17e4be4471bb6cb7d4d4ce2b63a5b00",
-    "demo/record.mjs": "6ba97c9639d65b8f1c7826e34af4e18cc0d5c0b159ba0ed56ad421de44e3991f",
-    "demo/viewer.html": "a01020987424de4e0c14549c568e9ce30e1f5a395d272213ccfa2558cdfa468d",
-    "tests/fixture.mjs": "f0d47ed99f495f9f9a6bf47bd115a01986f22bec94246b82475831321480cace",
-    "package-lock.json": "65d975464764eb873f071de79afa40d58b02192c86d4a7327840dc2e5d11b9cb"
+    "demo/fixture.mjs": "0bc5dcfb8581d6cc00836cd4c48dcb05456bf4b86f33fd80bf169c0a660e93ca",
+    "demo/record.mjs": "e8af16f50bc5433dc04ffb79e88e75cf8ec2db495036cb719c9e0b21081459d4",
+    "demo/viewer.html": "0be1d07f998cf33520bf33836ab34aa43c79f4f3f6d10c9cb4cc77541c4090fc",
+    "dist/agent.js": "a82919ae552619acd083faae0b0fa2e622956b2d1b1c6523e87e06caa3e7f814",
+    "dist/browser.js": "9a23ea78b4bd100e3a9b42f24ab1a77729d41c4300545774d9290e024defe69f",
+    "dist/checkpoint.js": "51f4f8a2626cfabfecbf7d11a8b87b43fa6bb995b4d8b6462193cc27dc78fd8d",
+    "dist/cli.js": "dfbaf5c2983275b38050064ed664b3538c9df7a6386c8a6e6f0ae18c8fd5f4ad",
+    "dist/codex.js": "8d4c71b82203e7d00a7275f94b6edf9339754750448b479ed524562c31dddc2f",
+    "dist/custom-tools.js": "414246ad8b92567d0a7ffeba51f073d13c1ff2f9b03abf9afb65e488edd44841",
+    "dist/extraction.js": "1a998c281523ef934d1a227e87dcbc07c9d2276be8b9734938cf812f97206971",
+    "dist/index.js": "f68d6d44c6f1c68fab0f4ea03d875b3a04f0d74beb9bf7c86e1d0803908d2c43",
+    "dist/navigation-guard.js": "46ecca43e1f93800337c65dc85fe86d77bacc89d30632c849261a00b2681e88d",
+    "dist/navigation-policy.js": "20c0fa2be5889a828934ca5b2c75918cd5264bb5c72d0fa504480fb2e7a5d47f",
+    "dist/providers.js": "316d182ebd152e07049f38d858e24aee189dadc0010eeb3d35443bd8023f1b4c",
+    "dist/server.js": "ca1868e3a02ac86220ecd3dce541ca5b8c6d588f18cc7d8c0c3204c38c0ee058",
+    "dist/snapshot.js": "bb0675169765265ed5178863c7d19f7afcae3fe98c619136a71b243cfb4bb042",
+    "package-lock.json": "0defcc13cd2deeff5b4a90e7d678ab8bec1d5144e13287cf629524ffafb17971",
+    "package.json": "1fcb8cd8f1f49b2999a625413cd86d371afd5a57f1244284e40646ad756acdc4",
+    "src/agent.ts": "89ba3b29d102fb32688bc79d117dce346b34a2a90ed82c562918b9015e645fce",
+    "src/browser.ts": "afcf03d035c98f4f6d54949b2dad7319b3509cd4afe6ea894b764f524b4fb7c4",
+    "src/checkpoint.ts": "07a979b9bbff344a3c5814b1b727061233ada8ed24c180d9e5477c3243a5aac7",
+    "src/cli.ts": "62892d7fc42038e955b9aef4e9f8d7194b1ea73cc6898c3625a9fb16b2164d50",
+    "src/codex.ts": "a60744b322aab629350e58522f6a5b1c52eb48f446fe8750b2789512c329116b",
+    "src/custom-tools.ts": "d9244e369b874436b2e26d0057b9821d0ba400b7cd86e9af20b8090fc78fa71f",
+    "src/extraction.ts": "8647fbab7d6e5d8e42fe63b5e3baabd0a5de8fa0bb3f5e41d524a4809032f329",
+    "src/index.ts": "204012513ea8321c7cbe257a41f7e7bda73bbb9cf021aad19d4eeb56b4879fc8",
+    "src/navigation-guard.ts": "5c67fe7243b27dc0257d8eae7110aefaf97f761652badb5e11d47852e0903ef4",
+    "src/navigation-policy.ts": "5f96625778d05598f53f58751df74125e59db3f5c0a26b489c1167df68ba2470",
+    "src/providers.ts": "3b09a9532f54475cce74c916d1692eb00a026b26cf2cada45bc660276e898a01",
+    "src/server.ts": "79c0f09b73052bdd941dc3840ba7ccf842ce9555eb642a53063a2734cde9d88b",
+    "src/snapshot.ts": "0753753c143408074d03ce7834c230b6e8f555a0c79eca1bcdee8d0ef722ab40"
   },
   "environment": {
-    "node": "v26.8.1",
+    "node": "v25.9.0",
     "platform": "darwin",
     "arch": "arm64",
     "browser_channel": "chrome",
     "browser_version": "153.0.8010.53"
   },
   "method": {
-    "client": "Real MCP TypeScript SDK client over stdio. No Codex/model inference.",
-    "display": "Normal-speed recording of a presentation that renders actual MCP responses and tab_capture images. It is not a continuous video feed from the controlled tab.",
-    "fixture": "Bundled localhost hotel form and DOM replacement lab. No external service, booking or payment.",
-    "pauses": "Explicit presentation holds provide reading time; excluded from each tool elapsed_ms. No timeline acceleration.",
+    "client": "Real MCP TypeScript SDK client over stdio. Deterministic script; no Codex/model inference.",
+    "display": "Normal-speed recording of a presentation rendering actual MCP responses and tab_capture images. Not a continuous video feed from the controlled tab.",
+    "fixture": "One continuous localhost travel workflow, with a real form, DOM replacement, approval popup, server-side order and CSV download. No external booking or payment.",
+    "pauses": "Explicit reading holds are excluded from tool elapsed_ms. No timeline acceleration.",
+    "independent_checks": "Fixture server counters and locally read downloaded bytes supplement browser assertions. They are recorder checks, not additional MCP tools.",
     "quick_mode": false
+  },
+  "task": {
+    "destination": "Lisbon",
+    "nights": 3,
+    "travelers": 2,
+    "free_cancellation": true,
+    "budget_eur": 900,
+    "requester": "Lin Chen",
+    "cost_center": "design"
   },
   "events": [
     {
-      "at_ms": 8148.322,
+      "at_ms": 1399.897,
       "name": "tab_open",
       "arguments": {
-        "url": "http://127.0.0.1:59852/"
+        "url": "http://127.0.0.1:52760/"
       },
       "result": {
         "ok": true,
-        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
-        "snapshot_id": "23556bea-f586-4f8f-b51f-14e37fce5edb:1",
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:1",
+        "tab_id": "t1",
+        "tabs": [
+          {
+            "tab_id": "t1",
+            "url": "http://127.0.0.1:52760/",
+            "active": true
+          }
+        ],
+        "scope": {
+          "selector": null,
+          "viewport_only": false
+        },
         "mode": "full",
         "frame_id": "f0",
-        "url": "http://127.0.0.1:59852/",
-        "title": "Tablaze hotel search",
+        "url": "http://127.0.0.1:52760/",
+        "title": "差旅计划 — Wayfar",
         "frames": [
           {
             "frame_id": "f0",
-            "url": "http://127.0.0.1:59852/",
+            "url": "http://127.0.0.1:52760/",
             "name": "",
             "is_main": true
           }
@@ -54,35 +99,35 @@
           {
             "ref": "r1",
             "role": "heading",
-            "name": "Find your next stay"
+            "name": "下一站，里斯本。"
           },
           {
             "ref": "r2",
             "role": "textbox",
-            "name": "Destination",
+            "name": "目的地",
             "value": ""
           },
           {
             "ref": "r3",
             "role": "combobox",
-            "name": "Nights",
+            "name": "住宿晚数",
             "value": "1",
             "options": [
               {
                 "value": "1",
-                "label": "1 night",
+                "label": "1 晚",
                 "selected": true,
                 "disabled": false
               },
               {
                 "value": "3",
-                "label": "3 nights",
+                "label": "3 晚",
                 "selected": false,
                 "disabled": false
               },
               {
-                "value": "7",
-                "label": "7 nights",
+                "value": "5",
+                "label": "5 晚",
                 "selected": false,
                 "disabled": false
               }
@@ -90,30 +135,55 @@
           },
           {
             "ref": "r4",
+            "role": "combobox",
+            "name": "出行人数",
+            "value": "1",
+            "options": [
+              {
+                "value": "1",
+                "label": "1 人",
+                "selected": true,
+                "disabled": false
+              },
+              {
+                "value": "2",
+                "label": "2 人",
+                "selected": false,
+                "disabled": false
+              },
+              {
+                "value": "3",
+                "label": "3 人",
+                "selected": false,
+                "disabled": false
+              }
+            ]
+          },
+          {
+            "ref": "r5",
+            "role": "spinbutton",
+            "name": "预算上限（EUR）",
+            "value": ""
+          },
+          {
+            "ref": "r6",
             "role": "checkbox",
-            "name": "Free cancellation",
+            "name": "免费取消",
             "value": "yes",
             "checked": false
           },
           {
-            "ref": "r5",
-            "role": "textbox",
-            "name": "Private note",
-            "value_redacted": true
-          },
-          {
-            "ref": "r6",
-            "role": "button",
-            "name": "Search stays"
-          },
-          {
             "ref": "r7",
-            "role": "link",
-            "name": "Interaction lab",
-            "href": "http://127.0.0.1:59852/lab?token=manual"
+            "role": "button",
+            "name": "查找酒店"
+          },
+          {
+            "ref": "r8",
+            "role": "heading",
+            "name": "把计划变成行程"
           }
         ],
-        "text": "Find your next stay A deterministic local browser fixture. No bookings or external services. Destination Nights Free cancellation Private note Search stays Interaction lab",
+        "text": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 01 / PLAN THE TRIP 下一站，里斯本。 为两位同事安排 3 晚住宿，选择可免费取消的酒店。 目的地 住宿晚数 出行人数 预算上限（EUR） 免费取消 查找酒店 YOUR BRIEF 把计划变成行程 Lisbon · 3 晚 · 2 人 € 900 / 上限 取消政策 免费取消 后续步骤 审批 → 导出行程 所有表单与结果均由真实浏览器操作。 虚构差旅任务 · 无外部预订或付款",
         "truncated": false,
         "truncation": {
           "elements": false,
@@ -127,35 +197,43 @@
           "text_limit": 6000,
           "max_frames": 100
         },
-        "elapsed_ms": 89,
+        "elapsed_ms": 47,
         "session_mode": "isolated"
       },
       "is_error": false,
-      "elapsed_ms": 708.023
+      "elapsed_ms": 479.285
     },
     {
-      "at_ms": 8196.84,
+      "at_ms": 1447.385,
       "name": "tab_capture",
       "arguments": {
-        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb"
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7"
       },
       "result": {
         "ok": true,
-        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
-        "url": "http://127.0.0.1:59852/",
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "url": "http://127.0.0.1:52760/",
         "mime_type": "image/jpeg",
-        "bytes": 26687
+        "bytes": 44708,
+        "tab_id": "t1",
+        "viewport": {
+          "width": 1280,
+          "height": 800,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "coordinate_space": "viewport-css"
       },
       "is_error": false,
-      "elapsed_ms": 45.49,
-      "image_file": "01-observe.jpg"
+      "elapsed_ms": 44.156,
+      "image_file": "01-plan.jpg"
     },
     {
-      "at_ms": 17576.641,
+      "at_ms": 18008.779,
       "name": "tab_act",
       "arguments": {
-        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
-        "snapshot_id": "23556bea-f586-4f8f-b51f-14e37fce5edb:1",
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:1",
         "actions": [
           {
             "type": "fill",
@@ -170,20 +248,901 @@
             ]
           },
           {
-            "type": "check",
+            "type": "select",
             "ref": "r4",
+            "values": [
+              "2"
+            ]
+          },
+          {
+            "type": "fill",
+            "ref": "r5",
+            "value": "900"
+          },
+          {
+            "type": "check",
+            "ref": "r6",
             "checked": true
           },
           {
             "type": "click",
-            "ref": "r6"
+            "ref": "r7"
           }
         ]
       },
       "result": {
         "ok": true,
-        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
-        "snapshot_id": "23556bea-f586-4f8f-b51f-14e37fce5edb:1",
+        "batch_complete": true,
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:1",
+        "partial": false,
+        "completed": 6,
+        "failed": null,
+        "failed_action_may_have_side_effects": false,
+        "results": [
+          {
+            "index": 0,
+            "type": "fill",
+            "status": "completed"
+          },
+          {
+            "index": 1,
+            "type": "select",
+            "status": "completed"
+          },
+          {
+            "index": 2,
+            "type": "select",
+            "status": "completed"
+          },
+          {
+            "index": 3,
+            "type": "fill",
+            "status": "completed"
+          },
+          {
+            "index": 4,
+            "type": "check",
+            "status": "completed"
+          },
+          {
+            "index": 5,
+            "type": "click",
+            "status": "completed"
+          }
+        ],
+        "elapsed_ms": 539,
+        "snapshot": {
+          "ok": true,
+          "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+          "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:2",
+          "tab_id": "t1",
+          "tabs": [
+            {
+              "tab_id": "t1",
+              "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+              "active": true
+            }
+          ],
+          "scope": {
+            "selector": null,
+            "viewport_only": false
+          },
+          "mode": "full",
+          "frame_id": "f0",
+          "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+          "title": "酒店筛选结果 — Wayfar",
+          "frames": [
+            {
+              "frame_id": "f0",
+              "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+              "name": "",
+              "is_main": true
+            }
+          ],
+          "frame_count": 1,
+          "elements": [
+            {
+              "ref": "r9",
+              "role": "heading",
+              "name": "里斯本，一处合适的落脚点。"
+            },
+            {
+              "ref": "r10",
+              "role": "generic",
+              "name": "酒店结果"
+            },
+            {
+              "ref": "r11",
+              "role": "heading",
+              "name": "Casa Flora"
+            },
+            {
+              "ref": "r12",
+              "role": "button",
+              "name": "发起审批"
+            },
+            {
+              "ref": "r13",
+              "role": "textbox",
+              "name": "目的地",
+              "value": "Lisbon",
+              "readonly": true
+            }
+          ],
+          "text": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 02 / MATCH YOUR CRITERIA 里斯本，一处合适的落脚点。 3 晚 · 2 人 · 免费取消 · 预算 € 900 符合全部条件 Casa Flora Lisbon · 双人套房 · 含早餐 免费取消 € 780 3 晚总价 · 低于预算 € 120 结果可验收 城市、晚数、人数与政策 发起审批 房型与价格已刷新。 APPLIED FILTERS 目的地 住宿晚数 3 晚 出行人数 2 人 预算上限 € 900 ✓ 筛选 → 审批 → 导出 虚构差旅任务 · 无外部预订或付款",
+          "truncated": false,
+          "truncation": {
+            "elements": false,
+            "text": false,
+            "fields": false,
+            "scan": false,
+            "metadata": false
+          },
+          "budgets": {
+            "max_elements": 150,
+            "text_limit": 6000,
+            "max_frames": 100
+          },
+          "elapsed_ms": 16
+        }
+      },
+      "is_error": false,
+      "elapsed_ms": 543.47
+    },
+    {
+      "at_ms": 18045.865,
+      "name": "tab_capture",
+      "arguments": {
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+        "mime_type": "image/jpeg",
+        "bytes": 49826,
+        "tab_id": "t1",
+        "viewport": {
+          "width": 1280,
+          "height": 800,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "coordinate_space": "viewport-css"
+      },
+      "is_error": false,
+      "elapsed_ms": 31.861,
+      "image_file": "02-results.jpg"
+    },
+    {
+      "at_ms": 30109.833,
+      "name": "tab_verify",
+      "arguments": {
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "checks": [
+          {
+            "kind": "url",
+            "value": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes"
+          },
+          {
+            "kind": "title",
+            "contains": "酒店筛选结果"
+          },
+          {
+            "kind": "text",
+            "contains": "3 晚 · 2 人 · 免费取消 · 预算 € 900"
+          },
+          {
+            "kind": "value",
+            "selector": "#destination",
+            "value": "Lisbon"
+          },
+          {
+            "kind": "count",
+            "selector": "[data-hotel=\"casa-flora\"]",
+            "value": 1
+          }
+        ]
+      },
+      "result": {
+        "ok": true,
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "passed": true,
+        "checks": [
+          {
+            "index": 0,
+            "kind": "url",
+            "pass": true,
+            "actual": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes"
+          },
+          {
+            "index": 1,
+            "kind": "title",
+            "pass": true,
+            "actual": "酒店筛选结果 — Wayfar"
+          },
+          {
+            "index": 2,
+            "kind": "text",
+            "pass": true,
+            "actual": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 02 / MATCH YOUR CRITERIA 里斯本，一处合适的落脚点。 3 晚 · 2 人 · 免费取消 · 预算 € 900 符合全部条件 Casa Flora Lisbon · 双人套房 · 含早餐 免费取消 € 780 3 晚总价 · 低于预算 € 120 结果可验收 城市、晚数、人数与政策 发起审批 房型与价格已刷新。 APPLIED FILTERS 目的地 住宿晚数 3 晚 出行人数 2 人 预算上限 € 900 ✓ 筛选 → 审批 → 导出 虚构差旅任务 · 无外部预订或付款"
+          },
+          {
+            "index": 3,
+            "kind": "value",
+            "pass": true,
+            "actual": "Lisbon"
+          },
+          {
+            "index": 4,
+            "kind": "count",
+            "pass": true,
+            "actual": 1
+          }
+        ],
+        "elapsed_ms": 25
+      },
+      "is_error": false,
+      "elapsed_ms": 28.461
+    },
+    {
+      "at_ms": 44152.157,
+      "name": "tab_snapshot",
+      "arguments": {
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:3",
+        "tab_id": "t1",
+        "tabs": [
+          {
+            "tab_id": "t1",
+            "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+            "active": true
+          }
+        ],
+        "scope": {
+          "selector": null,
+          "viewport_only": false
+        },
+        "mode": "full",
+        "frame_id": "f0",
+        "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+        "title": "酒店筛选结果 — Wayfar",
+        "frames": [
+          {
+            "frame_id": "f0",
+            "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+            "name": "",
+            "is_main": true
+          }
+        ],
+        "frame_count": 1,
+        "elements": [
+          {
+            "ref": "r9",
+            "role": "heading",
+            "name": "里斯本，一处合适的落脚点。"
+          },
+          {
+            "ref": "r10",
+            "role": "generic",
+            "name": "酒店结果"
+          },
+          {
+            "ref": "r11",
+            "role": "heading",
+            "name": "Casa Flora"
+          },
+          {
+            "ref": "r12",
+            "role": "button",
+            "name": "发起审批"
+          },
+          {
+            "ref": "r13",
+            "role": "textbox",
+            "name": "目的地",
+            "value": "Lisbon",
+            "readonly": true
+          }
+        ],
+        "text": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 02 / MATCH YOUR CRITERIA 里斯本，一处合适的落脚点。 3 晚 · 2 人 · 免费取消 · 预算 € 900 符合全部条件 Casa Flora Lisbon · 双人套房 · 含早餐 免费取消 € 780 3 晚总价 · 低于预算 € 120 结果可验收 城市、晚数、人数与政策 发起审批 房型与价格已刷新。 APPLIED FILTERS 目的地 住宿晚数 3 晚 出行人数 2 人 预算上限 € 900 ✓ 筛选 → 审批 → 导出 虚构差旅任务 · 无外部预订或付款",
+        "truncated": false,
+        "truncation": {
+          "elements": false,
+          "text": false,
+          "fields": false,
+          "scan": false,
+          "metadata": false
+        },
+        "budgets": {
+          "max_elements": 150,
+          "text_limit": 6000,
+          "max_frames": 100
+        },
+        "elapsed_ms": 25
+      },
+      "is_error": false,
+      "elapsed_ms": 28.832
+    },
+    {
+      "at_ms": 51173.301,
+      "name": "fixture.replace_approval",
+      "result": {
+        "acknowledged": true,
+        "replacements": 1
+      },
+      "is_error": false,
+      "elapsed_ms": 0,
+      "not_mcp": true
+    },
+    {
+      "at_ms": 51195.371,
+      "name": "tab_act",
+      "arguments": {
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:3",
+        "actions": [
+          {
+            "type": "click",
+            "ref": "r12"
+          }
+        ]
+      },
+      "result": {
+        "ok": false,
+        "batch_complete": false,
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:3",
+        "partial": false,
+        "completed": 0,
+        "failed": {
+          "index": 0,
+          "action": "click",
+          "error": {
+            "code": "STALE_REFERENCE",
+            "message": "The element was detached, hidden, or its identity changed. Take a fresh snapshot."
+          }
+        },
+        "failed_action_may_have_side_effects": false,
+        "results": [
+          {
+            "index": 0,
+            "type": "click",
+            "status": "failed",
+            "error": {
+              "code": "STALE_REFERENCE",
+              "message": "The element was detached, hidden, or its identity changed. Take a fresh snapshot."
+            }
+          }
+        ],
+        "elapsed_ms": 18,
+        "snapshot": {
+          "ok": true,
+          "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+          "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:4",
+          "tab_id": "t1",
+          "tabs": [
+            {
+              "tab_id": "t1",
+              "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+              "active": true
+            }
+          ],
+          "scope": {
+            "selector": null,
+            "viewport_only": false
+          },
+          "mode": "full",
+          "frame_id": "f0",
+          "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+          "title": "酒店筛选结果 — Wayfar",
+          "frames": [
+            {
+              "frame_id": "f0",
+              "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+              "name": "",
+              "is_main": true
+            }
+          ],
+          "frame_count": 1,
+          "elements": [
+            {
+              "ref": "r9",
+              "role": "heading",
+              "name": "里斯本，一处合适的落脚点。"
+            },
+            {
+              "ref": "r10",
+              "role": "generic",
+              "name": "酒店结果"
+            },
+            {
+              "ref": "r11",
+              "role": "heading",
+              "name": "Casa Flora"
+            },
+            {
+              "ref": "r14",
+              "role": "button",
+              "name": "发起审批"
+            },
+            {
+              "ref": "r13",
+              "role": "textbox",
+              "name": "目的地",
+              "value": "Lisbon",
+              "readonly": true
+            }
+          ],
+          "text": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 02 / MATCH YOUR CRITERIA 里斯本，一处合适的落脚点。 3 晚 · 2 人 · 免费取消 · 预算 € 900 符合全部条件 Casa Flora Lisbon · 双人套房 · 含早餐 免费取消 € 780 3 晚总价 · 低于预算 € 120 结果可验收 城市、晚数、人数与政策 发起审批 页面已更新：审批按钮由新节点替换。 APPLIED FILTERS 目的地 住宿晚数 3 晚 出行人数 2 人 预算上限 € 900 ✓ 筛选 → 审批 → 导出 虚构差旅任务 · 无外部预订或付款",
+          "truncated": false,
+          "truncation": {
+            "elements": false,
+            "text": false,
+            "fields": false,
+            "scan": false,
+            "metadata": false
+          },
+          "budgets": {
+            "max_elements": 150,
+            "text_limit": 6000,
+            "max_frames": 100
+          },
+          "elapsed_ms": 13
+        }
+      },
+      "is_error": true,
+      "elapsed_ms": 20.39
+    },
+    {
+      "at_ms": 51203.258,
+      "name": "fixture.confirm_zero_writes",
+      "result": {
+        "refused_code": "STALE_REFERENCE",
+        "completed": 0,
+        "popup_visits": 0,
+        "submission_attempts": 0,
+        "orders": 0
+      },
+      "is_error": false,
+      "elapsed_ms": 0,
+      "not_mcp": true
+    },
+    {
+      "at_ms": 51232.579,
+      "name": "tab_capture",
+      "arguments": {
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+        "mime_type": "image/jpeg",
+        "bytes": 50731,
+        "tab_id": "t1",
+        "viewport": {
+          "width": 1280,
+          "height": 800,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "coordinate_space": "viewport-css"
+      },
+      "is_error": false,
+      "elapsed_ms": 28.618,
+      "image_file": "03-stopped.jpg"
+    },
+    {
+      "at_ms": 64270.201,
+      "name": "tab_snapshot",
+      "arguments": {
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:5",
+        "tab_id": "t1",
+        "tabs": [
+          {
+            "tab_id": "t1",
+            "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+            "active": true
+          }
+        ],
+        "scope": {
+          "selector": null,
+          "viewport_only": false
+        },
+        "mode": "full",
+        "frame_id": "f0",
+        "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+        "title": "酒店筛选结果 — Wayfar",
+        "frames": [
+          {
+            "frame_id": "f0",
+            "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+            "name": "",
+            "is_main": true
+          }
+        ],
+        "frame_count": 1,
+        "elements": [
+          {
+            "ref": "r9",
+            "role": "heading",
+            "name": "里斯本，一处合适的落脚点。"
+          },
+          {
+            "ref": "r10",
+            "role": "generic",
+            "name": "酒店结果"
+          },
+          {
+            "ref": "r11",
+            "role": "heading",
+            "name": "Casa Flora"
+          },
+          {
+            "ref": "r14",
+            "role": "button",
+            "name": "发起审批"
+          },
+          {
+            "ref": "r13",
+            "role": "textbox",
+            "name": "目的地",
+            "value": "Lisbon",
+            "readonly": true
+          }
+        ],
+        "text": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 02 / MATCH YOUR CRITERIA 里斯本，一处合适的落脚点。 3 晚 · 2 人 · 免费取消 · 预算 € 900 符合全部条件 Casa Flora Lisbon · 双人套房 · 含早餐 免费取消 € 780 3 晚总价 · 低于预算 € 120 结果可验收 城市、晚数、人数与政策 发起审批 页面已更新：审批按钮由新节点替换。 APPLIED FILTERS 目的地 住宿晚数 3 晚 出行人数 2 人 预算上限 € 900 ✓ 筛选 → 审批 → 导出 虚构差旅任务 · 无外部预订或付款",
+        "truncated": false,
+        "truncation": {
+          "elements": false,
+          "text": false,
+          "fields": false,
+          "scan": false,
+          "metadata": false
+        },
+        "budgets": {
+          "max_elements": 150,
+          "text_limit": 6000,
+          "max_frames": 100
+        },
+        "elapsed_ms": 17
+      },
+      "is_error": false,
+      "elapsed_ms": 19.112
+    },
+    {
+      "at_ms": 72574.963,
+      "name": "tab_act",
+      "arguments": {
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:5",
+        "actions": [
+          {
+            "type": "click",
+            "ref": "r14"
+          }
+        ]
+      },
+      "result": {
+        "ok": true,
+        "batch_complete": true,
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:5",
+        "partial": false,
+        "completed": 1,
+        "failed": null,
+        "failed_action_may_have_side_effects": false,
+        "results": [
+          {
+            "index": 0,
+            "type": "click",
+            "status": "completed"
+          }
+        ],
+        "replan_required": true,
+        "popup_followed": {
+          "from_tab_id": "t1",
+          "tab_id": "t2",
+          "action_index": 0,
+          "window_ms": 250
+        },
+        "elapsed_ms": 288,
+        "snapshot": {
+          "ok": true,
+          "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+          "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:6",
+          "tab_id": "t2",
+          "tabs": [
+            {
+              "tab_id": "t1",
+              "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+              "active": false
+            },
+            {
+              "tab_id": "t2",
+              "url": "http://127.0.0.1:52760/approval",
+              "active": true
+            }
+          ],
+          "scope": {
+            "selector": null,
+            "viewport_only": false
+          },
+          "mode": "full",
+          "frame_id": "f0",
+          "url": "http://127.0.0.1:52760/approval",
+          "title": "差旅审批 — Wayfar",
+          "frames": [
+            {
+              "frame_id": "f0",
+              "url": "http://127.0.0.1:52760/approval",
+              "name": "",
+              "is_main": true
+            }
+          ],
+          "frame_count": 1,
+          "elements": [
+            {
+              "ref": "r15",
+              "role": "heading",
+              "name": "审批这一趟差旅。"
+            },
+            {
+              "ref": "r16",
+              "role": "textbox",
+              "name": "申请人",
+              "value": ""
+            },
+            {
+              "ref": "r17",
+              "role": "combobox",
+              "name": "成本中心",
+              "value": "",
+              "options": [
+                {
+                  "value": "",
+                  "label": "请选择",
+                  "selected": true,
+                  "disabled": false
+                },
+                {
+                  "value": "design",
+                  "label": "设计团队",
+                  "selected": false,
+                  "disabled": false
+                },
+                {
+                  "value": "engineering",
+                  "label": "研发团队",
+                  "selected": false,
+                  "disabled": false
+                }
+              ]
+            },
+            {
+              "ref": "r18",
+              "role": "checkbox",
+              "name": "我已确认行程与预算",
+              "value": "yes",
+              "checked": false
+            },
+            {
+              "ref": "r19",
+              "role": "button",
+              "name": "批准行程"
+            },
+            {
+              "ref": "r20",
+              "role": "heading",
+              "name": "Casa Flora"
+            }
+          ],
+          "text": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 03 / APPROVAL · NEW TAB 审批这一趟差旅。 原来的筛选页保留在另一个标签页。 申请人 成本中心 我已确认行程与预算 批准行程 提交后生成审批回执与可下载的行程文件。 待审批 Casa Flora Lisbon · 3 晚 · 2 人 € 780 取消政策 免费取消 预算余额 € 120 虚构差旅任务 · 无外部预订或付款",
+          "truncated": false,
+          "truncation": {
+            "elements": false,
+            "text": false,
+            "fields": false,
+            "scan": false,
+            "metadata": false
+          },
+          "budgets": {
+            "max_elements": 150,
+            "text_limit": 6000,
+            "max_frames": 100
+          },
+          "elapsed_ms": 14
+        }
+      },
+      "is_error": false,
+      "elapsed_ms": 289.268
+    },
+    {
+      "at_ms": 72601.37,
+      "name": "tab_snapshot",
+      "arguments": {
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:7",
+        "tab_id": "t2",
+        "tabs": [
+          {
+            "tab_id": "t1",
+            "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+            "active": false
+          },
+          {
+            "tab_id": "t2",
+            "url": "http://127.0.0.1:52760/approval",
+            "active": true
+          }
+        ],
+        "scope": {
+          "selector": null,
+          "viewport_only": false
+        },
+        "mode": "full",
+        "frame_id": "f0",
+        "url": "http://127.0.0.1:52760/approval",
+        "title": "差旅审批 — Wayfar",
+        "frames": [
+          {
+            "frame_id": "f0",
+            "url": "http://127.0.0.1:52760/approval",
+            "name": "",
+            "is_main": true
+          }
+        ],
+        "frame_count": 1,
+        "elements": [
+          {
+            "ref": "r15",
+            "role": "heading",
+            "name": "审批这一趟差旅。"
+          },
+          {
+            "ref": "r16",
+            "role": "textbox",
+            "name": "申请人",
+            "value": ""
+          },
+          {
+            "ref": "r17",
+            "role": "combobox",
+            "name": "成本中心",
+            "value": "",
+            "options": [
+              {
+                "value": "",
+                "label": "请选择",
+                "selected": true,
+                "disabled": false
+              },
+              {
+                "value": "design",
+                "label": "设计团队",
+                "selected": false,
+                "disabled": false
+              },
+              {
+                "value": "engineering",
+                "label": "研发团队",
+                "selected": false,
+                "disabled": false
+              }
+            ]
+          },
+          {
+            "ref": "r18",
+            "role": "checkbox",
+            "name": "我已确认行程与预算",
+            "value": "yes",
+            "checked": false
+          },
+          {
+            "ref": "r19",
+            "role": "button",
+            "name": "批准行程"
+          },
+          {
+            "ref": "r20",
+            "role": "heading",
+            "name": "Casa Flora"
+          }
+        ],
+        "text": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 03 / APPROVAL · NEW TAB 审批这一趟差旅。 原来的筛选页保留在另一个标签页。 申请人 成本中心 我已确认行程与预算 批准行程 提交后生成审批回执与可下载的行程文件。 待审批 Casa Flora Lisbon · 3 晚 · 2 人 € 780 取消政策 免费取消 预算余额 € 120 虚构差旅任务 · 无外部预订或付款",
+        "truncated": false,
+        "truncation": {
+          "elements": false,
+          "text": false,
+          "fields": false,
+          "scan": false,
+          "metadata": false
+        },
+        "budgets": {
+          "max_elements": 150,
+          "text_limit": 6000,
+          "max_frames": 100
+        },
+        "elapsed_ms": 15
+      },
+      "is_error": false,
+      "elapsed_ms": 17.349
+    },
+    {
+      "at_ms": 72643.073,
+      "name": "tab_capture",
+      "arguments": {
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "url": "http://127.0.0.1:52760/approval",
+        "mime_type": "image/jpeg",
+        "bytes": 40083,
+        "tab_id": "t2",
+        "viewport": {
+          "width": 1280,
+          "height": 800,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "coordinate_space": "viewport-css"
+      },
+      "is_error": false,
+      "elapsed_ms": 33.299,
+      "image_file": "04-popup.jpg"
+    },
+    {
+      "at_ms": 83082.376,
+      "name": "tab_act",
+      "arguments": {
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:7",
+        "actions": [
+          {
+            "type": "fill",
+            "ref": "r16",
+            "value": "Lin Chen"
+          },
+          {
+            "type": "select",
+            "ref": "r17",
+            "values": [
+              "design"
+            ]
+          },
+          {
+            "type": "check",
+            "ref": "r18",
+            "checked": true
+          },
+          {
+            "type": "click",
+            "ref": "r19"
+          }
+        ]
+      },
+      "result": {
+        "ok": true,
+        "batch_complete": true,
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:7",
         "partial": false,
         "completed": 4,
         "failed": null,
@@ -210,19 +1169,36 @@
             "status": "completed"
           }
         ],
-        "elapsed_ms": 362,
+        "elapsed_ms": 423,
         "snapshot": {
           "ok": true,
-          "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
-          "snapshot_id": "23556bea-f586-4f8f-b51f-14e37fce5edb:2",
+          "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+          "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:8",
+          "tab_id": "t2",
+          "tabs": [
+            {
+              "tab_id": "t1",
+              "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+              "active": false
+            },
+            {
+              "tab_id": "t2",
+              "url": "http://127.0.0.1:52760/receipt",
+              "active": true
+            }
+          ],
+          "scope": {
+            "selector": null,
+            "viewport_only": false
+          },
           "mode": "full",
           "frame_id": "f0",
-          "url": "http://127.0.0.1:59852/results?destination=Lisbon&nights=3&flexible=yes",
-          "title": "Hotel results — Tablaze",
+          "url": "http://127.0.0.1:52760/receipt",
+          "title": "审批完成 — Wayfar",
           "frames": [
             {
               "frame_id": "f0",
-              "url": "http://127.0.0.1:59852/results?destination=Lisbon&nights=3&flexible=yes",
+              "url": "http://127.0.0.1:52760/receipt",
               "name": "",
               "is_main": true
             }
@@ -230,35 +1206,23 @@
           "frame_count": 1,
           "elements": [
             {
-              "ref": "r8",
+              "ref": "r21",
               "role": "heading",
-              "name": "Stays in Lisbon"
+              "name": "审批通过，行程已就绪。"
             },
             {
-              "ref": "r9",
-              "role": "textbox",
-              "name": "Destination",
-              "value": "Lisbon"
-            },
-            {
-              "ref": "r10",
+              "ref": "r22",
               "role": "heading",
-              "name": "Casa Flora"
+              "name": "一份可交付的行程"
             },
             {
-              "ref": "r11",
+              "ref": "r23",
               "role": "link",
-              "name": "View Casa Flora",
-              "href": "http://127.0.0.1:59852/hotel/casa-flora?destination=Lisbon&nights=3&flexible=yes"
-            },
-            {
-              "ref": "r12",
-              "role": "link",
-              "name": "New search",
-              "href": "http://127.0.0.1:59852/"
+              "name": "下载行程 CSV",
+              "href": "http://127.0.0.1:52760/itinerary.csv"
             }
           ],
-          "text": "Stays in Lisbon 3 nights · Free cancellation Destination Casa Flora Lisbon · Design hotel · Free cancellation View Casa Flora Available stays Property City Nights Casa Flora Lisbon 3 New search",
+          "text": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 04 / READY TO GO ✓ 审批通过，行程已就绪。 审批编号 WF-001 申请人 Lin Chen 成本中心 设计团队 酒店 Casa Flora 行程 Lisbon · 3 晚 · 2 人 审批金额 EUR 780 审批完成 一份可交付的行程 下载 CSV 文件，交给同事或导入后续工作流。 下载行程 CSV 取消政策 免费取消 文件包含审批编号、城市、晚数、人数与金额。 虚构差旅任务 · 无外部预订或付款",
           "truncated": false,
           "truncation": {
             "elements": false,
@@ -272,470 +1236,168 @@
             "text_limit": 6000,
             "max_frames": 100
           },
-          "elapsed_ms": 41
+          "elapsed_ms": 8
         }
       },
       "is_error": false,
-      "elapsed_ms": 366.771
+      "elapsed_ms": 424.027
     },
     {
-      "at_ms": 17594.771,
+      "at_ms": 83092.639,
       "name": "tab_verify",
       "arguments": {
-        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
         "checks": [
           {
-            "kind": "url",
-            "value": "http://127.0.0.1:59852/results?destination=Lisbon&nights=3&flexible=yes"
-          },
-          {
             "kind": "title",
-            "contains": "Hotel results"
+            "contains": "审批完成"
           },
           {
             "kind": "text",
-            "contains": "3 nights · Free cancellation"
+            "contains": "WF-001"
           },
           {
-            "kind": "value",
-            "selector": "#destination",
-            "value": "Lisbon"
-          },
-          {
-            "kind": "count",
-            "selector": "[data-hotel=\"casa-flora\"]",
-            "value": 1
+            "kind": "text",
+            "contains": "EUR 780"
           }
         ]
       },
       "result": {
         "ok": true,
-        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
         "passed": true,
         "checks": [
           {
             "index": 0,
-            "kind": "url",
+            "kind": "title",
             "pass": true,
-            "actual": "http://127.0.0.1:59852/results?destination=Lisbon&nights=3&flexible=yes"
+            "actual": "审批完成 — Wayfar"
           },
           {
             "index": 1,
-            "kind": "title",
+            "kind": "text",
             "pass": true,
-            "actual": "Hotel results — Tablaze"
+            "actual": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 04 / READY TO GO ✓ 审批通过，行程已就绪。 审批编号 WF-001 申请人 Lin Chen 成本中心 设计团队 酒店 Casa Flora 行程 Lisbon · 3 晚 · 2 人 审批金额 EUR 780 审批完成 一份可交付的行程 下载 CSV 文件，交给同事或导入后续工作流。 下载行程 CSV 取消政策 免费取消 文件包含审批编号、城市、晚数、人数与金额。 虚构差旅任务 · 无外部预订或付款"
           },
           {
             "index": 2,
             "kind": "text",
             "pass": true,
-            "actual": "Stays in Lisbon\n\n3 nights · Free cancellation\n\nDestination \nCasa Flora\n\nLisbon · Design hotel · Free cancellation\n\nView Casa Flora\nAvailable stays\nProperty\tCity\tNights\nCasa Flora\tLisbon\t3\nNew search"
-          },
-          {
-            "index": 3,
-            "kind": "value",
-            "pass": true,
-            "actual": "Lisbon"
-          },
-          {
-            "index": 4,
-            "kind": "count",
-            "pass": true,
-            "actual": 1
+            "actual": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 04 / READY TO GO ✓ 审批通过，行程已就绪。 审批编号 WF-001 申请人 Lin Chen 成本中心 设计团队 酒店 Casa Flora 行程 Lisbon · 3 晚 · 2 人 审批金额 EUR 780 审批完成 一份可交付的行程 下载 CSV 文件，交给同事或导入后续工作流。 下载行程 CSV 取消政策 免费取消 文件包含审批编号、城市、晚数、人数与金额。 虚构差旅任务 · 无外部预订或付款"
           }
         ],
-        "elapsed_ms": 14
+        "elapsed_ms": 2
       },
       "is_error": false,
-      "elapsed_ms": 15.538
+      "elapsed_ms": 3.198
     },
     {
-      "at_ms": 17612.225,
-      "name": "tab_capture",
-      "arguments": {
-        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb"
-      },
+      "at_ms": 83099.869,
+      "name": "fixture.confirm_order",
       "result": {
-        "ok": true,
-        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
-        "url": "http://127.0.0.1:59852/results?destination=Lisbon&nights=3&flexible=yes",
-        "mime_type": "image/jpeg",
-        "bytes": 28889
-      },
-      "is_error": false,
-      "elapsed_ms": 13.954,
-      "image_file": "02-verified.jpg"
-    },
-    {
-      "at_ms": 26887.034,
-      "name": "tab_open",
-      "arguments": {
-        "url": "http://127.0.0.1:59852/lab?token=recorded-demo"
-      },
-      "result": {
-        "ok": true,
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-        "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:1",
-        "mode": "full",
-        "frame_id": "f0",
-        "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
-        "title": "Tablaze interaction lab",
-        "frames": [
+        "submission_attempts": 1,
+        "orders": [
           {
-            "frame_id": "f0",
-            "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
-            "name": "",
-            "is_main": true
-          },
-          {
-            "frame_id": "f1",
-            "url": "",
-            "name": "",
-            "is_main": false
+            "id": "WF-001",
+            "requester": "Lin Chen",
+            "cost_center": "design",
+            "amount_eur": 780,
+            "destination": "Lisbon",
+            "nights": "3",
+            "travelers": "2",
+            "budget": "900",
+            "flexible": "yes"
           }
-        ],
-        "frame_count": 2,
-        "elements": [
-          {
-            "ref": "r1",
-            "role": "heading",
-            "name": "Interaction lab"
-          },
-          {
-            "ref": "r2",
-            "role": "textbox",
-            "name": "Memo",
-            "value": "initial"
-          },
-          {
-            "ref": "r3",
-            "role": "button",
-            "name": "Target action"
-          },
-          {
-            "ref": "r4",
-            "role": "button",
-            "name": "Tail action"
-          },
-          {
-            "ref": "r5",
-            "role": "button",
-            "name": "Add item"
-          },
-          {
-            "ref": "r6",
-            "role": "button",
-            "name": "Remove item"
-          },
-          {
-            "ref": "r7",
-            "role": "link",
-            "name": "Relative destination",
-            "href": "http://127.0.0.1:59852/safe/target"
-          },
-          {
-            "ref": "r8",
-            "role": "button",
-            "name": "Shadow action"
-          }
-        ],
-        "text": "Interaction lab Memo Target action Tail action Add item Remove item Relative destination Link count: 0 Target count: 0 Tail count: 0 Gate is closed Shadow action Shadow idle",
-        "truncated": false,
-        "truncation": {
-          "elements": false,
-          "text": false,
-          "fields": false,
-          "scan": false,
-          "metadata": false
-        },
-        "budgets": {
-          "max_elements": 150,
-          "text_limit": 6000,
-          "max_frames": 100
-        },
-        "elapsed_ms": 53,
-        "session_mode": "isolated"
-      },
-      "is_error": false,
-      "elapsed_ms": 259.91
-    },
-    {
-      "at_ms": 26932.794,
-      "name": "tab_capture",
-      "arguments": {
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b"
-      },
-      "result": {
-        "ok": true,
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-        "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
-        "mime_type": "image/jpeg",
-        "bytes": 28628
-      },
-      "is_error": false,
-      "elapsed_ms": 42.51,
-      "image_file": "03-before-replacement.jpg"
-    },
-    {
-      "at_ms": 32949.385,
-      "name": "fixture.replace",
-      "arguments": {
-        "target": "#target"
-      },
-      "result": {
-        "acknowledged": true
+        ]
       },
       "is_error": false,
       "elapsed_ms": 0,
       "not_mcp": true
     },
     {
-      "at_ms": 32960.418,
-      "name": "tab_act",
-      "arguments": {
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-        "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:1",
-        "actions": [
-          {
-            "type": "click",
-            "ref": "r3"
-          }
-        ]
-      },
-      "result": {
-        "ok": false,
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-        "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:1",
-        "partial": false,
-        "completed": 0,
-        "failed": {
-          "index": 0,
-          "action": "click",
-          "error": {
-            "code": "STALE_REFERENCE",
-            "message": "The element was detached, hidden, or its identity changed. Take a fresh snapshot."
-          }
-        },
-        "failed_action_may_have_side_effects": false,
-        "results": [
-          {
-            "index": 0,
-            "type": "click",
-            "status": "failed",
-            "error": {
-              "code": "STALE_REFERENCE",
-              "message": "The element was detached, hidden, or its identity changed. Take a fresh snapshot."
-            }
-          }
-        ],
-        "elapsed_ms": 10,
-        "snapshot": {
-          "ok": true,
-          "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-          "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:2",
-          "mode": "full",
-          "frame_id": "f0",
-          "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
-          "title": "Tablaze interaction lab",
-          "frames": [
-            {
-              "frame_id": "f0",
-              "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
-              "name": "",
-              "is_main": true
-            },
-            {
-              "frame_id": "f1",
-              "url": "http://127.0.0.1:59852/frame",
-              "name": "",
-              "is_main": false
-            }
-          ],
-          "frame_count": 2,
-          "elements": [
-            {
-              "ref": "r1",
-              "role": "heading",
-              "name": "Interaction lab"
-            },
-            {
-              "ref": "r2",
-              "role": "textbox",
-              "name": "Memo",
-              "value": "initial"
-            },
-            {
-              "ref": "r9",
-              "role": "button",
-              "name": "Target action"
-            },
-            {
-              "ref": "r4",
-              "role": "button",
-              "name": "Tail action"
-            },
-            {
-              "ref": "r5",
-              "role": "button",
-              "name": "Add item"
-            },
-            {
-              "ref": "r6",
-              "role": "button",
-              "name": "Remove item"
-            },
-            {
-              "ref": "r7",
-              "role": "link",
-              "name": "Relative destination",
-              "href": "http://127.0.0.1:59852/safe/target"
-            },
-            {
-              "ref": "r8",
-              "role": "button",
-              "name": "Shadow action"
-            }
-          ],
-          "text": "Interaction lab Memo Target action Tail action Add item Remove item Relative destination Link count: 0 Target count: 0 Tail count: 0 Gate is closed Shadow action Shadow idle",
-          "truncated": false,
-          "truncation": {
-            "elements": false,
-            "text": false,
-            "fields": false,
-            "scan": false,
-            "metadata": false
-          },
-          "budgets": {
-            "max_elements": 150,
-            "text_limit": 6000,
-            "max_frames": 100
-          },
-          "elapsed_ms": 7
-        }
-      },
-      "is_error": true,
-      "elapsed_ms": 11.014
-    },
-    {
-      "at_ms": 32975.288,
-      "name": "tab_verify",
-      "arguments": {
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-        "checks": [
-          {
-            "kind": "text",
-            "contains": "Target count: 0"
-          }
-        ]
-      },
-      "result": {
-        "ok": true,
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-        "passed": true,
-        "checks": [
-          {
-            "index": 0,
-            "kind": "text",
-            "pass": true,
-            "actual": "Interaction lab\nMemo \nTarget actionTail action Add itemRemove item Relative destination\n\nLink count: 0\n\nTarget count: 0\n\nTail count: 0\n\nGate is closed"
-          }
-        ],
-        "elapsed_ms": 10
-      },
-      "is_error": false,
-      "elapsed_ms": 10.8
-    },
-    {
-      "at_ms": 33000.111,
+      "at_ms": 83144.765,
       "name": "tab_capture",
       "arguments": {
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b"
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7"
       },
       "result": {
         "ok": true,
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-        "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "url": "http://127.0.0.1:52760/receipt",
         "mime_type": "image/jpeg",
-        "bytes": 28628
+        "bytes": 42832,
+        "tab_id": "t2",
+        "viewport": {
+          "width": 1280,
+          "height": 800,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "coordinate_space": "viewport-css"
       },
       "is_error": false,
-      "elapsed_ms": 21.489,
-      "image_file": "04-refused.jpg"
+      "elapsed_ms": 43.376,
+      "image_file": "05-approved.jpg"
     },
     {
-      "at_ms": 41020.593,
+      "at_ms": 96184.815,
       "name": "tab_snapshot",
       "arguments": {
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b"
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7"
       },
       "result": {
         "ok": true,
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-        "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:3",
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:9",
+        "tab_id": "t2",
+        "tabs": [
+          {
+            "tab_id": "t1",
+            "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+            "active": false
+          },
+          {
+            "tab_id": "t2",
+            "url": "http://127.0.0.1:52760/receipt",
+            "active": true
+          }
+        ],
+        "scope": {
+          "selector": null,
+          "viewport_only": false
+        },
         "mode": "full",
         "frame_id": "f0",
-        "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
-        "title": "Tablaze interaction lab",
+        "url": "http://127.0.0.1:52760/receipt",
+        "title": "审批完成 — Wayfar",
         "frames": [
           {
             "frame_id": "f0",
-            "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
+            "url": "http://127.0.0.1:52760/receipt",
             "name": "",
             "is_main": true
-          },
-          {
-            "frame_id": "f1",
-            "url": "http://127.0.0.1:59852/frame",
-            "name": "",
-            "is_main": false
           }
         ],
-        "frame_count": 2,
+        "frame_count": 1,
         "elements": [
           {
-            "ref": "r1",
+            "ref": "r21",
             "role": "heading",
-            "name": "Interaction lab"
+            "name": "审批通过，行程已就绪。"
           },
           {
-            "ref": "r2",
-            "role": "textbox",
-            "name": "Memo",
-            "value": "initial"
+            "ref": "r22",
+            "role": "heading",
+            "name": "一份可交付的行程"
           },
           {
-            "ref": "r9",
-            "role": "button",
-            "name": "Target action"
-          },
-          {
-            "ref": "r4",
-            "role": "button",
-            "name": "Tail action"
-          },
-          {
-            "ref": "r5",
-            "role": "button",
-            "name": "Add item"
-          },
-          {
-            "ref": "r6",
-            "role": "button",
-            "name": "Remove item"
-          },
-          {
-            "ref": "r7",
+            "ref": "r23",
             "role": "link",
-            "name": "Relative destination",
-            "href": "http://127.0.0.1:59852/safe/target"
-          },
-          {
-            "ref": "r8",
-            "role": "button",
-            "name": "Shadow action"
+            "name": "下载行程 CSV",
+            "href": "http://127.0.0.1:52760/itinerary.csv"
           }
         ],
-        "text": "Interaction lab Memo Target action Tail action Add item Remove item Relative destination Link count: 0 Target count: 0 Tail count: 0 Gate is closed Shadow action Shadow idle",
+        "text": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 04 / READY TO GO ✓ 审批通过，行程已就绪。 审批编号 WF-001 申请人 Lin Chen 成本中心 设计团队 酒店 Casa Flora 行程 Lisbon · 3 晚 · 2 人 审批金额 EUR 780 审批完成 一份可交付的行程 下载 CSV 文件，交给同事或导入后续工作流。 下载行程 CSV 取消政策 免费取消 文件包含审批编号、城市、晚数、人数与金额。 虚构差旅任务 · 无外部预订或付款",
         "truncated": false,
         "truncation": {
           "elements": false,
@@ -749,28 +1411,29 @@
           "text_limit": 6000,
           "max_frames": 100
         },
-        "elapsed_ms": 8
+        "elapsed_ms": 16
       },
       "is_error": false,
-      "elapsed_ms": 10.281
+      "elapsed_ms": 20.061
     },
     {
-      "at_ms": 41158.772,
+      "at_ms": 96489.966,
       "name": "tab_act",
       "arguments": {
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-        "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:3",
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:9",
         "actions": [
           {
             "type": "click",
-            "ref": "r9"
+            "ref": "r23"
           }
         ]
       },
       "result": {
         "ok": true,
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-        "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:3",
+        "batch_complete": true,
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:9",
         "partial": false,
         "completed": 1,
         "failed": null,
@@ -782,75 +1445,60 @@
             "status": "completed"
           }
         ],
-        "elapsed_ms": 125,
+        "elapsed_ms": 292,
         "snapshot": {
           "ok": true,
-          "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-          "snapshot_id": "e528a26c-8990-4408-8d94-a10e541d937b:4",
+          "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+          "snapshot_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7:10",
+          "tab_id": "t2",
+          "tabs": [
+            {
+              "tab_id": "t1",
+              "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+              "active": false
+            },
+            {
+              "tab_id": "t2",
+              "url": "http://127.0.0.1:52760/receipt",
+              "active": true
+            }
+          ],
+          "scope": {
+            "selector": null,
+            "viewport_only": false
+          },
           "mode": "full",
           "frame_id": "f0",
-          "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
-          "title": "Tablaze interaction lab",
+          "url": "http://127.0.0.1:52760/receipt",
+          "title": "审批完成 — Wayfar",
           "frames": [
             {
               "frame_id": "f0",
-              "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
+              "url": "http://127.0.0.1:52760/receipt",
               "name": "",
               "is_main": true
-            },
-            {
-              "frame_id": "f1",
-              "url": "http://127.0.0.1:59852/frame",
-              "name": "",
-              "is_main": false
             }
           ],
-          "frame_count": 2,
+          "frame_count": 1,
           "elements": [
             {
-              "ref": "r1",
+              "ref": "r21",
               "role": "heading",
-              "name": "Interaction lab"
+              "name": "审批通过，行程已就绪。"
             },
             {
-              "ref": "r2",
-              "role": "textbox",
-              "name": "Memo",
-              "value": "initial"
+              "ref": "r22",
+              "role": "heading",
+              "name": "一份可交付的行程"
             },
             {
-              "ref": "r9",
-              "role": "button",
-              "name": "Target action"
-            },
-            {
-              "ref": "r4",
-              "role": "button",
-              "name": "Tail action"
-            },
-            {
-              "ref": "r5",
-              "role": "button",
-              "name": "Add item"
-            },
-            {
-              "ref": "r6",
-              "role": "button",
-              "name": "Remove item"
-            },
-            {
-              "ref": "r7",
+              "ref": "r23",
               "role": "link",
-              "name": "Relative destination",
-              "href": "http://127.0.0.1:59852/safe/target"
-            },
-            {
-              "ref": "r8",
-              "role": "button",
-              "name": "Shadow action"
+              "name": "下载行程 CSV",
+              "href": "http://127.0.0.1:52760/itinerary.csv"
             }
           ],
-          "text": "Interaction lab Memo Target action Tail action Add item Remove item Relative destination Link count: 0 Target count: 1 Tail count: 0 Gate is closed Shadow action Shadow idle",
+          "text": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 04 / READY TO GO ✓ 审批通过，行程已就绪。 审批编号 WF-001 申请人 Lin Chen 成本中心 设计团队 酒店 Casa Flora 行程 Lisbon · 3 晚 · 2 人 审批金额 EUR 780 审批完成 一份可交付的行程 下载 CSV 文件，交给同事或导入后续工作流。 下载行程 CSV 取消政策 免费取消 文件包含审批编号、城市、晚数、人数与金额。 虚构差旅任务 · 无外部预订或付款",
           "truncated": false,
           "truncation": {
             "elements": false,
@@ -864,88 +1512,119 @@
             "text_limit": 6000,
             "max_frames": 100
           },
-          "elapsed_ms": 76
+          "elapsed_ms": 4
         }
       },
       "is_error": false,
-      "elapsed_ms": 126.759
+      "elapsed_ms": 293.309
     },
     {
-      "at_ms": 41169.813,
-      "name": "tab_verify",
+      "at_ms": 96497.091,
+      "name": "tab_downloads",
       "arguments": {
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-        "checks": [
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7"
+      },
+      "result": {
+        "ok": true,
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "downloads": [
           {
-            "kind": "text",
-            "contains": "Target count: 1"
+            "id": "92c5adc8-c860-4bd8-ab2d-f18dbbfe9fa4",
+            "filename": "wayfar-itinerary.csv",
+            "url": "http://127.0.0.1:52760/itinerary.csv",
+            "status": "completed",
+            "path": "/tmp/tablaze-artifacts-4MdqRM/92c5adc8-c860-4bd8-ab2d-f18dbbfe9fa4.download",
+            "bytes": 145
           }
         ]
       },
+      "is_error": false,
+      "elapsed_ms": 0.749
+    },
+    {
+      "at_ms": 96506.379,
+      "name": "tab_downloads",
+      "arguments": {
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "download_id": "92c5adc8-c860-4bd8-ab2d-f18dbbfe9fa4",
+        "timeout_ms": 5000
+      },
       "result": {
         "ok": true,
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-        "passed": true,
-        "checks": [
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "downloads": [
           {
-            "index": 0,
-            "kind": "text",
-            "pass": true,
-            "actual": "Interaction lab\nMemo \nTarget actionTail action Add itemRemove item Relative destination\n\nLink count: 0\n\nTarget count: 1\n\nTail count: 0\n\nGate is closed"
+            "id": "92c5adc8-c860-4bd8-ab2d-f18dbbfe9fa4",
+            "filename": "wayfar-itinerary.csv",
+            "url": "http://127.0.0.1:52760/itinerary.csv",
+            "status": "completed",
+            "path": "/tmp/tablaze-artifacts-4MdqRM/92c5adc8-c860-4bd8-ab2d-f18dbbfe9fa4.download",
+            "bytes": 145
           }
-        ],
-        "elapsed_ms": 1
+        ]
       },
       "is_error": false,
-      "elapsed_ms": 1.924
+      "elapsed_ms": 0.939
     },
     {
-      "at_ms": 41202,
-      "name": "tab_capture",
+      "at_ms": 96517.431,
+      "name": "artifact.verify_bytes",
+      "result": {
+        "filename": "wayfar-itinerary.csv",
+        "status": "completed",
+        "bytes": 145,
+        "sha256": "3e2e22c4d5385e7e3f2ebb95793c414ce46cf226e287ca450e09afaec2b1dd53",
+        "expected_sha256": "3e2e22c4d5385e7e3f2ebb95793c414ce46cf226e287ca450e09afaec2b1dd53",
+        "contents_match": true,
+        "server_download_requests": 1,
+        "retained_file": "wayfar-itinerary.csv"
+      },
+      "is_error": false,
+      "elapsed_ms": 0,
+      "not_mcp": true
+    },
+    {
+      "at_ms": 112526.669,
+      "name": "tab_tabs",
       "arguments": {
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b"
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "action": "list"
       },
       "result": {
         "ok": true,
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-        "url": "http://127.0.0.1:59852/lab?token=recorded-demo",
-        "mime_type": "image/jpeg",
-        "bytes": 28618
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+        "tabs": [
+          {
+            "tab_id": "t1",
+            "url": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes",
+            "active": false
+          },
+          {
+            "tab_id": "t2",
+            "url": "http://127.0.0.1:52760/receipt",
+            "active": true
+          }
+        ]
       },
       "is_error": false,
-      "elapsed_ms": 21.405,
-      "image_file": "05-recovered.jpg"
+      "elapsed_ms": 1.61
     },
     {
-      "at_ms": 49234.76,
+      "at_ms": 112561.236,
       "name": "tab_close",
       "arguments": {
-        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb"
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7"
       },
       "result": {
         "ok": true,
-        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
         "closed": true
       },
       "is_error": false,
-      "elapsed_ms": 21.117
+      "elapsed_ms": 15.359
     },
     {
-      "at_ms": 49262.259,
-      "name": "tab_close",
-      "arguments": {
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b"
-      },
-      "result": {
-        "ok": true,
-        "session_id": "e528a26c-8990-4408-8d94-a10e541d937b",
-        "closed": true
-      },
-      "is_error": false,
-      "elapsed_ms": 21.821
-    },
-    {
-      "at_ms": 49267.322,
+      "at_ms": 112576.741,
       "name": "tab_list",
       "arguments": {},
       "result": {
@@ -953,41 +1632,97 @@
         "sessions": []
       },
       "is_error": false,
-      "elapsed_ms": 0.574
+      "elapsed_ms": 0.811
+    }
+  ],
+  "chapters": [
+    {
+      "id": "overview",
+      "start_seconds": 0,
+      "title_zh": "从一句任务，到一份可交付的行程。",
+      "title_en": "One task. An approved trip. A verified file."
+    },
+    {
+      "id": "batch",
+      "start_seconds": 10.745,
+      "title_zh": "六个步骤，一次有序提交。",
+      "title_en": "Six actions in one ordered request."
+    },
+    {
+      "id": "verify",
+      "start_seconds": 29.362,
+      "title_zh": "点完之后，再验收五项结果。",
+      "title_en": "Verify the outcome beyond a successful click."
+    },
+    {
+      "id": "guard",
+      "start_seconds": 43.446,
+      "title_zh": "页面更新了，旧引用先停下来。",
+      "title_en": "A changed target stops the next action."
+    },
+    {
+      "id": "popup",
+      "start_seconds": 71.571,
+      "title_zh": "跟随审批弹窗，把流程接下去。",
+      "title_en": "Continue the workflow in its owned approval tab."
+    },
+    {
+      "id": "download",
+      "start_seconds": 95.447,
+      "title_zh": "拿到文件，还要核对文件内容。",
+      "title_en": "Deliver the file and verify its actual bytes."
+    },
+    {
+      "id": "recap",
+      "start_seconds": 111.873,
+      "title_zh": "做完工作，留下可核查的结果。",
+      "title_en": "The task is complete. The evidence stays with it."
     }
   ],
   "presentation_holds": [
     {
-      "at_ms": 1435.35,
+      "at_ms": 1454.362,
+      "duration_ms": 10000
+    },
+    {
+      "at_ms": 11458.882,
       "duration_ms": 6000
     },
     {
-      "at_ms": 8202.801,
-      "duration_ms": 6000
+      "at_ms": 18069.606,
+      "duration_ms": 12000
     },
     {
-      "at_ms": 14207.512,
-      "duration_ms": 3000
+      "at_ms": 30116.147,
+      "duration_ms": 14000
     },
     {
-      "at_ms": 17624.532,
-      "duration_ms": 9000
+      "at_ms": 44160.344,
+      "duration_ms": 7000
     },
     {
-      "at_ms": 26941.173,
-      "duration_ms": 6000
+      "at_ms": 51242.876,
+      "duration_ms": 13000
     },
     {
-      "at_ms": 33005.529,
+      "at_ms": 64281.396,
       "duration_ms": 8000
     },
     {
-      "at_ms": 41210.694,
-      "duration_ms": 8000
+      "at_ms": 72653.767,
+      "duration_ms": 10000
     },
     {
-      "at_ms": 49274.002,
-      "duration_ms": 8000
+      "at_ms": 83155.359,
+      "duration_ms": 13000
+    },
+    {
+      "at_ms": 96518.199,
+      "duration_ms": 16000
+    },
+    {
+      "at_ms": 112586.692,
+      "duration_ms": 12000
     }
   ],
   "checks": {
@@ -1004,68 +1739,174 @@
         "tab_verify",
         "tab_capture",
         "tab_list",
-        "tab_close"
+        "tab_close",
+        "tab_navigate",
+        "tab_tabs",
+        "tab_downloads",
+        "tab_dialog",
+        "tab_state",
+        "tab_pdf",
+        "tab_extract_structured"
       ]
     },
-    "hotel": {
+    "batch": {
+      "completed": 6,
+      "requested": 6,
+      "tool_elapsed_ms": 543.47,
+      "server_filters": {
+        "destination": "Lisbon",
+        "nights": "3",
+        "travelers": "2",
+        "budget": "900",
+        "flexible": "yes"
+      },
+      "search_requests": 1
+    },
+    "result_verification": {
+      "ok": true,
+      "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
+      "passed": true,
+      "checks": [
+        {
+          "index": 0,
+          "kind": "url",
+          "pass": true,
+          "actual": "http://127.0.0.1:52760/results?destination=Lisbon&nights=3&travelers=2&budget=900&flexible=yes"
+        },
+        {
+          "index": 1,
+          "kind": "title",
+          "pass": true,
+          "actual": "酒店筛选结果 — Wayfar"
+        },
+        {
+          "index": 2,
+          "kind": "text",
+          "pass": true,
+          "actual": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 02 / MATCH YOUR CRITERIA 里斯本，一处合适的落脚点。 3 晚 · 2 人 · 免费取消 · 预算 € 900 符合全部条件 Casa Flora Lisbon · 双人套房 · 含早餐 免费取消 € 780 3 晚总价 · 低于预算 € 120 结果可验收 城市、晚数、人数与政策 发起审批 房型与价格已刷新。 APPLIED FILTERS 目的地 住宿晚数 3 晚 出行人数 2 人 预算上限 € 900 ✓ 筛选 → 审批 → 导出 虚构差旅任务 · 无外部预订或付款"
+        },
+        {
+          "index": 3,
+          "kind": "value",
+          "pass": true,
+          "actual": "Lisbon"
+        },
+        {
+          "index": 4,
+          "kind": "count",
+          "pass": true,
+          "actual": 1
+        }
+      ],
+      "elapsed_ms": 25
+    },
+    "changed_target": {
+      "refused_code": "STALE_REFERENCE",
+      "completed": 0,
+      "popup_visits": 0,
+      "submission_attempts": 0,
+      "orders": 0
+    },
+    "approval": {
+      "popup_followed": {
+        "from_tab_id": "t1",
+        "tab_id": "t2",
+        "action_index": 0,
+        "window_ms": 250
+      },
+      "owned_tabs": 2,
       "completed": 4,
+      "tool_elapsed_ms": 424.027,
+      "server": {
+        "searches": 1,
+        "popup_visits": 1,
+        "submission_attempts": 1,
+        "downloads": 0,
+        "replacements": 1,
+        "filters": {
+          "destination": "Lisbon",
+          "nights": "3",
+          "travelers": "2",
+          "budget": "900",
+          "flexible": "yes"
+        },
+        "orders": [
+          {
+            "id": "WF-001",
+            "requester": "Lin Chen",
+            "cost_center": "design",
+            "amount_eur": 780,
+            "destination": "Lisbon",
+            "nights": "3",
+            "travelers": "2",
+            "budget": "900",
+            "flexible": "yes"
+          }
+        ]
+      },
       "verification": {
         "ok": true,
-        "session_id": "23556bea-f586-4f8f-b51f-14e37fce5edb",
+        "session_id": "d1745ef2-c88e-4fd3-a247-b57ccfd351b7",
         "passed": true,
         "checks": [
           {
             "index": 0,
-            "kind": "url",
+            "kind": "title",
             "pass": true,
-            "actual": "http://127.0.0.1:59852/results?destination=Lisbon&nights=3&flexible=yes"
+            "actual": "审批完成 — Wayfar"
           },
           {
             "index": 1,
-            "kind": "title",
+            "kind": "text",
             "pass": true,
-            "actual": "Hotel results — Tablaze"
+            "actual": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 04 / READY TO GO ✓ 审批通过，行程已就绪。 审批编号 WF-001 申请人 Lin Chen 成本中心 设计团队 酒店 Casa Flora 行程 Lisbon · 3 晚 · 2 人 审批金额 EUR 780 审批完成 一份可交付的行程 下载 CSV 文件，交给同事或导入后续工作流。 下载行程 CSV 取消政策 免费取消 文件包含审批编号、城市、晚数、人数与金额。 虚构差旅任务 · 无外部预订或付款"
           },
           {
             "index": 2,
             "kind": "text",
             "pass": true,
-            "actual": "Stays in Lisbon\n\n3 nights · Free cancellation\n\nDestination \nCasa Flora\n\nLisbon · Design hotel · Free cancellation\n\nView Casa Flora\nAvailable stays\nProperty\tCity\tNights\nCasa Flora\tLisbon\t3\nNew search"
-          },
-          {
-            "index": 3,
-            "kind": "value",
-            "pass": true,
-            "actual": "Lisbon"
-          },
-          {
-            "index": 4,
-            "kind": "count",
-            "pass": true,
-            "actual": 1
+            "actual": "way far / 差旅工作台 TABLAZE DEMO · 本地演示 04 / READY TO GO ✓ 审批通过，行程已就绪。 审批编号 WF-001 申请人 Lin Chen 成本中心 设计团队 酒店 Casa Flora 行程 Lisbon · 3 晚 · 2 人 审批金额 EUR 780 审批完成 一份可交付的行程 下载 CSV 文件，交给同事或导入后续工作流。 下载行程 CSV 取消政策 免费取消 文件包含审批编号、城市、晚数、人数与金额。 虚构差旅任务 · 无外部预订或付款"
           }
         ],
-        "elapsed_ms": 14
+        "elapsed_ms": 2
       }
     },
-    "changed_target": {
-      "refused_code": "STALE_REFERENCE",
-      "completed": 0,
-      "unchanged": true
-    },
-    "recovery": {
-      "completed": 1,
-      "passed": true
+    "download": {
+      "filename": "wayfar-itinerary.csv",
+      "status": "completed",
+      "bytes": 145,
+      "sha256": "3e2e22c4d5385e7e3f2ebb95793c414ce46cf226e287ca450e09afaec2b1dd53",
+      "expected_sha256": "3e2e22c4d5385e7e3f2ebb95793c414ce46cf226e287ca450e09afaec2b1dd53",
+      "contents_match": true,
+      "server_download_requests": 1,
+      "retained_file": "wayfar-itinerary.csv"
     },
     "cleanup": {
+      "closed_owned_tabs": 2,
       "remaining_sessions": 0,
       "stderr_empty": true
     }
   },
-  "recording_duration_ms": 57279.224,
+  "summary": {
+    "mcp_calls": 22,
+    "successful_actions": 12,
+    "rejected_actions": 1,
+    "tool_elapsed_ms": 2367.54,
+    "browser_assertions_passed": 8,
+    "server_orders": 1,
+    "downloaded_files": 1,
+    "remaining_sessions": 0
+  },
+  "recording_duration_ms": 124656.795,
+  "video_timeline_seconds": 123.944,
   "video": {
     "file": "tablaze-demo.webm",
-    "sha256": "2232b7b23bb388a620da6f2f4c988a2c96e569fd5f600611f724b22838df28b1"
+    "sha256": "a28c40b3296dd0cfe6a15a890b2209dbf8c19d3c95f0fe6e85142ccec33647cf",
+    "size_bytes": 7267647,
+    "duration_seconds": 125.6,
+    "width": 1440,
+    "height": 900,
+    "chapter_timing": "Monotonic elapsed time since recorder page creation; first chapter starts at zero. Screen-capture frame scheduling may differ by a fraction of a second."
   },
-  "completed_at": "2026-09-22T05:09:11.143Z"
+  "completed_at": "2026-09-22T15:23:24.832Z"
 }

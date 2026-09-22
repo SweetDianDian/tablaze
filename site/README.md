@@ -22,9 +22,13 @@ The [public website](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site) ad
 }
 ```
 
-The portable source defaults to guide downloads only. The real recording is optional generated media: run demo/record.mjs, copy the WebM/report/poster into site/demo/, and set demo: true in release.json to enable its section. Never enable a download before its exact artifact is present. Keep release downloads and recordings tied to their actual validated source version; newer guides do not upgrade an older package.
+The portable source defaults to guide downloads only. The real recording is optional generated media: run `demo/record.mjs`, copy `tablaze-demo.webm`, `demo-report.json`, `poster.png`, `wayfar-itinerary.csv` and the five captured JPEGs from `demo/output/` into `site/demo/`, and set `demo: true` in `release.json` to enable its section. Never enable a download before its exact artifact is present. Keep release downloads and recordings tied to their actual validated source version; newer guides do not upgrade an older package.
 
 独立源码默认只展示文档下载。部署时将已验证的安装包和源码压缩包放入同目录，再启用对应入口。安装包和录制必须对应其实际验收版本；更新文档不代表旧安装包已经升级。
+
+The expanded recording appears directly after the hero and compatibility strip. Its seven chapter buttons use the actual `chapters` timestamps from the generated report; the player retains native controls when that report is unavailable. Playback starts only after user interaction. The [recording guide](DEMO.md) explains the complete local travel workflow, its real MCP evidence and its scripted scope.
+
+完整演示位于首屏和兼容性栏之后。七个章节使用实际报告中的时间戳；报告不可用时仍可使用原生视频控件，不自动播放。[录制说明](DEMO.md)包含差旅流程、真实 MCP 证据及本地脚本演示的范围。
 
 ## Public measurements / 公开量化记录
 

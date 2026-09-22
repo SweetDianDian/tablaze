@@ -41,7 +41,7 @@ For a short harness check only, use `TABLAZE_DEMO_QUICK=1`. It records with shor
 
 ## Recorded result / 本次录制结果
 
-The normal recording completed on 2026-09-22 with `status: passed` and `quick_mode: false`. The video is **125.6 seconds at 1440×900**, including **121 seconds of labelled reading holds**. It records 22 MCP tool calls, eight passing browser assertions, one order and one 145-byte CSV with matching contents and SHA-256. The sum of the recorded tool-call durations is 2,367.54 ms; this is one local scripted sample, excluding reading holds and model inference, not an internet-site or Browser Use speed comparison. See the [complete request evidence](../docs/evidence/demo-run.json).
+The normal recording completed on 2026-09-22 with `status: passed` and `quick_mode: false`. The video is **125.6 seconds at 1440×900**, including **121 seconds of labelled reading holds**. It records 22 MCP tool calls, eight passing browser assertions, one order and one 145-byte CSV with matching contents and SHA-256. The sum of the recorded tool-call durations is 2,367.54 ms; this is one local scripted sample, excluding reading holds and model inference, not an internet-site or Browser Use speed comparison. See the [complete request evidence](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-run.json).
 
 正式录制于 2026-09-22 完成，`status: passed`、`quick_mode: false`。视频 **125.6 秒，1440×900**，其中 **121 秒为标注的讲解停留**。记录包含 22 次 MCP 工具调用、八项通过的浏览器断言、一份审批订单，以及内容和 SHA-256 均匹配的 145 字节 CSV。逐次工具耗时合计 2,367.54 毫秒，仅对应这次本地脚本样本，不含讲解停留或模型推理，不能当作外网站点或 Browser Use 的速度对比。
 
@@ -49,6 +49,6 @@ This is a deterministic SDK script with no model inference. The video presents a
 
 这是确定性的 SDK 脚本演示，没有调用推理模型。视频展示真实工具响应和截图，**不是被控标签页的连续视频流**。讲解停留明确标注，不计入工具耗时，没有剪辑加速。场景不进行外部预订或付款；此次断言不证明任意网站可靠性、安全沙箱或模型自主执行能力。
 
-The original short recording's trace remains available as [historical v1 evidence](../docs/evidence/demo-run-v1.json); it is not the current website video.
+The original short recording's trace remains available as [historical v1 evidence](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-run-v1.json); it is not the current website video.
 
 Video saving follows [Playwright's documented context-close lifecycle](https://playwright.dev/docs/videos). Regenerate the evidence whenever its recorded source hashes no longer match the code.

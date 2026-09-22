@@ -5,11 +5,13 @@ const translations = $$('[data-zh]').map(element => ({element,en:element.innerHT
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 let language = new URLSearchParams(location.search).get('lang') === 'zh' ? 'zh' : 'en';
 let demoAvailable = false;
+let demoReportLoaded = false, demoChapters = [];
 let benchmark, activePanel = 'install', replaying = false, completed = false;
 const words = (en,zh) => language === 'zh' ? zh : en;
 function renderDynamic() {
   $('#watch-demo').href=demoAvailable?'#demo':'#workflow';
-  $('#watch-label').textContent=demoAvailable?words('Watch a real run','观看真实调用'):words('See the workflow','查看操作流程');
+  $('#watch-label').textContent=demoAvailable?words('Watch the full demo','观看完整演示'):words('See the workflow','查看操作流程');
+  renderDemo();
   $('#demo-city').textContent = completed ? 'Lisbon' : words('Choose a city','选择城市');
   $('#trace-status').textContent = replaying ? words('Running illustrative replay…','示意回放进行中…') : completed ? words('4 actions complete · outcome checked','4 个操作完成 · 结果已核对') : words('Ready to replay','准备回放');
   if(benchmark) renderBenchmark();
@@ -108,11 +110,102 @@ function renderBenchmark(){
   $('#benchmark-status').textContent=words('Historical fixture · ','历史场景 · ')+info;
   $('#raw-data').hidden=false;
 }
+
+const demoVideo = $('#real-demo-video');
+const chapterButtons = $$('[data-demo-chapter]');
+let demoPlaybackError = false;
+function chapterTime(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  return minutes + ':' + String(Math.floor(seconds % 60)).padStart(2, '0');
+}
+function readDemoChapters(report) {
+  if (!Array.isArray(report?.chapters)) return [];
+  const known = new Set(chapterButtons.map(button => button.dataset.demoChapter));
+  const seen = new Set();
+  return report.chapters.slice(0, 64).filter(chapter => {
+    if (!chapter || !known.has(chapter.id) || seen.has(chapter.id)
+      || !Number.isFinite(chapter.start_seconds) || chapter.start_seconds < 0
+      || typeof chapter.title_en !== 'string' || !chapter.title_en.trim() || chapter.title_en.length > 120
+      || typeof chapter.title_zh !== 'string' || !chapter.title_zh.trim() || chapter.title_zh.length > 120) return false;
+    seen.add(chapter.id);
+    return true;
+  }).sort((a, b) => a.start_seconds - b.start_seconds);
+}
+function availableChapter(id) {
+  const chapter = demoChapters.find(item => item.id === id);
+  return chapter && demoAvailable && demoVideo.readyState >= 1
+    && Number.isFinite(demoVideo.duration) && chapter.start_seconds < demoVideo.duration ? chapter : null;
+}
+function updateCurrentChapter() {
+  const current = [...demoChapters].reverse().find(chapter =>
+    availableChapter(chapter.id) && chapter.start_seconds <= demoVideo.currentTime);
+  chapterButtons.forEach(button => {
+    if (button.dataset.demoChapter === current?.id) button.setAttribute('aria-current', 'true');
+    else button.removeAttribute('aria-current');
+  });
+}
+function renderDemo() {
+  demoVideo.setAttribute('aria-label', words('Tablaze real MCP demonstration', '闪页真实 MCP 完整演示'));
+  $('.demo-chapters').setAttribute('aria-label', words('Video chapters', '视频章节'));
+  chapterButtons.forEach(button => {
+    const chapter = demoChapters.find(item => item.id === button.dataset.demoChapter);
+    button.disabled = !availableChapter(button.dataset.demoChapter) || demoPlaybackError;
+    const time = button.querySelector('.chapter-time');
+    time.hidden = !chapter;
+    if (chapter) {
+      const title = words(chapter.title_en, chapter.title_zh);
+      // Keep the rail scannable; the recording's full title remains accessible.
+      button.title = title;
+      time.textContent = chapterTime(chapter.start_seconds);
+      button.setAttribute('aria-label', words('Play ', '播放') + title + ' · ' + time.textContent);
+    }
+  });
+  $('#demo-chapter-status').textContent = demoPlaybackError
+    ? words('Playback unavailable. Download the recording below.', '视频暂时无法播放，可使用下方链接下载。')
+    : !demoReportLoaded ? words('Loading chapters…', '正在加载章节…')
+    : demoChapters.length === 0 ? words('Use the video controls to explore.', '可使用视频进度条观看。')
+    : demoVideo.readyState < 1 ? words('Loading video…', '正在加载视频…')
+    : words('Choose a chapter to play', '选择章节，直接观看');
+  updateCurrentChapter();
+}
+async function playDemo(focusVideo = false) {
+  if (!demoAvailable) return;
+  if (focusVideo) demoVideo.focus({preventScroll: true});
+  try {
+    await demoVideo.play();
+  } catch {
+    $('#demo-play').hidden = false;
+    $('#demo-chapter-status').textContent = words('Use the video controls, or download the recording below.', '请使用视频原生控件，或通过下方链接下载。');
+  }
+}
+$('#demo-play').addEventListener('click', () => playDemo(true));
+chapterButtons.forEach(button => button.addEventListener('click', () => {
+  const chapter = availableChapter(button.dataset.demoChapter);
+  if (!chapter) return;
+  demoVideo.currentTime = chapter.start_seconds;
+  updateCurrentChapter();
+  playDemo();
+}));
+demoVideo.addEventListener('play', () => { $('#demo-play').hidden = true; });
+demoVideo.addEventListener('ended', () => { $('#demo-play').hidden = false; });
+demoVideo.addEventListener('timeupdate', updateCurrentChapter);
+demoVideo.addEventListener('loadedmetadata', () => { demoPlaybackError = false; renderDemo(); });
+demoVideo.addEventListener('durationchange', renderDemo);
+function showDemoError() {
+  demoPlaybackError = true;
+  $('#demo-play').hidden = true;
+  renderDemo();
+}
+demoVideo.addEventListener('error', showDemoError);
+// A failed <source> fires its own non-bubbling error in Chromium.
+demoVideo.querySelector('source').addEventListener('error', showDemoError);
 setLanguage(language);
 fetch('benchmark.json').then(response=>{
   if(!response.ok)throw new Error('Measurement report unavailable');
   return response.json();
 }).then(data=>{benchmark=data;renderBenchmark();}).catch(()=>{});
+// Load chapter evidence alongside release metadata. Neither request starts playback.
+const demoReportRequest = fetch('demo/demo-report.json').then(response => response.ok ? response.json() : null);
 fetch('release.json').then(response=>response.ok?response.json():null).then(data=>{
   if(data?.package==='tablaze-0.1.0.tgz')$('#package-download').hidden=false;
   if(data?.source==='tablaze-0.1.0-source.zip')$('#source-download').hidden=false;
@@ -122,3 +215,9 @@ fetch('release.json').then(response=>response.ok?response.json():null).then(data
   if(demoAvailable){const video=$('#real-demo-video');video.poster=video.dataset.poster;video.querySelector('source').src=video.querySelector('source').dataset.src;video.load();}
   renderDynamic();
 }).catch(()=>{});
+demoReportRequest.then(report => {
+  demoChapters = readDemoChapters(report);
+}).catch(() => {}).finally(() => {
+  demoReportLoaded = true;
+  renderDemo();
+});

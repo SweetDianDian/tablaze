@@ -1,15 +1,181 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tablaze — recorded MCP demonstration</title><style>
-*{box-sizing:border-box}body{margin:0;background:#090e15;color:#e9eef5;font-family:Arial,"PingFang SC",sans-serif;padding:34px 42px;width:1440px;height:900px;overflow:hidden}.top{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #25303f;padding-bottom:23px}.brand{font-size:31px;font-weight:800;letter-spacing:-1px}.brand i{color:#ff6938;font-style:normal}.top small{font-family:monospace;color:#9cafc4;font-size:13px}.top b{color:#bedba5;font-weight:400}.heading{display:flex;justify-content:space-between;align-items:center;height:122px}.heading h1{font-size:34px;letter-spacing:-1px;font-weight:600;margin:0 0 12px}.heading p{font-size:17px;color:#8fa3be;margin:0}.chapter{font:17px monospace;color:#ff6938;letter-spacing:2px}.grid{display:grid;grid-template-columns:436px 1fr;gap:25px}.panel{border:1px solid #2b394c;border-radius:7px;overflow:hidden;height:558px;background:#0d1520}.bar{display:flex;justify-content:space-between;align-items:center;height:42px;padding:0 18px;background:#141f2e;border-bottom:1px solid #2b394c;font:12px monospace;color:#849bb7}.bar b{color:#bedba5;font-weight:400}pre{font:14px/1.65 "SFMono-Regular",Consolas,monospace;white-space:pre-wrap;overflow-wrap:anywhere;color:#bfcde0;margin:18px 20px;max-height:302px;overflow:hidden}.feed{padding:0 20px}.entry{display:flex;justify-content:space-between;align-items:center;gap:6px;border-top:1px solid #223147;padding:9px 0;font:12px monospace;color:#8fa5bf}.entry span:last-child{color:#bfdba8}.entry.error span:last-child{color:#ff8c64}.browser{background:#f9fafb;height:514px;display:grid;place-items:center;overflow:hidden;position:relative}.browser img{width:100%;height:100%;object-fit:contain;display:block;background:white}.empty{font-size:19px;line-height:1.7;text-align:center;color:#728196}.empty small{font-size:14px}.caption{font-size:17px;color:#d4dfec;line-height:1.55;margin:25px 0 12px;min-height:54px}.caption small{display:block;color:#8da4bf;font-size:15px}.foot{border-top:1px solid #223147;padding-top:17px;display:flex;justify-content:space-between;color:#69819e;font:11px monospace}.foot span:last-child{color:#9eafc5}
-</style><body><div class="top"><div class="brand">tablaze<i>.</i></div><small><b>REAL MCP SDK CALLS</b> / 真实协议调用 · NO MODEL</small></div><div class="heading"><div><h1 id="title">Observe. Act. Verify.</h1><p id="subtitle">A real browser workflow, with readable evidence. / 真实操作，可核查结果。</p></div><span id="chapter" class="chapter">00 / SETUP</span></div><div class="grid"><section class="panel"><div class="bar"><span>MCP REQUEST / RESPONSE</span><b id="state">INITIALIZING</b></div><pre id="detail">node dist/cli.js --channel chrome
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tablaze · 真实浏览器工作流</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0d12;--panel:#12151d;--line:#292d38;--muted:#8e96a7;--text:#f5f6fa;--orange:#ff7b47;--green:#a8d9c3;--mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace;--sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",Arial,sans-serif}
+*{box-sizing:border-box}body{width:1440px;height:900px;margin:0;padding:24px 36px;background:radial-gradient(ellipse at 9% 0%,#241812 0%,transparent 43%),var(--bg);color:var(--text);font-family:var(--sans);overflow:hidden}button,input,pre{font:inherit}[hidden]{display:none!important}.app{height:852px;display:grid;grid-template-rows:42px 82px minmax(0,1fr) 42px 18px;gap:12px}.top{display:grid;grid-template-columns:140px 1fr 650px;align-items:center;gap:18px}.brand{font-size:31px;line-height:1;font-weight:800;letter-spacing:-1.5px}.brand span{color:var(--orange)}.scope{font-size:13px;color:#b6bac5;white-space:nowrap}.scope::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--orange);margin-right:9px;vertical-align:2px}.progress{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;align-self:stretch;align-items:center}.step{padding-top:8px;border-top:2px solid #30323b;display:flex;align-items:center;gap:5px;color:#737b8b;font-size:13px;white-space:nowrap}.step em{font:11px var(--mono);font-style:normal;opacity:.7}.step.active{border-color:var(--orange);color:#ffe6db}.step.active em{color:var(--orange);opacity:1}.step.previous{border-color:#80503b;color:#b1a49e}.heading{display:flex;align-items:center;justify-content:space-between;gap:25px}.heading-copy{min-width:0}.heading h1{margin:0 0 7px;font-size:39px;line-height:1.22;letter-spacing:-1.2px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.heading p{margin:0;color:#9ba3b3;font-size:17px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chapter-wrap{text-align:right;flex-shrink:0;max-width:240px}.chapter-wrap small{display:block;color:#767e8e;font-size:10px;letter-spacing:1.5px;margin-bottom:9px}.chapter{font:13px var(--mono);color:var(--orange);letter-spacing:.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.workspace{display:grid;grid-template-columns:354px minmax(0,1fr);gap:22px;min-height:0}.sidebar{display:grid;grid-template-rows:54px minmax(0,1fr) 74px 144px;gap:12px;min-height:0}.task{padding:0 2px;min-width:0}.eyebrow{font-size:11px;color:#8f97a6;letter-spacing:1px}.task p{margin:7px 0 0;font-size:17px;line-height:1.3;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.proof-panel{border:1px solid var(--line);border-radius:13px;background:linear-gradient(135deg,#1b1a1e,#13161e 65%);padding:17px 18px;min-height:0;overflow:hidden}.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;color:#d8dbe4}.state{font-size:11px;font-weight:500;border:1px solid #41414a;border-radius:5px;padding:4px 7px;color:#b8bfcb;max-width:175px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.state.alert{color:#ffbc9f;border-color:#704435;background:#34231c}.state.verified{color:#b6e2cd;border-color:#3b5b4c;background:#1b2923}.proofs{margin-top:14px;display:flex;flex-direction:column;gap:0;max-height:calc(100% - 44px);overflow:hidden}.proof{padding:10px 0;border-top:1px solid #2b2d36;min-width:0}.proof:first-child{border-top:0;padding-top:1px}.proof-label{font-size:12px;color:#9da5b4;line-height:1.35}.proof-value{margin-top:3px;color:#f3f1ed;font-size:26px;line-height:1.2;font-weight:600;letter-spacing:-.6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.proof-value.long{font-size:19px;letter-spacing:-.2px}.proof-detail{margin-top:4px;font-size:12px;color:#8994a6;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.proofs.dense .proof{padding:4px 0}.proofs.dense .proof:first-child{padding-top:1px}.proofs.dense .proof-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}.proofs.dense .proof-label{flex-shrink:0;max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.proofs.dense .proof-value{font-size:19px;margin-top:0;text-align:right}.proofs.dense .proof-value.long{font-size:15px}.proofs.dense .proof-detail{font-size:11px;line-height:1.2;margin-top:3px}.proof-overflow{font-size:11px;color:var(--muted);padding-top:4px}.detail{margin:16px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;font:13px/1.7 var(--mono);color:#b2bdcd;max-height:calc(100% - 45px);overflow:hidden}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:11px;background:#11151c;overflow:hidden}.metric{padding:12px 12px 10px;min-width:0}.metric+.metric{border-left:1px solid var(--line)}.metric strong{display:block;font:23px/1.2 var(--mono);font-weight:500;letter-spacing:-1px;color:#e2e7f0}.metric small{display:block;margin-top:6px;font-size:11px;color:#8894a6;white-space:nowrap}.activity{padding:3px 2px 0;overflow:hidden}.activity-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;font-size:12px;color:#b7c0ce}.activity-head small{font:10px var(--mono);color:#768396}.entry{height:27px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #252a35;font:11px var(--mono);color:#b8c4d5}.entry-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:175px}.entry-outcome{font:11px var(--sans);color:#8695a8;white-space:nowrap}.entry.error .entry-outcome{color:#ffad87}.entry.verified .entry-outcome{color:#acd5be}.feed-empty{padding-top:16px;color:#657083;font-size:12px}.browser-panel{display:grid;grid-template-rows:39px minmax(0,1fr);border:1px solid #363b48;border-radius:13px;overflow:hidden;background:#10141c;box-shadow:0 20px 56px #0005;min-width:0;min-height:0}.browser-bar{display:flex;align-items:center;gap:14px;padding:0 14px;background:#191d27;border-bottom:1px solid #333947;min-width:0}.dots{display:flex;gap:5px;flex-shrink:0}.dots i{display:block;width:7px;height:7px;border-radius:50%;background:#505968}.dots i:first-child{background:#b87764}.dots i:nth-child(2){background:#ab986e}.dots i:nth-child(3){background:#6c8f7d}.location{font:12px var(--mono);color:#b2bdcc;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}.capture{font:11px var(--mono);color:#7d8b9e;white-space:nowrap;max-width:190px;overflow:hidden;text-overflow:ellipsis}.browser{position:relative;display:grid;place-items:center;min-height:0;overflow:hidden;background:#edf0f4}.browser img{display:block;width:100%;height:100%;object-fit:contain;background:#edf0f4}.empty{color:#737e8e;text-align:center;font-size:18px;line-height:1.6}.empty svg{display:block;margin:0 auto 16px;opacity:.5}.empty small{display:block;font-size:13px;margin-top:5px;color:#929caa}.caption{padding-left:376px;min-width:0;align-self:center}.caption p{margin:0;color:#e0e4ec;font-size:17px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.caption small{display:block;margin-top:2px;color:#8794a7;font-size:12px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.foot{border-top:1px solid #222834;padding-top:7px;display:flex;justify-content:space-between;align-items:center;gap:15px;color:#687589;font-size:10px;white-space:nowrap}.foot span:last-child{color:#8c9bad;font:10px var(--mono);max-width:440px;overflow:hidden;text-overflow:ellipsis}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">tablaze<span>.</span></div>
+    <div class="scope">真实 MCP 调用 · 本地任务 · 无模型推理</div>
+    <nav class="progress" aria-label="演示章节">
+      <div class="step" data-stage="overview"><em>01</em><span>观察</span></div>
+      <div class="step" data-stage="batch"><em>02</em><span>批量操作</span></div>
+      <div class="step" data-stage="verify"><em>03</em><span>验收</span></div>
+      <div class="step" data-stage="guard"><em>04</em><span>引用保护</span></div>
+      <div class="step" data-stage="popup"><em>05</em><span>审批</span></div>
+      <div class="step" data-stage="download"><em>06</em><span>交付</span></div>
+      <div class="step" data-stage="recap"><em>07</em><span>清理</span></div>
+    </nav>
+  </header>
+  <section class="heading">
+    <div class="heading-copy"><h1 id="title">从网页操作，到可核验的结果。</h1><p id="subtitle">A real browser workflow, with evidence at every step.</p></div>
+    <div class="chapter-wrap"><small>WORKFLOW / 实际流程</small><div class="chapter" id="chapter">00 / 准备</div></div>
+  </section>
+  <main class="workspace">
+    <aside class="sidebar">
+      <div class="task"><div class="eyebrow">本次任务</div><p id="task">等待录制器提供任务</p></div>
+      <section class="proof-panel" aria-label="当前响应证据">
+        <div class="panel-heading"><span>当前证据</span><span class="state" id="state">连接中</span></div>
+        <div class="proofs" id="proof" hidden></div>
+        <pre class="detail" id="detail">等待实际工具响应。
 
-Transport: stdio
-Client: MCP TypeScript SDK
-Browser: isolated Chrome
-Task: local fixture only</pre><div id="feed" class="feed"></div></section><section class="panel"><div class="bar"><span id="location">BROWSER EVIDENCE / 浏览器证据</span><span id="capture">NO CAPTURE YET</span></div><div class="browser"><div id="empty" class="empty">Waiting for the first browser screenshot.<br><small>等待首次真实浏览器截图</small></div><img id="image" alt="Actual browser screenshot returned by tab_capture" style="display:none"></div></section></div><p class="caption" id="caption">The display shows actual MCP responses and screenshots, without a model call.<small>这里展示真实 MCP 响应与截图，没有调用推理模型。</small></p><div class="foot"><span>LOCAL FIXTURE · TOOL TIMES EXCLUDE PRESENTATION PAUSES</span><span id="hold">NORMAL-SPEED RECORDING / 正常速度录制</span></div><script>
-window.present=state=>{
- for(const key of ['title','subtitle','chapter','detail','state','location','capture','hold'])if(state[key]!==undefined)document.getElementById(key).textContent=state[key];
- if(state.caption){const el=document.getElementById('caption');el.textContent=state.caption.en;const small=document.createElement('small');small.textContent=state.caption.zh;el.append(small);}
- if(state.image){const image=document.getElementById('image');image.src=state.image;image.style.display='block';document.getElementById('empty').style.display='none';}
- if(state.events){const feed=document.getElementById('feed');feed.replaceChildren();for(const event of state.events.slice(-4)){const row=document.createElement('div');row.className='entry'+(event.is_error?' error':'');const a=document.createElement('span');a.textContent=event.name;const b=document.createElement('span');b.textContent=(event.is_error?'REJECTED':'OK')+' · '+event.elapsed_ms.toFixed(0)+' ms';row.append(a,b);feed.append(row);}}
-};
-</script></body></html>
+所有结果由录制器提供，
+不预设通过状态。</pre>
+      </section>
+      <div class="metrics" aria-label="实际调用统计">
+        <div class="metric"><strong id="metric-calls">—</strong><small>累计 MCP 调用</small></div>
+        <div class="metric"><strong id="metric-time">—</strong><small>工具耗时 / 秒</small></div>
+        <div class="metric"><strong id="metric-proof">—</strong><small>当前证据项</small></div>
+      </div>
+      <section class="activity" aria-label="最近的真实工具调用">
+        <div class="activity-head"><span>最近调用</span><small>MCP · STDIO</small></div>
+        <div id="feed"><div class="feed-empty">等待真实 MCP 调用记录</div></div>
+      </section>
+    </aside>
+    <section class="browser-panel" aria-label="实际浏览器截图">
+      <div class="browser-bar"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="location" id="location">实际浏览器截图 / LOCAL TASK</span><span class="capture" id="capture">等待截图</span></div>
+      <div class="browser">
+        <div class="empty" id="empty"><svg width="58" height="46" viewBox="0 0 58 46" fill="none" aria-hidden="true"><rect x="1" y="1" width="56" height="44" rx="6" stroke="currentColor" stroke-width="2"/><path d="M1 12h56" stroke="currentColor" stroke-width="2"/><circle cx="8" cy="7" r="1.5" fill="currentColor"/><circle cx="14" cy="7" r="1.5" fill="currentColor"/><path d="m24 22-6 6 6 6m10-12 6 6-6 6" stroke="currentColor" stroke-width="2"/></svg>等待首次真实浏览器截图<small>由 tab_capture 返回，保持原始画面比例</small></div>
+        <img id="image" alt="tab_capture 返回的实际浏览器截图" hidden>
+      </div>
+    </section>
+  </main>
+  <div class="caption" aria-live="polite"><p id="caption">真实操作、真实响应，以及可以核查的结果。</p><small id="caption-en">Real actions, real responses, and verifiable outcomes.</small></div>
+  <footer class="foot"><span>真实响应与截图展示 · 非被控页面连续视频流 · 工具耗时不含讲解停留</span><span id="hold">NORMAL-SPEED RECORDING / 正常速度录制</span></footer>
+</div>
+<script>
+(() => {
+  const get = id => document.getElementById(id);
+  const text = value => value === null || value === undefined ? '—' : String(value);
+  const stages = ['overview', 'batch', 'verify', 'guard', 'popup', 'download', 'recap'];
+  const aliases = { setup: -1, intro: -1, observe: 0, search: 0, act: 1, filters: 2, stale: 3, recovery: 3, approve: 4, approval: 4, deliver: 5, export: 5, close: 6, cleanup: 6 };
+  const stateLabels = { INITIALIZING: '连接中', 'NEXT REQUEST': '准备请求', 'RESPONSE RECEIVED': '已收到响应', REJECTED: '请求被拒绝', VERIFIED: '已核验', PASSED: '已通过' };
+  function setStage(stage, chapter) {
+    let index = stages.indexOf(stage);
+    if (index < 0 && Object.hasOwn(aliases, stage)) index = aliases[stage];
+    else if (index < 0 && /^[1-7]$/.test(String(stage))) index = Number(stage) - 1;
+    else if (index < 0 && stage === undefined && typeof chapter === 'string') {
+      const match = chapter.match(/^0?([1-7])(?:\s|\/|$)/);
+      if (match) index = Number(match[1]) - 1;
+    }
+    document.querySelectorAll('[data-stage]').forEach((element, i) => {
+      element.className = 'step' + (i === index ? ' active' : i < index ? ' previous' : '');
+      if (i === index) element.setAttribute('aria-current', 'step');
+      else element.removeAttribute('aria-current');
+    });
+  }
+  function setProof(proofs) {
+    const entries = proofs.filter(item => item && typeof item === 'object');
+    const container = get('proof');
+    container.replaceChildren();
+    container.hidden = entries.length === 0;
+    get('detail').hidden = entries.length > 0;
+    container.className = 'proofs' + (entries.length > 2 ? ' dense' : '');
+    get('metric-proof').textContent = String(entries.length);
+    for (const item of entries.slice(0, 5)) {
+      const row = document.createElement('div');
+      row.className = 'proof';
+      const head = document.createElement('div');
+      head.className = 'proof-head';
+      const label = document.createElement('div');
+      label.className = 'proof-label';
+      label.textContent = text(item.label);
+      const value = document.createElement('div');
+      value.className = 'proof-value' + (text(item.value).length > 15 ? ' long' : '');
+      value.textContent = text(item.value);
+      value.title = text(item.value);
+      head.append(label, value);
+      row.append(head);
+      if (item.detail !== undefined) {
+        const detail = document.createElement('div');
+        detail.className = 'proof-detail';
+        detail.textContent = text(item.detail);
+        detail.title = text(item.detail);
+        row.append(detail);
+      }
+      container.append(row);
+    }
+    if (entries.length > 5) {
+      const more = document.createElement('div');
+      more.className = 'proof-overflow';
+      more.textContent = '另有 ' + (entries.length - 5) + ' 项证据';
+      container.append(more);
+    }
+  }
+  function setEvents(events) {
+    const calls = events.filter(event => event && !event.not_mcp && typeof event.name === 'string');
+    get('metric-calls').textContent = String(calls.length);
+    const completeTiming = calls.length > 0 && calls.every(event => Number.isFinite(event.elapsed_ms) && event.elapsed_ms >= 0);
+    get('metric-time').textContent = completeTiming ? (calls.reduce((total, event) => total + event.elapsed_ms, 0) / 1000).toFixed(2) : '—';
+    const feed = get('feed');
+    feed.replaceChildren();
+    for (const event of calls.slice(-4)) {
+      const rejected = event.is_error === true || event.result?.ok === false;
+      const failedCheck = event.result?.passed === false;
+      const verified = event.result?.passed === true;
+      const row = document.createElement('div');
+      row.className = 'entry' + (rejected || failedCheck ? ' error' : verified ? ' verified' : '');
+      const name = document.createElement('span');
+      name.className = 'entry-name';
+      name.textContent = event.name;
+      const result = document.createElement('span');
+      result.className = 'entry-outcome';
+      const outcome = rejected ? '已拒绝' : failedCheck ? '未通过' : verified ? '已核验' : '已返回';
+      result.textContent = outcome + ' · ' + (Number.isFinite(event.elapsed_ms) && event.elapsed_ms >= 0 ? Math.round(event.elapsed_ms) + ' ms' : '—');
+      row.append(name, result);
+      feed.append(row);
+    }
+    if (!calls.length) {
+      const empty = document.createElement('div');
+      empty.className = 'feed-empty';
+      empty.textContent = '等待真实 MCP 调用记录';
+      feed.append(empty);
+    }
+  }
+  window.present = async update => {
+    for (const key of ['title', 'subtitle', 'chapter', 'location', 'capture', 'hold', 'task']) {
+      if (update[key] !== undefined) get(key).textContent = text(update[key]);
+    }
+    if (update.state !== undefined) {
+      const state = String(update.state);
+      get('state').textContent = stateLabels[state] ?? state;
+      get('state').className = 'state' + (state === 'REJECTED' ? ' alert' : state === 'VERIFIED' || state === 'PASSED' ? ' verified' : '');
+    }
+    if (update.detail !== undefined) get('detail').textContent = text(update.detail);
+    if (Array.isArray(update.proof)) setProof(update.proof);
+    if (update.stage !== undefined || update.chapter !== undefined) setStage(update.stage, update.chapter);
+    if (update.caption) {
+      if (update.caption.zh !== undefined) get('caption').textContent = text(update.caption.zh);
+      if (update.caption.en !== undefined) get('caption-en').textContent = text(update.caption.en);
+    }
+    if (Array.isArray(update.events)) setEvents(update.events);
+    if (update.image) {
+      if (!/^data:image\/(?:png|jpeg|webp);base64,/.test(update.image)) throw new Error('The viewer expects a captured image data URL.');
+      const image = get('image');
+      image.src = update.image;
+      await image.decode();
+      image.hidden = false;
+      get('empty').hidden = true;
+    }
+  };
+})();
+</script>
+</body>
+</html>

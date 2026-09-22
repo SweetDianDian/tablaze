@@ -33,6 +33,7 @@
     "tsconfig.json",
     "demo/README.md",
     "demo/record.mjs",
+    "demo/fixture.mjs",
     "demo/viewer.html",
     "scripts/package-release.mjs",
     "CHANGELOG.md"

@@ -23,13 +23,15 @@
 
 ## 看它完成一次任务
 
-**[观看 56 秒真实演示 →](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site?lang=zh#demo)**
+**[观看完整演示，约 2 分 6 秒 →](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site?lang=zh#demo)**
 
-真实 MCP SDK 客户端搜索里斯本的住宿，完成五项验收，再展示按钮被替换后的拒绝与重新观察后的恢复。视频呈现实际工具响应和浏览器截图。
+真实 MCP SDK 客户端走完同一条差旅流程：一次批次执行六个表单动作，完成五项结果验收，再遇到被替换的审批按钮。旧引用被拒绝，未打开审批或写入订单；重新观察后，按明确配置跟随弹窗，完成四步审批与三项回执检查。最后核对下载 CSV 的实际字节和 SHA-256，关闭两个自有标签页，确认剩余会话为零。
 
-[![真实 MCP 演示：里斯本酒店结果通过五项检查](docs/assets/demo-poster.png)](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site?lang=zh#demo)
+[![真实 MCP 演示：一份已审批行程、已核对 CSV，以及零剩余会话](docs/assets/demo-poster.png)](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site?lang=zh#demo)
 
-`观察表单` → `填写 · 选择 · 勾选 · 搜索` → `验收结果`
+`批量填表` → `验收结果` → `停止并重新观察` → `弹窗审批` → `核对文件`
+
+录像长 125.6 秒，呈现真实工具响应和截图，包含明确标注的讲解停留。流程由确定性的 SDK 脚本操作本地场景，未调用推理模型；这是展示录屏，并非被控标签页的连续视频流。
 
 [本地复现录制](demo/README.md) · [查看完整调用记录](docs/evidence/demo-run.json)
 

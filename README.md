@@ -23,13 +23,15 @@ Built with Playwright. Browser sessions stay running between calls; your MCP cli
 
 ## See it work
 
-**[Watch the 56-second demo →](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site#demo)**
+**[Watch the complete demo — about 2 minutes →](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site#demo)**
 
-A real MCP SDK client searches for a stay in Lisbon, verifies five outcomes, then encounters a replaced button and recovers with a fresh observation. The recording shows actual tool responses and browser captures.
+A real MCP SDK client completes one travel workflow: six form actions in one batch, five result checks, then a changed approval button. The stale reference is rejected with no approval or order; a fresh snapshot lets the workflow continue through an explicitly followed popup, four approval actions and three receipt checks. Finally, the recorder verifies the downloaded CSV's bytes and SHA-256, closes both owned tabs and confirms zero remaining sessions.
 
-[![Real MCP demo: five checks passed against the Lisbon hotel results](docs/assets/demo-poster.png)](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site#demo)
+[![Real MCP demo: one approved trip, a verified CSV and zero remaining sessions](docs/assets/demo-poster.png)](https://tablaze-browser-mcp.isdiandian0825.chatgpt.site#demo)
 
-`Observe the form` → `Fill · select · check · search` → `Verify the result`
+`Batch the form` → `Verify` → `Stop and re-observe` → `Approve in the popup` → `Check the file`
+
+The 125.6-second recording presents actual tool responses and screenshots, with labelled reading pauses. A deterministic SDK script drives the local fixture; no model inference is involved. It is a presentation recording, not a continuous video feed from the controlled tab.
 
 [Reproduce the recording](demo/README.md) · [Inspect the full trace](docs/evidence/demo-run.json)
 

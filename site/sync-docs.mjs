@@ -8,6 +8,7 @@ const site = dirname(fileURLToPath(import.meta.url));
 const root = dirname(site);
 const repository = 'https://github.com/SweetDianDian/tablaze/blob/main/';
 const publicGuides = new Map([
+  ['demo/README.md', 'DEMO.md'],
   ['docs/PROVIDERS.md', 'PROVIDERS.md'],
   ['docs/NAVIGATION_POLICY.md', 'NAVIGATION_POLICY.md'],
   ['docs/NAVIGATION_POLICY_VALIDATION.md', 'NAVIGATION_POLICY_VALIDATION.md'],

@@ -13,3 +13,52 @@ nav{font-size:14px}.header-actions{font-size:13px}.small-button{font-size:13px}.
 @media(max-width:1150px){.hero-actions{gap:15px}.hero-actions .button{font-size:13px;padding-inline:16px}.hero-actions .text-link{font-size:12px}.benchmark-bottom{gap:25px}.setup-footer{flex-direction:column;gap:4px}}
 @media(max-width:900px){.hero-foot{font-size:11px}.system-heading{font-size:11px}.section-intro>p{font-size:15px}.steps-grid article>p:not(.step-index),html[lang=zh-CN] .steps-grid article>p:not(.step-index){font-size:14px}.tool-grid code{font-size:12px}.benchmark-grid span{font-size:12px}.benchmark-grid small{font-size:11px}.benchmark-top{font-size:11px}.setup-tabs{padding-inline:8px}.setup-tabs button{font-size:12px}.recording-note{display:block}.recording-note a{margin-top:13px}footer{flex-wrap:wrap}footer>code{font-size:11px}}
 @media(max-width:680px){.hero-actions{flex-wrap:wrap;gap:20px}.header-actions .small-button{font-size:12px}.hero-actions .button,.hero-actions .text-link{font-size:13px}.hero-foot{font-size:11px}.eyebrow{font-size:11px}.pill{font-size:10px}.demo-disclosure{font-size:10px}.compatibility .wrap>span{font-size:13px}.section-intro>p,.steps-grid article>p:not(.step-index),html[lang=zh-CN] .steps-grid article>p:not(.step-index){font-size:16px}.start-copy h2{font-size:36px}.architecture .eyebrow{font-size:11px}.tool-grid code{font-size:13px}.benchmark-grid span{font-size:13px}.benchmark-grid small{font-size:11px}.benchmark-bottom p{font-size:13px}.setup-tabs button{font-size:13px}.code-window pre{font-size:11px}.faq-list summary{font-size:15px}.faq-list details p{font-size:14px}.closing>p{font-size:10px}footer>span{max-width:none;font-size:11px;width:100%}footer>code{font-size:10px}.recording-note p{font-size:12px}.real-demo .section-intro{margin-bottom:27px}}
+
+/* The complete recording is the first section after the hero. */
+.real-demo{padding-block:94px 86px}
+.demo-intro{max-width:880px;margin:0 auto 38px;text-align:center}
+.demo-intro .eyebrow{justify-content:center;font-size:12px;letter-spacing:1.2px}
+.demo-intro h2{font-size:clamp(38px,4.4vw,62px);line-height:1.08;letter-spacing:-2.7px;margin:21px 0 23px}
+.demo-intro h2 span{color:#a4adba}
+.demo-intro>p:last-child{max-width:770px;margin:0 auto;color:#aab3c1;font-size:17px;line-height:1.8}
+.demo-cinema{overflow:hidden;border:1px solid #37404d;border-radius:12px;background:#080c12;box-shadow:0 28px 80px #0008,0 -1px 0 #ff653424}
+.demo-player-heading{min-height:50px;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:14px 22px;border-bottom:1px solid #29313d;color:#91a0b4;font:11px/1.5 "SFMono-Regular",Consolas,monospace;letter-spacing:.7px}
+.demo-recording-mark{display:flex;align-items:center;gap:9px;color:#e0e6ef}
+.demo-recording-mark i{width:7px;height:7px;background:var(--orange);border-radius:50%;box-shadow:0 0 12px #ff65344d}
+.demo-player{position:relative;background:#06090f}
+#real-demo-video{width:100%;display:block;aspect-ratio:8/5;object-fit:contain;border:0;border-radius:0;background:#06090f}
+#real-demo-video:focus-visible{outline:2px solid var(--orange);outline-offset:-3px}
+.demo-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:11px;min-width:240px;padding:24px 30px;border:1px solid #f5f7fa2e;border-radius:14px;background:#080d15e8;box-shadow:0 15px 60px #0009;backdrop-filter:blur(12px);font-size:18px;font-weight:700}
+.demo-play-icon{width:76px;height:76px;display:grid;place-items:center;padding-left:5px;border-radius:50%;background:var(--orange);color:#0a0d12;font-size:27px;box-shadow:0 0 0 8px #ff653415;transition:background .2s,box-shadow .2s}
+.demo-play:hover .demo-play-icon{background:#ff8d64;box-shadow:0 0 0 12px #ff653419}
+.demo-play small{font-size:12px;font-weight:400;color:#b2bdcb}
+.demo-play:focus-visible{outline:3px solid var(--orange);outline-offset:6px}
+.demo-chapter-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 22px 13px;border-top:1px solid #29313d}
+.demo-chapter-heading>span:first-child{font:11px/1.5 "SFMono-Regular",Consolas,monospace;color:#d1d9e6;letter-spacing:.6px}
+#demo-chapter-status{font-size:12px;line-height:1.5;color:#94a1b3;text-align:right}
+.demo-chapters{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;padding:0 16px 17px}
+.demo-chapters button{display:grid;grid-template-columns:1fr auto;align-content:start;gap:8px;text-align:left;min-height:92px;padding:13px 11px;border:1px solid #29313d;border-radius:5px;background:#111822;transition:border-color .2s,background .2s}
+.chapter-index{font:11px/1.4 "SFMono-Regular",Consolas,monospace;color:#8090a6}
+.chapter-title{grid-column:1/-1;grid-row:2;font-size:13px;line-height:1.4;color:#d2dbe8;overflow-wrap:anywhere}
+.chapter-time{grid-column:2;grid-row:1;font:11px/1.4 "SFMono-Regular",Consolas,monospace;color:#a0aec0;font-variant-numeric:tabular-nums}
+.demo-chapters button:hover:not(:disabled){border-color:#9b5c45;background:#1e222a}
+.demo-chapters button[aria-current=true]{border-color:#ff653480;background:#2b1d19}
+.demo-chapters button[aria-current=true] .chapter-index,.demo-chapters button[aria-current=true] .chapter-time{color:#ff9b78}
+.demo-chapters button:disabled{opacity:.5;cursor:default}
+.demo-chapters button:focus-visible{outline-offset:2px}
+.demo-benefits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:30px;border:1px solid var(--line);border-radius:8px;background:#0c1118}
+.demo-benefits article{padding:25px 23px;border-right:1px solid var(--line)}
+.demo-benefits article:last-child{border:0}
+.demo-benefit-number{font:11px/1.5 "SFMono-Regular",Consolas,monospace;letter-spacing:.4px;color:#ff9b78}
+.demo-benefits h3{font-size:18px;line-height:1.4;letter-spacing:-.35px;margin:13px 0 9px}
+.demo-benefits p{font-size:14px;line-height:1.75;color:#a3afc0;margin:0}
+.real-demo .recording-note{align-items:flex-start;gap:35px;margin-top:23px}
+.real-demo .recording-note p{max-width:870px;font-size:12px;line-height:1.8;color:#8797ac}
+.demo-evidence-links{display:flex;flex-direction:column;gap:10px;flex-shrink:0;padding-top:2px}
+.demo-evidence-links a{font-size:12px}
+#workflow{border-top:1px solid var(--line)}
+@media(max-width:1000px){.demo-chapters{grid-template-columns:repeat(4,minmax(0,1fr))}.demo-chapters button{min-height:83px}.demo-benefits{grid-template-columns:repeat(2,minmax(0,1fr))}.demo-benefits article:nth-child(2){border-right:0}.demo-benefits article:nth-child(-n+2){border-bottom:1px solid var(--line)}.demo-benefits article:last-child{border:0}}
+@media(max-width:680px){.real-demo{padding-block:59px}.demo-intro{margin-bottom:27px;text-align:left}.demo-intro .eyebrow{justify-content:flex-start;font-size:10px;letter-spacing:.5px}.demo-intro h2{font-size:38px;letter-spacing:-1.9px;line-height:1.12;margin-block:19px}.demo-intro>p:last-child{font-size:15px;line-height:1.8}.demo-player-heading{min-height:42px;padding:11px 13px;font-size:9px;gap:8px}.demo-player-heading>span:last-child{font-size:8px;letter-spacing:0}.demo-play{min-width:180px;padding:14px 20px;gap:9px;border-radius:10px;font-size:14px}.demo-play-icon{width:48px;height:48px;font-size:19px;box-shadow:0 0 0 5px #ff653415}.demo-play small{font-size:10px}.demo-cinema{border-radius:8px}.demo-chapter-heading{display:block;padding:16px 13px 11px}.demo-chapter-heading>span:first-child{font-size:10px}#demo-chapter-status{display:block;text-align:left;margin-top:5px;font-size:11px}.demo-chapters{grid-template-columns:repeat(2,minmax(0,1fr));padding:0 11px 12px;gap:6px}.demo-chapters button{min-height:68px;gap:5px;padding:10px 11px}.chapter-title{font-size:12px}.demo-benefits{margin-top:21px}.demo-benefits article{padding:20px 15px}.demo-benefit-number{font-size:10px}.demo-benefits h3{font-size:16px;letter-spacing:-.2px;margin-top:11px}.demo-benefits p{font-size:13px;line-height:1.7}.real-demo .recording-note{display:block;margin-top:19px}.real-demo .recording-note p{font-size:12px}.demo-evidence-links{flex-direction:row;flex-wrap:wrap;gap:11px 22px;margin-top:15px}.real-demo .recording-note a{margin:0}html[lang=zh-CN] .demo-intro h2{letter-spacing:-1px}}
+
+/* Keep the offscreen skip link hidden in tall element captures; show it on focus. */
+.skip:not(:focus){clip-path:inset(50%)}

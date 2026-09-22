@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "recorded_date": "2026-09-22",
+  "objective": "Tablaze functionality must exceed Browser Use; no superiority claim is currently established.",
+  "status": "unmeasured",
+  "source_resolution": "live git ls-remote HEAD; source package versions inspected at pinned commits",
+  "baselines": {
+    "browser_use": {
+      "repository": "https://github.com/browser-use/browser-use",
+      "commit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+      "source_package_version": "0.13.10"
+    },
+    "browser_harness": {
+      "repository": "https://github.com/browser-use/browser-harness",
+      "commit": "afbcc381b963040c19627d788e40c7e7663171ee",
+      "source_package_version": "0.1.13"
+    },
+    "tablaze_starting_point": {
+      "repository": "https://github.com/SweetDianDian/tablaze",
+      "commit": "d88210a25608ae494d74f1c461674d596f86c5f6",
+      "source_package_version": "0.1.0",
+      "measurement_commit": null,
+      "measurement_patch_sha256": null
+    }
+  },
+  "tracks": [
+    { "id": "autonomous_agent", "baseline": "browser_use", "status": "not_run", "runner": null },
+    { "id": "shared_agent_mcp", "baseline": "browser_harness", "variants_to_audit": ["browser-harness-mcp", "browser-use --mcp", "browser-use --cli-mcp"], "status": "not_run", "runner": null },
+    { "id": "official_variants_and_cloud", "baseline": null, "status": "scope_and_access_review_pending", "runner": null }
+  ],
+  "required_capability_families": [
+    "autonomous_execution", "models_and_structured_responses", "vision", "navigation_and_tabs",
+    "rich_controls", "large_and_complex_documents", "extraction_and_artifacts", "uploads_and_downloads",
+    "authentication_and_persistence", "extensibility", "recovery_and_long_tasks", "observability",
+    "permissions_and_identity", "evaluation_and_distribution"
+  ],
+  "minimum_experiment": {
+    "pilot_tasks_excluded_from_measurement": 20,
+    "development_smoke_tasks_excluded_from_claim": 24,
+    "frozen_deterministic_tasks": 60,
+    "frozen_application_tasks": 40,
+    "distinct_application_families": 5,
+    "paired_repetitions_per_task_model_track": 5,
+    "shared_model_configurations": 2,
+    "bootstrap_resamples": 10000,
+    "bootstrap_unit": "paired task cluster; not individual repeated attempt",
+    "minimum_mean_success_difference": 0.05,
+    "confidence_level": 0.95,
+    "lower_success_difference_bound_must_exceed": 0,
+    "per_family_and_model_noninferiority_margin": 0.05,
+    "stopping_rule": "pre-register after separate pilot; floors do not guarantee adequate power"
+  },
+  "required_run_fields": [
+    "run_id", "task_id", "task_hash", "task_seed", "repeat_index", "capability_tags", "track",
+    "engine", "engine_commit", "engine_patch_sha256", "dependency_lock_sha256", "judge_commit",
+    "model_provider", "model_snapshot", "model_configuration", "browser_version", "os_image",
+    "viewport", "locale", "network_profile", "state_reset_id", "engine_order", "deadline_ms",
+    "step_budget", "token_budget", "authorization_policy", "started_at", "ended_at",
+    "outcome", "failure_class", "judge_evidence", "wall_time_ms", "llm_time_ms", "browser_time_ms",
+    "input_tokens", "output_tokens", "cached_tokens", "extraction_tokens", "judge_tokens",
+    "cost", "pricing_date", "tool_calls", "retries", "duplicate_writes", "false_success",
+    "artifact_checks", "trace_path"
+  ],
+  "results": null,
+  "credentials_assumed": false,
+  "superiority_proven": false
+}

@@ -1,3 +1,11 @@
 export { BrowserEngine, BrowserError } from "./browser.js";
-export type { BrowserOptions, SnapshotOptions, BrowserAction, BrowserCheck } from "./browser.js";
+export type { BrowserOptions, BrowserWorkspace, PopupPolicy, SnapshotOptions, BrowserAction, BrowserCheck, BrowserBinding, BrowserBindingGuard } from "./browser.js";
 export { createServer, SERVER_VERSION } from "./server.js";
+export { runAgent, connectAgentTools, createMcpToolClient, createOpenAICompatiblePlanner, AgentPlannerError } from "./agent.js";
+export { parseAgentCheckpoint, AGENT_CHECKPOINT_VERSION } from "./checkpoint.js";
+export type { AgentCheckpoint } from "./checkpoint.js";
+export type { AgentOptions, AgentResult, AgentFailure, AgentPlanner, AgentDecision, AgentTool, AgentToolCall, AgentToolClient, AgentToolCatalog, AgentToolExecutionIdentity, AgentToolDispatchResult, AgentMessage, AgentEvent, AgentEvidence, AgentPlannerMetric, AgentModelUsage, OpenAICompatiblePlannerOptions } from "./agent.js";
+export { defineTool, createToolRegistry, ToolRegistryError } from "./custom-tools.js";
+export type { CustomTool, CustomToolDefinition, CustomToolEffect, CustomToolExecutionContext, ToolRegistryOptions, ToolRegistryErrorCode } from "./custom-tools.js";
+export { extractWithProvenance, validateProvenance, assembleDOMExtraction, validateDOMFieldPlan, ExtractionError } from "./extraction.js";
+export type { ExtractionSchema, ExtractionSource, ExtractionCandidate, ProvenanceExtraction, ProvenanceExtractionOptions, DOMFieldPlan, DOMExtraction } from "./extraction.js";

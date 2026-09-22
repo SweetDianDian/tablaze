@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "source_report": "codex-matched-smoke-v2.json",
+  "source_report_sha256": "7d95e6ec2479e40d0c06bc27f609e74e2ca9625c8d688043eaeb8555d9ba3572",
+  "scope": "Two visible development tasks, one attempt per engine per task. Business outcome, observed agent completion, and full run return are distinct. Model calls include Browser Use default post-task judging. No superiority estimate.",
+  "superiority_proven": false,
+  "browser_use_post_task_judge": {
+    "enabled": true,
+    "model": "same main LLM by framework default",
+    "source_commit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+    "source_path": "browser_use/agent/service.py",
+    "source_lines": [
+      185,
+      255,
+      1620,
+      2484,
+      2488
+    ],
+    "popup_log": "codex-matched-smoke-v2-browser-use-popup.log",
+    "popup_log_sha256": "2f94f648107188949c189c3cedb8c3cfa65f5271b97b7d4ffa14dd1f2c61b5ac",
+    "timeout_phase": "post-task judge (inferred from retained completion log, the eighth model request and pinned source order)",
+    "limitation": "The cancelled eighth request has no saved prompt/schema/usage; no judge verdict was returned. Raw failed status is not rewritten."
+  },
+  "attempts": [
+    {
+      "engine": "tablaze",
+      "task": "form",
+      "business_passed": true,
+      "raw_agent_status": "succeeded",
+      "agent_success_reported": true,
+      "normal_run_return_within_deadline": true,
+      "duration_seconds": 68.936,
+      "model_calls": 4,
+      "input_tokens": 56139,
+      "output_tokens": 724,
+      "duplicate_writes": 0,
+      "false_success": false
+    },
+    {
+      "engine": "browser-use",
+      "task": "form",
+      "business_passed": true,
+      "raw_agent_status": "succeeded",
+      "agent_success_reported": true,
+      "normal_run_return_within_deadline": true,
+      "duration_seconds": 58.909,
+      "model_calls": 3,
+      "input_tokens": 50801,
+      "output_tokens": 664,
+      "duplicate_writes": 0,
+      "false_success": false
+    },
+    {
+      "engine": "tablaze",
+      "task": "popup",
+      "business_passed": true,
+      "raw_agent_status": "succeeded",
+      "agent_success_reported": true,
+      "normal_run_return_within_deadline": true,
+      "duration_seconds": 111.528,
+      "model_calls": 7,
+      "input_tokens": 104930,
+      "output_tokens": 1164,
+      "duplicate_writes": 0,
+      "false_success": false
+    },
+    {
+      "engine": "browser-use",
+      "task": "popup",
+      "business_passed": true,
+      "raw_agent_status": "failed",
+      "agent_success_reported": true,
+      "normal_run_return_within_deadline": false,
+      "duration_seconds": 181.831,
+      "model_calls": 8,
+      "input_tokens": null,
+      "output_tokens": null,
+      "duplicate_writes": 0,
+      "false_success": false,
+      "qualification": "Approval was accepted and done(success=True) was logged before the default post-task judge timed out. Whole-run token counters are unknown because cancelled inference usage was absent."
+    }
+  ]
+}

@@ -1,0 +1,395 @@
+{
+  "schema_version": 2,
+  "source_report": "codex-matched-smoke-v3.json",
+  "source_report_sha256": "bcfe874ed7c39d9cc8b1be098b6ab00da0eb66b445768911231145d4d09e8e97",
+  "scope": "Five visible development tasks; one attempt per engine/task, not a frozen superiority experiment. Failed runs are retained.",
+  "superiority_proven": false,
+  "engine_options": {
+    "tablaze": {
+      "initializeUrl": true,
+      "popupPolicy": "follow-single"
+    },
+    "browserUse": {
+      "useJudge": true
+    }
+  },
+  "deadline_scope": "schema v2: common absolute deadline begins before gateway and adapter startup; adapter return and owned cleanup, final independent business judging and gateway teardown all count in runReturnedBeforeDeadline wall time; cancellation and cleanup may use bounded grace after deadline",
+  "historical_timing_comparable": false,
+  "summary": {
+    "tablaze": {
+      "passed": 5,
+      "completedAndPassed": 4,
+      "unfinishedWithPassedOutcome": 1,
+      "businessPassed": 5,
+      "agentDoneObserved": 4,
+      "agentSuccessObserved": 4,
+      "runReturnedBeforeDeadline": 5,
+      "allAxesPassed": 4,
+      "failed": 0,
+      "notRun": 0,
+      "falseSuccess": 0
+    },
+    "browser-use": {
+      "passed": 5,
+      "completedAndPassed": 5,
+      "unfinishedWithPassedOutcome": 0,
+      "businessPassed": 5,
+      "agentDoneObserved": 5,
+      "agentSuccessObserved": 5,
+      "runReturnedBeforeDeadline": 5,
+      "allAxesPassed": 5,
+      "failed": 0,
+      "notRun": 0,
+      "falseSuccess": 0
+    }
+  },
+  "attempts": [
+    {
+      "engine": "tablaze",
+      "task": "form",
+      "business_passed": true,
+      "agent_done_observed": true,
+      "agent_success_observed": true,
+      "raw_agent_status": "succeeded",
+      "run_returned_before_deadline": true,
+      "agent_done_observed_ms": 45487.485458999996,
+      "wall_time_ms": 45663.849083999994,
+      "model_calls": 3,
+      "judge_model_calls": 0,
+      "judge_usage": null,
+      "input_tokens": 43330,
+      "output_tokens": 460,
+      "duplicate_writes": 0,
+      "false_success": false,
+      "artifact_hashes": [],
+      "trace_sha256": "db67ed1ffbd9b47e4f0b1a0dc42ea3461704e2d688f0ede9d598676d6ba3432e",
+      "transport_error_codes": [],
+      "tool_path": [
+        {
+          "step": 0,
+          "tool": "tab_open"
+        },
+        {
+          "step": 1,
+          "tool": "tab_act"
+        },
+        {
+          "step": 2,
+          "tool": "tab_verify"
+        }
+      ],
+      "popup_followed": []
+    },
+    {
+      "engine": "browser-use",
+      "task": "form",
+      "business_passed": true,
+      "agent_done_observed": true,
+      "agent_success_observed": true,
+      "raw_agent_status": "succeeded",
+      "run_returned_before_deadline": true,
+      "agent_done_observed_ms": 40312.958,
+      "wall_time_ms": 58220.163666,
+      "model_calls": 3,
+      "judge_model_calls": 1,
+      "judge_usage": {
+        "inputTokens": 13233,
+        "outputTokens": 181,
+        "cachedTokens": 0,
+        "totalTokens": 13414,
+        "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+      },
+      "input_tokens": 50825,
+      "output_tokens": 643,
+      "duplicate_writes": 0,
+      "false_success": false,
+      "artifact_hashes": [],
+      "trace_sha256": "a409f0ad16f5c210ed221b3eacd31206c33d7d510d6c2002564976603b817ce0",
+      "transport_error_codes": []
+    },
+    {
+      "engine": "tablaze",
+      "task": "popup",
+      "business_passed": true,
+      "agent_done_observed": true,
+      "agent_success_observed": true,
+      "raw_agent_status": "succeeded",
+      "run_returned_before_deadline": true,
+      "agent_done_observed_ms": 61960.21950000001,
+      "wall_time_ms": 62132.91087499999,
+      "model_calls": 4,
+      "judge_model_calls": 0,
+      "judge_usage": null,
+      "input_tokens": 59268,
+      "output_tokens": 678,
+      "duplicate_writes": 0,
+      "false_success": false,
+      "artifact_hashes": [],
+      "trace_sha256": "39704c003bd6ed9689178b94674b77e0b8375d95b771afac9ad3aa22b23fd7c8",
+      "transport_error_codes": [],
+      "tool_path": [
+        {
+          "step": 0,
+          "tool": "tab_open"
+        },
+        {
+          "step": 1,
+          "tool": "tab_act"
+        },
+        {
+          "step": 2,
+          "tool": "tab_act"
+        },
+        {
+          "step": 3,
+          "tool": "tab_verify"
+        }
+      ],
+      "popup_followed": [
+        {
+          "from_tab_id": "t1",
+          "tab_id": "t2",
+          "action_index": 0,
+          "window_ms": 250
+        }
+      ]
+    },
+    {
+      "engine": "browser-use",
+      "task": "popup",
+      "business_passed": true,
+      "agent_done_observed": true,
+      "agent_success_observed": true,
+      "raw_agent_status": "succeeded",
+      "run_returned_before_deadline": true,
+      "agent_done_observed_ms": 53297.178,
+      "wall_time_ms": 70208.282584,
+      "model_calls": 4,
+      "judge_model_calls": 1,
+      "judge_usage": {
+        "inputTokens": 14519,
+        "outputTokens": 183,
+        "cachedTokens": 0,
+        "totalTokens": 14702,
+        "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+      },
+      "input_tokens": 70960,
+      "output_tokens": 754,
+      "duplicate_writes": 0,
+      "false_success": false,
+      "artifact_hashes": [],
+      "trace_sha256": "4421468e79f42b18a267fd857908ff267020790497bc6114962996399bc619f1",
+      "transport_error_codes": []
+    },
+    {
+      "engine": "tablaze",
+      "task": "iframe-form",
+      "business_passed": true,
+      "agent_done_observed": true,
+      "agent_success_observed": true,
+      "raw_agent_status": "succeeded",
+      "run_returned_before_deadline": true,
+      "agent_done_observed_ms": 60061.624458000035,
+      "wall_time_ms": 60227.22737499999,
+      "model_calls": 4,
+      "judge_model_calls": 0,
+      "judge_usage": null,
+      "input_tokens": 58632,
+      "output_tokens": 519,
+      "duplicate_writes": 0,
+      "false_success": false,
+      "artifact_hashes": [],
+      "trace_sha256": "d4ff7d7856abb7dc28d2c6fb5898cd4e1af98d5b31185e8e0597675ccda35fce",
+      "transport_error_codes": [],
+      "tool_path": [
+        {
+          "step": 0,
+          "tool": "tab_open"
+        },
+        {
+          "step": 1,
+          "tool": "tab_snapshot"
+        },
+        {
+          "step": 2,
+          "tool": "tab_act"
+        },
+        {
+          "step": 3,
+          "tool": "tab_verify"
+        }
+      ],
+      "popup_followed": []
+    },
+    {
+      "engine": "browser-use",
+      "task": "iframe-form",
+      "business_passed": true,
+      "agent_done_observed": true,
+      "agent_success_observed": true,
+      "raw_agent_status": "succeeded",
+      "run_returned_before_deadline": true,
+      "agent_done_observed_ms": 39272.737,
+      "wall_time_ms": 57983.519875,
+      "model_calls": 3,
+      "judge_model_calls": 1,
+      "judge_usage": {
+        "inputTokens": 13223,
+        "outputTokens": 209,
+        "cachedTokens": 0,
+        "totalTokens": 13432,
+        "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+      },
+      "input_tokens": 50803,
+      "output_tokens": 657,
+      "duplicate_writes": 0,
+      "false_success": false,
+      "artifact_hashes": [],
+      "trace_sha256": "820e990ab69ff7566ffd55e311ea361e8ae350605593c8a801e4112592ff7d04",
+      "transport_error_codes": []
+    },
+    {
+      "engine": "tablaze",
+      "task": "download",
+      "business_passed": true,
+      "agent_done_observed": true,
+      "agent_success_observed": true,
+      "raw_agent_status": "succeeded",
+      "run_returned_before_deadline": true,
+      "agent_done_observed_ms": 93081.199334,
+      "wall_time_ms": 93255.24174999999,
+      "model_calls": 5,
+      "judge_model_calls": 0,
+      "judge_usage": null,
+      "input_tokens": 73580,
+      "output_tokens": 1298,
+      "duplicate_writes": 0,
+      "false_success": false,
+      "artifact_hashes": [
+        "10f19ca5087c9d2f431fb2905e013a7500afba9b4411a8813daf65374fbc7497"
+      ],
+      "trace_sha256": "43ff05421563579bef1ff4f7ea1b36bef7f556611b269daca575bdb92bae12de",
+      "transport_error_codes": [],
+      "tool_path": [
+        {
+          "step": 0,
+          "tool": "tab_open"
+        },
+        {
+          "step": 1,
+          "tool": "tab_act"
+        },
+        {
+          "step": 2,
+          "tool": "tab_downloads"
+        },
+        {
+          "step": 3,
+          "tool": "tab_verify"
+        }
+      ],
+      "popup_followed": []
+    },
+    {
+      "engine": "browser-use",
+      "task": "download",
+      "business_passed": true,
+      "agent_done_observed": true,
+      "agent_success_observed": true,
+      "raw_agent_status": "succeeded",
+      "run_returned_before_deadline": true,
+      "agent_done_observed_ms": 63298.416,
+      "wall_time_ms": 80974.78845800005,
+      "model_calls": 4,
+      "judge_model_calls": 1,
+      "judge_usage": {
+        "inputTokens": 13351,
+        "outputTokens": 251,
+        "cachedTokens": 0,
+        "totalTokens": 13602,
+        "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+      },
+      "input_tokens": 69927,
+      "output_tokens": 1217,
+      "duplicate_writes": 0,
+      "false_success": false,
+      "artifact_hashes": [
+        "10f19ca5087c9d2f431fb2905e013a7500afba9b4411a8813daf65374fbc7497"
+      ],
+      "trace_sha256": "30b30ed700587e45a0e7bb359f811280c7be0d400cfe790a42b387acedc465b3",
+      "transport_error_codes": []
+    },
+    {
+      "engine": "tablaze",
+      "task": "duplicate-write",
+      "business_passed": true,
+      "agent_done_observed": false,
+      "agent_success_observed": null,
+      "raw_agent_status": "failed",
+      "run_returned_before_deadline": true,
+      "agent_done_observed_ms": null,
+      "wall_time_ms": 46225.69312499999,
+      "model_calls": 3,
+      "judge_model_calls": 0,
+      "judge_usage": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "duplicate_writes": 0,
+      "false_success": false,
+      "artifact_hashes": [],
+      "trace_sha256": "3fdaab5d70af7bc6b864bbb5f982fea10b9c1d358515e540c393b5cc2f4752cb",
+      "transport_error_codes": [
+        "CODEX_TURN_FAILED"
+      ],
+      "tool_path": [
+        {
+          "step": 0,
+          "tool": "tab_open"
+        },
+        {
+          "step": 1,
+          "tool": "tab_act"
+        },
+        {
+          "step": 2,
+          "tool": "tab_act"
+        }
+      ],
+      "popup_followed": [],
+      "qualification": "One order was recorded and its receipt observed. The third Codex request emitted an error event and the bridge terminated it as CODEX_TURN_FAILED. The raw error message was not retained, so terminal/provider cause is unknown. No tab_verify or accepted finish followed; this is a failed run, not a fast successful completion. Overall usage remains null."
+    },
+    {
+      "engine": "browser-use",
+      "task": "duplicate-write",
+      "business_passed": true,
+      "agent_done_observed": true,
+      "agent_success_observed": true,
+      "raw_agent_status": "succeeded",
+      "run_returned_before_deadline": true,
+      "agent_done_observed_ms": 62433.083,
+      "wall_time_ms": 84717.91012500005,
+      "model_calls": 4,
+      "judge_model_calls": 1,
+      "judge_usage": {
+        "inputTokens": 14503,
+        "outputTokens": 224,
+        "cachedTokens": 0,
+        "totalTokens": 14727,
+        "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+      },
+      "input_tokens": 70904,
+      "output_tokens": 1001,
+      "duplicate_writes": 0,
+      "false_success": false,
+      "artifact_hashes": [],
+      "trace_sha256": "b6c2ec735e6d3f0d92387aa93cc876cab157fadf8b94987dd460a245153d05c7",
+      "transport_error_codes": []
+    }
+  ],
+  "runtime_archive": {
+    "archive": "tablaze-runtime.tgz",
+    "sha256": "374f7049131b8e75428f9a64dd2f29a776f12489699fb3d50f86bd36fd11b698",
+    "verified_source_entries": 31,
+    "scope": "Pre-run package preserves every src/dist/comparison entry hashed in the v3 source manifest. Documentation was updated after this runtime package was built. No publication."
+  }
+}

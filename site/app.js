@@ -105,7 +105,7 @@ function renderBenchmark(){
   metric('#metric-batch',samples?.four_action_batch_ms?.median);
   $('#metric-passed').textContent=summary.succeeded+'/'+summary.attempted;
   const info=[benchmark.environment?.platform,benchmark.environment?.arch].filter(Boolean).join(' / ');
-  $('#benchmark-status').textContent=words('Measured locally · ','本机实测 · ')+info;
+  $('#benchmark-status').textContent=words('Historical fixture · ','历史场景 · ')+info;
   $('#raw-data').hidden=false;
 }
 setLanguage(language);

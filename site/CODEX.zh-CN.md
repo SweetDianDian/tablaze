@@ -1,8 +1,10 @@
 # 在 Codex 中使用 Tablaze
 
-[English](CODEX.md) · [项目介绍](index.html)
+[English](CODEX.md) · [项目介绍](https://github.com/SweetDianDian/tablaze/blob/main/README.zh-CN.md)
 
 本指南把本地构建的 Tablaze stdio 服务接入 Codex。依据当前源码、本机 `codex-cli 0.154.0` 的帮助输出，以及 2026-09-22 查阅的 OpenAI 官方文档编写。注册命令成功与浏览器实际可用是两回事，最后还需要完成下方的冒烟任务。
+
+当前开发分支提供 15 个 MCP 工具。已记录的 0.1.0 发布和 Codex 验收证据来自较早构建，不能用于证明所有新增功能；识别构建时应同时核对 checkout 的提交和工具列表。
 
 ## 1. 构建与选择浏览器
 
@@ -24,7 +26,7 @@ node -p 'process.execPath'
 | 显示独立 Chrome 窗口 | 同上 | `--channel chrome --headed` |
 | 已有 CDP 端点 | 在服务之外配置该端点 | `--cdp-url http://127.0.0.1:9222` |
 
-前三种模式创建服务自有的浏览器资源。`--channel chrome` 选择的是程序，不是你日常使用的 profile。默认会话相互隔离，状态在多次调用间保留，但不会跨服务重启保存。CDP 属于主动连接模式，详见第 7 节。
+前三种模式创建服务自有的浏览器资源。`--channel chrome` 选择的是程序，不是你日常使用的 profile。默认临时会话相互隔离，状态在多次调用间保留。仅重启服务不会恢复会话，需要显式导出/导入状态，或使用下文的 checkpoint 流程。CDP 属于主动连接模式，详见第 7 节。
 
 `doctor` 输出 JSON，不启动浏览器。`ready: true` 只表示找到可执行文件，不代表真实导航已经通过。CDP 模式的 `ready` 是 `null`，因为没有尝试连接。`setup` 调用依赖中的官方 Playwright CLI 下载匹配 Chromium；Linux 系统库可能需要另行安装。
 
@@ -73,7 +75,7 @@ enabled = true
 
 预期顺序是 `tab_list` → `tab_open` → `tab_extract` → `tab_verify` → `tab_close`。空会话列表正常。仅添加配置不算浏览器验证；指定检查的 `passed` 才是对应证据。
 
-Tablaze 内部没有模型客户端。Codex 决定调用什么工具，Tablaze 通过 Playwright 执行。无需 TypeSafe/Jev Key，本版也没有集成 Jev。
+在这里的 MCP 接入方式中，Codex 决定下一次工具调用，Tablaze 通过 Playwright 执行。MCP 启动不调用模型，也不需要模型 API Key。另一个可选入口 `tablaze run` 使用显式配置的模型适配器，见 [Agent 指南](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md)。
 
 ## 4. 先理解三个标识
 
@@ -158,7 +160,9 @@ Tablaze 内部没有模型客户端。Codex 决定调用什么工具，Tablaze �
 }
 ```
 
-表单值检查格式为 `{"kind":"value","selector":"#destination","value":"Lisbon"}`。每次 1–20 项。验收失败返回 `passed: false` 和 `isError: true`；按 `index` 查看各项的 `pass` 与 `actual`。password 和 hidden input 的值不会返回或参与值验收。
+已经观察到的表单控件可用 `{"kind":"value","ref":"r3","value":"Lisbon"}` 验收，并在 `session_id` 旁传入对应的 `snapshot_id`。操作已返回新快照时，直接使用其中的引用。每项值检查必须在 `ref` 和 CSS `selector` 中二选一；原有 `{"kind":"value","selector":"#destination","value":"Lisbon"}` 格式继续有效。页面文字验收不包含 input、textarea 和 select 的原始值：控件使用 value 检查，保存提示等文案使用 text 检查。节点被替换、身份变化或文档过期时，旧引用会被拒绝。
+
+每次 1–20 项。验收失败返回 `passed: false` 和 `isError: true`；按 `index` 查看各项的 `pass` 与 `actual`。password 和 hidden input 的值不会返回或参与值验收。
 
 **`tab_capture`**：默认截取视口，返回 image block、URL、MIME 类型和字节数。
 
@@ -224,14 +228,18 @@ Tablaze 跟踪自己创建的页面及其弹出页面；清理时只关闭这些
 | `STALE_SNAPSHOT` / `STALE_REFERENCE` | 重新观察和判断目标，使用新版本及引用。 |
 | `ACTION_FAILED` | 检查遮挡、禁用状态、超时及部分完成情况，重试前重新观察。 |
 | `BATCH_TIMEOUT` / `CANCELLED` | 核对已发生的副作用；运行中被中断的会话会关闭。 |
-| `SELECTOR_COUNT` | 缩小提取范围，使选择器匹配唯一根元素。 |
+| `CLEANUP_INCOMPLETE` | 有界等待内无法确认自有资源全部关闭。清理错误与业务结果分开检查；未决 CDP 页面创建保留迟到清理逻辑，不会关闭无关页面。详见[运行边界](https://github.com/SweetDianDian/tablaze/blob/main/docs/RUNTIME.md)。 |
+| `SELECTOR_COUNT` | 缩小到唯一根元素；结构化字段确实需要数组时可设置 `multiple: true`。 |
 | `FRAME_NOT_FOUND` | 刷新 frames 列表，不重用已分离的 frame。 |
 | `SENSITIVE_VALUE` | 对 password/hidden input 改用独立可见结果验收。 |
-| `CAPTURE_TOO_LARGE` | 改用视口截图。 |
-| `UNSUPPORTED_FLOW` | 对话框、新标签页或下载属于未支持流程。 |
+| `CAPTURE_TOO_LARGE` | 改用视口截图，或缩小要导出为 PDF 的页面。 |
+| `PDF_TIMEOUT` | 导出超时会关闭自有标签页；继续前先检查剩余标签页。 |
+| `SCHEMA_MISMATCH` / `TYPE_CONVERSION` | 核对字段计划与 schema；系统不会静默转换或补造值。 |
+| `TRUNCATED_FIELD` / `EXTRACTION_LIMIT` | 缩小选择器范围或拆分提取。 |
+| `UNSUPPORTED_FLOW` | 查看具体流程；原生对话框应提前调用 `tab_dialog`，重试前检查可能已发生的副作用。自有弹窗和下载有对应工具。 |
 | CDP 连接失败 | 在服务之外检查端点；错误信息有意省略端点详情。 |
 
-本版不提供上传、下载、受支持的新标签页/对话框流程、封闭 Shadow DOM、通用 eval 和持久磁盘 profile；Canvas 控件没有坐标操作。快照的角色与名称是精简 DOM 元数据，不是完整的无障碍实现。脱敏和隔离的具体边界见 [SECURITY.md](SECURITY.md)。
+当前源码支持显式上传下载、自有弹窗、预设响应的原生对话框和视口坐标点击。封闭 Shadow DOM 仍不属于 DOM 观察范围，没有通用 eval 工具或完整的持久磁盘 profile。显式 workspace 恢复重建所保存的浏览器状态和 URL，不恢复正在运行的页面内存。快照角色和名称是精简 DOM 元数据，不是完整无障碍实现。具体边界见 [SECURITY.md](SECURITY.md)。
 
 `codex mcp remove tablaze` 移除配置中的服务条目，不会卸载源码或 tarball 安装目录。
 
@@ -244,3 +252,77 @@ Tablaze 跟踪自己创建的页面及其弹出页面；清理时只关闭这些
 随后使用本机 CLI 支持的临时审批设置完成了一次真实模型验收：`tab_list → tab_open → tab_act → tab_verify → tab_close → tab_list`，四步表单操作、五项结果检查全部成功，最终会话数为零。文件系统仍使用 `--sandbox read-only`，调用级设置为 `-c 'approval_policy="on-request"' -c 'approvals_reviewer="auto_review"'`，没有修改全局配置或关闭审批。这些设置仅说明已验证的受控本机任务；使用前应确认当前客户端支持该模式及任务授权范围。[官方 Auto-review 文档](https://learn.chatgpt.com/docs/sandboxing/auto-review)
 
 [实际工具调用记录](evidence/codex-e2e.json) 保留参数、结果和验证边界。模型连接曾超时后自动回退，因此 233.936 秒总耗时不用于速度宣传。此次结果只证明一个本地固定页面流程；JSONL 未提供逐项审批理由，不能据此推断全部客户端版本或外部网站上的行为。
+
+## 当前开发分支：复杂工作流
+
+下列功能尚未包含在已记录的 0.1.0 发布证据中。服务现在提供 15 个工具：`tab_open`、`tab_snapshot`、`tab_act`、`tab_extract`、`tab_verify`、`tab_capture`、`tab_list`、`tab_close`、`tab_navigate`、`tab_tabs`、`tab_downloads`、`tab_dialog`、`tab_state`、`tab_pdf`、`tab_extract_structured`。
+
+长页面被截断时，用唯一容器 `selector` 定向观察，或滚动后用 `viewport_only` 读取当前视口。不同范围的增量基线会重置；新的 snapshot_id 会使旧快照失效。
+
+```json
+{"session_id":"<session_id>","selector":"#results","viewport_only":true,"max_elements":150}
+```
+
+快照会列出当前 `tab_id` 和自有 `tabs`。默认不自动切换弹窗，可先观察列表再显式切换。全局选项 `--popup-policy follow-single` 可在激活动作的有界窗口内，跟随与当前自有 opener 关联的唯一弹窗；多个、后台或迟到的候选仍需显式观察。跟随后返回新快照和 `replan_required`，跳过剩余旧上下文动作。除 `ok` 外还应检查 `batch_complete`，具体关联规则见[运行机制](https://github.com/SweetDianDian/tablaze/blob/main/docs/RUNTIME.md)。
+
+```json
+{"session_id":"<session_id>","action":"switch","tab_id":"<tab_id_from_tabs>"}
+```
+
+上述参数用于 `tab_tabs`；其他 action 为 `list`、`new`（可带 HTTP(S) url）、`close`（带 tab_id）。`tab_navigate` 使用 `goto`（需要 url）、`back`、`forward`、`reload`，保留同一会话的存储。关闭最后一个标签页即关闭会话。CDP 模式只管理服务创建的页面及其弹窗。
+
+新增 `tab_act` 步骤：
+
+```json
+[
+  {"type":"hover","ref":"<current_ref>"},
+  {"type":"double_click","ref":"<current_ref>"},
+  {"type":"upload","ref":"<visible_file_input_ref>","files":["/absolute/path/report.csv"]},
+  {"type":"upload_chooser","ref":"<visible_choose_file_button_ref>","files":["/absolute/path/report.csv"]},
+  {"type":"drag","ref":"<source_ref>","target_ref":"<destination_ref>"},
+  {"type":"scroll","direction":"right","pixels":500,"ref":"<scroll_container_ref>"}
+]
+```
+
+上传最多 20 个显式本地常规文件，每个不超过 50 MiB；空数组清空选择。可见文件输入框使用 `upload`；由可见按钮触发隐藏 input 的文件选择流程使用 `upload_chooser`，ref 指向已观察到的按钮，工具等待页面的 file-chooser 事件后设置文件。上传会把文件字节交给页面，路径应属于用户授权的任务范围。
+
+`drag` 在两个当前引用之间执行鼠标拖动；滚动调整后，两者中心都必须在视口内，否则返回 `NOT_VISIBLE`。这不保证兼容所有自定义拖拽组件。`scroll` 支持 `up`、`down`、`left`、`right`：不传 ref 时滚动当前观察 frame 的窗口，传入当前容器 ref 时滚动该元素。pixels 为 1–10,000，操作后应检查真实状态，不能仅凭请求已完成认定内容移动。
+
+截图观察后，可用 `{"type":"click_xy","x":120,"y":160}` 操作主标签页视口，仍需当前 snapshot_id。坐标为 CSS 像素，必须在视口内；此操作没有元素 ref 的 DOM 身份校验，页面变化后需要重新观察。跨 frame 的坐标推导由调用方负责，坐标操作前必须观察主 frame。
+
+下载后调用 `tab_downloads`：先传 session_id 列出记录，再传 download_id 和可选 timeout_ms 等待。只有 `status: "completed"` 才有可用 path，pending 不代表成功。下载文件在关闭后保留；正在进行的下载会在清理时取消。
+
+原生对话框需在触发前调用 `tab_dialog`，设置下一次响应：
+
+```json
+{"session_id":"<session_id>","action":"accept","prompt_text":"Requested answer"}
+```
+
+响应仅使用一次，action 可选 accept/dismiss。没有预设响应的对话框默认取消，批次报告失败与可能的副作用。
+
+使用 `tab_state`（参数 session_id）得到私有 `storage_state` 文件路径，再在 `tab_open` 传入同名字段恢复 cookies、localStorage、IndexedDB。文件含身份凭据；仅支持向隔离上下文导入，不保存 sessionStorage、扩展或现有标签页。
+
+`tab_pdf` 把活动标签页打印为本地 PDF，不是仅导出当前观察的子 frame。参数支持 `format: "A4" | "Letter"` 和 `landscape`，返回路径、字节数、SHA-256、MIME 类型、来源 URL 和 tab ID。超过 50 MiB 时拒绝；使用普通操作超时，导出超时会关闭自有标签页。打印样式可能不同于屏幕显示，需要关注排版时应检查产物。
+
+```json
+{"session_id":"<session_id>","format":"A4","landscape":false}
+```
+
+`tab_extract_structured` 按命名字段计划读取内容，并用 JSON Schema draft-07 校验输出。每个值附带来源 URL、选择器、匹配序号和转换前原文。支持文字、属性、当前非敏感表单值、带类型的标量和数组；最多 30 个字段，每字段 20 个匹配，总计 100 个。缺少必填字段、敏感值、类型不符或证据截断都会报错。完整示例和依据边界见[结构化提取指南](https://github.com/SweetDianDian/tablaze/blob/main/docs/EXTRACTION.md)；引用原文存在不等于已经证明事实真实。
+
+## 保存任务与恢复浏览器
+
+首次执行可指定 `run --start-url <HTTP(S)网址>`，在第一轮模型规划前打开这个明确网址，不从页面或工具内容猜测入口。导航使用同一工具执行链，计入调用和时间预算；恢复不会自动重复已经尝试的初始化，也不能给已有任务追加或更换起始网址。Agent 检查点版本 2 保存该状态，并支持读取迁移有效的版本 1 文件。workspace 同时保存弹窗策略，旧文件没有策略字段时使用 `stay`；恢复时明确指定不同策略会被拒绝。
+
+可选自主任务循环在 [Agent 指南](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md) 中单独配置，与 MCP 模式分开。使用自己的模型端点，凭据通过配置的环境变量提供：
+
+```sh
+node dist/cli.js run --task "<已授权的任务>" --model "<model-id>" --endpoint "https://<provider>/v1/chat/completions" --channel chrome --checkpoint "/absolute/path/private-run.json"
+node dist/cli.js run --resume "/absolute/path/private-run.json" --model "<model-id>" --endpoint "https://<provider>/v1/chat/completions" --channel chrome
+```
+
+CLI 先写入权限为 0600 的临时文件，再原子重命名到 checkpoint 路径。文件包含完整任务历史和浏览器 cookies、localStorage、IndexedDB，应作为敏感文件保存。库接口 `exportWorkspace()`/`restoreWorkspace()` 及 CLI 恢复会重建隔离上下文、自有标签页 URL 和活动标签页，并分配新的会话标识；不会恢复实时 DOM、未保存表单、sessionStorage、页面 JavaScript 内存、滚动位置、扩展、未完成下载或进行中的事务。恢复 URL 会重新加载网页。旧 ref 和验收证据失效，必须重新观察与验收。workspace 导入要求新的空引擎，不能导入 CDP 外接 profile。
+
+上次修改的结果不确定时，恢复在启动浏览器和模型前返回 `needs_input`。先核对真实业务结果，再显式传入 `--reconciled "<核对方式及观察结果>"`。这个操作员确认既不证明任务完成，也不要求重放提交。库调用方使用 `reconciliation`；若 checkpoint 要求应用的 `validateCompletion` 函数，必须通过库接口重新提供该函数，CLI 不能恢复可执行应用策略。
+
+恢复沿用规划步数、工具调用数、模型规划调用数和已用时间；默认沿用原预算，进程停机时间不计入。库返回的 checkpoint 计入最终持久化等待；CLI 磁盘文件中的已用时间计入写入前的浏览器状态导出，但尚未包含最后一次原子文件写入本身的耗时，因此不是对最后这段 I/O 的精确计时。详见[运行机制](https://github.com/SweetDianDian/tablaze/blob/main/docs/RUNTIME.md)与[checkpoint 安全边界](SECURITY.md)。

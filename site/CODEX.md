@@ -1,8 +1,10 @@
 # Tablaze with Codex
 
-[简体中文](CODEX.zh-CN.md) · [Project overview](index.html)
+[简体中文](CODEX.zh-CN.md) · [Project overview](https://github.com/SweetDianDian/tablaze/blob/main/README.md)
 
 This guide connects the locally built Tablaze stdio server to Codex. It uses the current Tablaze source contract, local `codex-cli 0.154.0` help, and official OpenAI documentation checked on 2026-09-22. Registering a command is separate from proving that its browser tools work; finish with the smoke task below.
+
+The current development branch exposes 15 MCP tools. The recorded 0.1.0 release and Codex acceptance evidence describe an earlier build; they do not validate every capability now present in source. Use the checkout's tool catalog and commit when identifying a build.
 
 ## 1. Build and choose a browser
 
@@ -24,7 +26,7 @@ Save the absolute Node path printed by the last command. Choose one browser mode
 | Visible isolated Chrome | Same installed Chrome check | `--channel chrome --headed` |
 | Existing CDP endpoint | Configure that endpoint separately | `--cdp-url http://127.0.0.1:9222` |
 
-The first three create owned browser resources. `--channel chrome` selects a binary, not your normal user profile. Default sessions are temporary and isolated; they persist across calls, not across server restarts. CDP is an explicit attachment mode described in section 7.
+The first three create owned browser resources. `--channel chrome` selects a binary, not your normal user profile. Default sessions are temporary and isolated; they persist across calls. A restart alone does not restore them: use explicit state export/import or the checkpoint workflow below. CDP is an explicit attachment mode described in section 7.
 
 `doctor` returns JSON and never launches a browser. `ready: true` means an executable exists and is executable, not that a real navigation passed. In CDP mode `ready` is `null`, because no connection is attempted. `setup` installs matching Chromium using the installed Playwright CLI; Linux system dependencies may require separate installation.
 
@@ -73,7 +75,7 @@ Ask Codex:
 
 Expected tool sequence: `tab_list` → `tab_open` → `tab_extract` → `tab_verify` → `tab_close`. An empty session list is valid. Successful registration alone is not a browser smoke test; the final `passed` value is the evidence for the specified checks.
 
-Tablaze has no model client inside it. Codex decides the next tool call; Tablaze runs browser operations through Playwright. No TypeSafe/Jev key is needed, and Jev is not integrated.
+In this MCP integration, Codex decides the next tool call and Tablaze runs browser operations through Playwright. MCP startup makes no model call and needs no model API key. The separate optional `tablaze run` command has a configured model adapter; see the [Agent guide](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md).
 
 ## 4. Understand IDs before writing
 
@@ -158,7 +160,9 @@ For a table use `{"session_id":"<session_id>","kind":"table","selector":"#result
 }
 ```
 
-A form check has shape `{"kind":"value","selector":"#destination","value":"Lisbon"}`. Supply 1–20 checks. A failed assertion returns `passed: false` and `isError: true`; inspect each check's `index`, `pass`, and `actual`. Password and hidden-input values are refused.
+For an observed form control, use `{"kind":"value","ref":"r3","value":"Lisbon"}` and supply the containing `snapshot_id` beside `session_id`. Use the fresh snapshot returned by an action when available. A value check accepts exactly one of `ref` or a CSS `selector`; the existing `{"kind":"value","selector":"#destination","value":"Lisbon"}` form remains supported. Page-text checks exclude raw input, textarea and select values: combine value checks for controls with text checks for confirmation messages. Ref checks reject replaced nodes, changed identities and stale documents.
+
+Supply 1–20 checks. A failed assertion returns `passed: false` and `isError: true`; inspect each check's `index`, `pass`, and `actual`. Password and hidden-input values are refused.
 
 **`tab_capture`** — viewport by default; returns an image block, URL, MIME type, and byte count.
 
@@ -224,14 +228,18 @@ Tablaze tracks the pages it creates and their popups. Normal cleanup closes thos
 | `STALE_SNAPSHOT` / `STALE_REFERENCE` | Take a fresh snapshot, reassess the target, and use that revision and refs. |
 | `ACTION_FAILED` | Inspect obstruction, disabled controls, timeout, and partial results. Re-observe before retrying. |
 | `BATCH_TIMEOUT` / `CANCELLED` | Inspect prior side effects; an active interrupted session is closed. |
-| `SELECTOR_COUNT` | Narrow extraction to exactly one root. |
+| `CLEANUP_INCOMPLETE` | Disposal could not confirm all owned resources closed within its bounded wait. Inspect the cleanup error separately from the business outcome; unresolved CDP acquisition retains late cleanup without closing unrelated pages. See [runtime boundaries](https://github.com/SweetDianDian/tablaze/blob/main/docs/RUNTIME.md). |
+| `SELECTOR_COUNT` | Narrow extraction to one root, or use `multiple: true` for an intended structured-field array. |
 | `FRAME_NOT_FOUND` | Refresh the frames list; do not reuse a detached frame ID. |
 | `SENSITIVE_VALUE` | The selected input is password/hidden; verify an independent visible outcome instead. |
-| `CAPTURE_TOO_LARGE` | Use a viewport screenshot. |
-| `UNSUPPORTED_FLOW` | Dialog, popup, or download behavior is outside the supported workflow. |
+| `CAPTURE_TOO_LARGE` | Use a viewport screenshot or reduce the page being exported as PDF. |
+| `PDF_TIMEOUT` | The export exceeded its timeout and closed the owned tab; check remaining tabs before continuing. |
+| `SCHEMA_MISMATCH` / `TYPE_CONVERSION` | Inspect the field plan and schema; values are not silently coerced or invented. |
+| `TRUNCATED_FIELD` / `EXTRACTION_LIMIT` | Narrow selectors or split the extraction. |
+| `UNSUPPORTED_FLOW` | Inspect the reported flow; arm `tab_dialog` before a native dialog and inspect possible effects before retrying. Owned popups and downloads have dedicated tools. |
 | CDP cannot connect | Confirm the endpoint independently. Tablaze intentionally omits endpoint details from connection errors. |
 
-No uploads, downloads, supported popup/dialog workflow, closed Shadow DOM, generic eval, or persistent disk profile is provided. Canvas controls cannot be operated by coordinate. Snapshot role/name heuristics are compact DOM metadata, not a full accessibility implementation. Read [SECURITY.md](SECURITY.md) before assuming redaction or isolation extends beyond the documented mechanisms.
+Current source supports explicit uploads and downloads, owned popups, armed native dialogs, and viewport coordinate clicks. Closed shadow roots remain outside DOM observation; no generic eval tool or complete persistent disk profile is provided. Explicit workspace restoration rebuilds selected browser state and URLs, not live page memory. Snapshot role/name heuristics are compact DOM metadata, not a full accessibility implementation. Read [SECURITY.md](SECURITY.md) for the implemented redaction and isolation boundaries.
 
 To remove this integration, `codex mcp remove tablaze` removes the configured server entry. It does not uninstall your source checkout or tarball installation.
 
@@ -244,3 +252,69 @@ Inspect tool events and the final task result: in this check the CLI exited zero
 A subsequent actual model-driven acceptance run passed `tab_list → tab_open → tab_act → tab_verify → tab_close → tab_list`: four form actions, five independent checks and zero remaining sessions. It retained `--sandbox read-only` with invocation-only `-c 'approval_policy="on-request"' -c 'approvals_reviewer="auto_review"'`, supported by the installed CLI. No global configuration was changed and approval was not disabled. These settings describe a verified, explicitly authorized local fixture task; confirm support and scope in your client before use. [Official Auto-review documentation](https://learn.chatgpt.com/docs/sandboxing/auto-review)
 
 [Actual tool evidence](evidence/codex-e2e.json) includes arguments, results and limitations. Model connection retries and fallback are included in the 233.936-second duration, so it is not a speed benchmark. This proves one deterministic local flow only; the JSONL stream does not expose individual approval rationales or establish behavior across every client version and external website.
+
+## Development branch: extended workflows
+
+These additions are not covered by the historical 0.1.0 release evidence. The server now exposes 15 tools: `tab_open`, `tab_snapshot`, `tab_act`, `tab_extract`, `tab_verify`, `tab_capture`, `tab_list`, `tab_close`, `tab_navigate`, `tab_tabs`, `tab_downloads`, `tab_dialog`, `tab_state`, `tab_pdf`, and `tab_extract_structured`.
+
+For truncated pages, scope `tab_snapshot` to exactly one CSS root, or scroll and observe only the viewport. Changing scope resets the diff baseline. A new snapshot invalidates earlier revisions.
+
+```json
+{"session_id":"<session_id>","selector":"#results","viewport_only":true,"max_elements":150}
+```
+
+Snapshots include the active `tab_id` and owned `tabs`. By default popups stay open without an automatic switch. The optional global `--popup-policy follow-single` follows a unique popup associated with the active owned opener within an activating action's bounded window; multiple, background or late candidates require explicit inspection. Following returns `replan_required` and a fresh snapshot, and skips remaining old-context actions. Check `batch_complete` as well as `ok`. See [the exact policy and cancellation boundaries](https://github.com/SweetDianDian/tablaze/blob/main/docs/RUNTIME.md). `tab_tabs` accepts `list`, `new` (optional HTTP(S) url), `switch` (tab_id), or `close` (tab_id). Closing the final tab ends the session. CDP mode manages only pages created by this service and their popups. `tab_navigate` accepts `goto` (url required), `back`, `forward`, and `reload`, preserving session storage.
+
+```json
+{"session_id":"<session_id>","action":"switch","tab_id":"<tab_id_from_tabs>"}
+```
+
+New `tab_act` steps:
+
+```json
+[
+  {"type":"hover","ref":"<current_ref>"},
+  {"type":"double_click","ref":"<current_ref>"},
+  {"type":"upload","ref":"<visible_file_input_ref>","files":["/absolute/path/report.csv"]},
+  {"type":"upload_chooser","ref":"<visible_choose_file_button_ref>","files":["/absolute/path/report.csv"]},
+  {"type":"drag","ref":"<source_ref>","target_ref":"<destination_ref>"},
+  {"type":"scroll","direction":"right","pixels":500,"ref":"<scroll_container_ref>"}
+]
+```
+
+Uploads accept up to 20 explicit regular local files, each at most 50 MiB; an empty list clears selection. Use `upload` for an observed visible file input, or `upload_chooser` for the observed visible button that opens a file chooser backed by a hidden input. The latter waits for the page's file-chooser event and supplies the selected files. Uploading exposes file bytes to the page, so the paths must be within the user's requested scope.
+
+`drag` moves the mouse between two currently observed refs. Both target centers must fit in the viewport after scrolling; re-observe and adjust the viewport if `NOT_VISIBLE` is returned. It does not guarantee compatibility with every custom drag widget. `scroll` accepts `up`, `down`, `left`, and `right`; omit `ref` to scroll the observed frame's window, or supply a current container ref to scroll that element. Pixels range from 1 to 10,000. Check the resulting page state rather than assuming a requested scroll moved content.
+
+After visual inspection, `{"type":"click_xy","x":120,"y":160}` clicks inside the main tab viewport in CSS pixels using the current snapshot_id. Coordinates do not provide element identity guards; re-observe after page changes. Observe the main frame before coordinate actions.
+
+Use `tab_downloads` with session_id to list records, then download_id and optional timeout_ms to await a specific download. Only status `completed` supplies a usable path; pending is not success. Completed artifacts survive closing; pending owned downloads are cancelled during cleanup.
+
+Before an action opens a native dialog, call `tab_dialog` with action `accept` or `dismiss` and optional `prompt_text`. This one-shot policy is consumed by the next dialog. Unarmed dialogs are dismissed and reported as a failed action with possible effects.
+
+`tab_state` (session_id) saves a private `storage_state` file. Pass its path to `tab_open.storage_state` to restore cookies, localStorage and IndexedDB in an isolated context. Files contain credentials; sessionStorage, extensions and existing tabs are not saved. CDP imports are rejected.
+
+`tab_pdf` prints the active tab to a local PDF artifact; it does not export only a selected child frame. It accepts `format: "A4" | "Letter"` and `landscape`, and returns a path, byte count, SHA-256, MIME type, source URL, and tab ID. PDFs above 50 MiB are rejected. The ordinary action timeout applies; an export timeout closes the owned tab. Print styles can differ from screen rendering, so inspect the artifact when layout matters.
+
+```json
+{"session_id":"<session_id>","format":"A4","landscape":false}
+```
+
+`tab_extract_structured` reads a named field plan and validates its output against JSON Schema draft-07. It returns a source URL, selector, match index, and raw quote for every extracted value. Plans support text, attributes, current non-sensitive form values, typed scalars, and arrays; limits are 30 fields, 20 matches per field, and 100 matches total. Missing required fields, unsafe values, type failures, and truncated evidence produce errors. See the [schema extraction examples and provenance limits](https://github.com/SweetDianDian/tablaze/blob/main/docs/EXTRACTION.md); a quotation's presence is not proof of a claim's truth.
+
+## Saved tasks and browser restoration
+
+The optional autonomous loop is configured separately from MCP in the [Agent guide](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md). On a new run, `run --start-url <HTTP(S) URL>` can open an explicitly supplied starting page before the first model decision. The normal tool dispatcher accounts for this navigation in tool and time budgets. Version 2 checkpoints retain this initialization state and migrate valid version 1 files; resume does not automatically replay an attempted initializer or let an existing run add or change its URL. Workspaces also retain popup policy, defaulting to `stay` for older files; an explicitly conflicting policy is rejected on resume.
+
+To create and resume a private run checkpoint, choose your own model endpoint and supply credentials through the configured environment variable:
+
+```sh
+node dist/cli.js run --task "<authorized task>" --model "<model-id>" --endpoint "https://<provider>/v1/chat/completions" --channel chrome --checkpoint "/absolute/path/private-run.json"
+node dist/cli.js run --resume "/absolute/path/private-run.json" --model "<model-id>" --endpoint "https://<provider>/v1/chat/completions" --channel chrome
+```
+
+The CLI writes a 0600 temporary file and atomically renames it to the checkpoint path. The file contains full task history and browser cookies, localStorage, and IndexedDB; keep it private. Source-library `exportWorkspace()`/`restoreWorkspace()` and CLI resume recreate isolated contexts, owned tab URLs, and the active tab, with new session identifiers. They do not restore live DOM, unsaved form drafts, sessionStorage, page JavaScript memory, scroll position, extensions, pending downloads, or in-flight transactions. Restoring URLs loads pages again. Old refs and completion evidence are invalid; observe and verify the restored state. Workspace import requires a new empty engine and does not target a CDP-attached profile.
+
+Unknown-outcome mutations stop resume with `needs_input` before browser or model startup. Check the real business outcome first, then explicitly supply `--reconciled "<what you checked and observed>"`. This operator acknowledgment neither proves completion nor instructs the runner to replay the submission. Library callers use `reconciliation`; checkpoints requiring an application `validateCompletion` function must be resumed through the library with that function.
+
+Step, tool-call, planner-call, and elapsed-time counters carry forward. Limits default to the saved limits; process downtime is excluded. The returned library checkpoint includes the final persistence wait. The CLI's saved elapsed time includes browser-state export performed before saving, but not the duration of the last atomic file write itself. This is a timing boundary, not an exact measurement of that final I/O. See [runtime details](https://github.com/SweetDianDian/tablaze/blob/main/docs/RUNTIME.md) and [checkpoint security](SECURITY.md).

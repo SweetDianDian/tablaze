@@ -1,0 +1,200 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-22T12:20:00.216796Z",
+  "status": "development_increment_verified_objective_incomplete",
+  "base_commit": "d88210a25608ae494d74f1c461674d596f86c5f6",
+  "release_status": "Source development increment; npm publication pending. Historical website downloads remain the original 0.1.0 preview.",
+  "test_command": "TABLAZE_BROWSER_CHANNEL=chrome npm test",
+  "tests": {
+    "total": 264,
+    "passed": 264,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "exit_code": 0,
+    "duration_ms": 133081.4225
+  },
+  "environment": {
+    "tablaze": "0.1.0",
+    "playwright": "1.63.0",
+    "node": "v25.9.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "os_release": "25.5.0",
+    "cpu": "Apple M4",
+    "browser_channel": "chrome",
+    "headless": true,
+    "browser_version": "153.0.8010.53"
+  },
+  "test_scope": "Full regression: real isolated Chrome and owned CDP fixtures, local HTTP, MCP, cross-process CLI, strict checkpoint v1/v2 to v3 migration, initialization, popup replanning, cancellation/late cleanup, extraction, Codex transport phases, typed custom tools, exact browser/application identities, cancellation of independently scoped dispatch, real backend receipts and tenant-safe recovery. Scripted planners validate mechanisms; real Codex comparisons below measured their exact earlier source versions. No paid inference requests are made by the suite.",
+  "test_log": "development-tests.txt",
+  "benchmark": {
+    "raw": "../../bench/results/2026-09-22T08-07-04.785Z.json",
+    "attempted": 5,
+    "passed": 5,
+    "comparison": false,
+    "scope": "Earlier development increment; not rerun for the latest features."
+  },
+  "package_check": "npm pack --ignore-scripts after the tested build, clean temporary offline installation from official npm metadata with install scripts disabled, and strict TypeScript consumer compilation passed. Verified exported APIs, checkpoint v3, all 15 MCP tools, actual custom dispatch and 11 installed runtime/declaration SHA-256 digests against the tested build. Consumer types reject incorrect parsed input, handler output and application context. No npm publication.",
+  "source_sha256": {
+    "bench/comparison/baseline.json": "847a32420f5db5f3ce3ea1bae9d4714da4d4b9fc28ba5f1b3de738b4269799fb",
+    "bench/comparison/browser-use-adapter.py": "41349835f9421643775abca7095f98590bcc70969e85a0287e397f870639239b",
+    "bench/comparison/codex-transport.mjs": "4169a3639e690e65807aa50720304c90cfbd71aca29e359048542374a0caa3dd",
+    "bench/comparison/fixture.mjs": "962a868b7703e70f200385c8127fd71b4629be072135409bd6d8eb80f1d66054",
+    "bench/comparison/model-gateway.mjs": "5a05af193230350ac6e16137280f658e37aea86bcae7cee20e4c6984cd45097a",
+    "bench/comparison/runner.mjs": "43273be5981a449d705eca5c48431d36da8b6cad51eb87085b8a716b62856aab",
+    "bench/comparison/tablaze-adapter.mjs": "f2e3eb93e1836bc982371d110b1e13c3f5680ea34ca89c9f163028c3632e1eeb",
+    "dist/agent.d.ts": "b752ef74c024b83d38510ad6dca09b85aa72cdbff8b3ed3d33d18b7b0df832c3",
+    "dist/agent.js": "4ea14f04b8628d3ad26c1e72e74e6482ce98a948a749ea74d9dc114727a9188d",
+    "dist/browser.d.ts": "5209904e80315a6e5ae74d0c18f31185c6f781a2a0d33be831b84a11e6a5b9cd",
+    "dist/browser.js": "522fe67ef11044250b269598a14a521fbdd0187fcf6b5e259c70adb1f20304ff",
+    "dist/checkpoint.d.ts": "03c707f77c2f597c00a91fb36fb258fa670cd4d7aa844aab6fcc72f4a837e166",
+    "dist/checkpoint.js": "51f4f8a2626cfabfecbf7d11a8b87b43fa6bb995b4d8b6462193cc27dc78fd8d",
+    "dist/cli.d.ts": "43e818adf60173644896298637f47b01d5819b17eda46eaa32d0c7d64724d012",
+    "dist/cli.js": "398fb41c9a89f74d2786a2dc686453744cf24eed61c03ab78ac2898f19af1614",
+    "dist/custom-tools.d.ts": "ce5a41f212dabb5f9928ac3fabac167f03d68b6fa4b81fec20abbad22824c05b",
+    "dist/custom-tools.js": "414246ad8b92567d0a7ffeba51f073d13c1ff2f9b03abf9afb65e488edd44841",
+    "dist/extraction.d.ts": "ba6117d5c79028379ceb9a35cd012f4b390a9e0eb921b70f7cfbccb5b0f32291",
+    "dist/extraction.js": "1a998c281523ef934d1a227e87dcbc07c9d2276be8b9734938cf812f97206971",
+    "dist/index.d.ts": "244357d529dd99c57f2f1df986c7d366383f1dcbf281efb69a2bc0b18dd42fe6",
+    "dist/index.js": "98985ea96f26f7089beac1c203e3f0999e699bf3ed094d15ebcb6210bbec82bb",
+    "dist/server.d.ts": "16162652b632823808704b0bd39d2138c4243e6e814f3a91defea007c2c7b9ea",
+    "dist/server.js": "ca1868e3a02ac86220ecd3dce541ca5b8c6d588f18cc7d8c0c3204c38c0ee058",
+    "dist/snapshot.d.ts": "0f7580a71e8a2ed01161f3cd39210720208869f2db2c7f346a8201941f440144",
+    "dist/snapshot.js": "bb0675169765265ed5178863c7d19f7afcae3fe98c619136a71b243cfb4bb042",
+    "package-lock.json": "4e791e06aba07f85c67385346ec57253b07c9070220dfd02b4996ef426f7bca7",
+    "package.json": "69d7c446effd14f8fd024989bde7f77a6b9cfbb9fa02aa7ad505d7f557864a96",
+    "src/agent.ts": "2a81d5909dab1c15929961d1cbf990ab523ff15ef717c28b02177268b7425a6e",
+    "src/browser.ts": "a1948cf4524a6f584156e33382b75d61a75ce36ec66d46b530a7a3934d7d6835",
+    "src/checkpoint.ts": "07a979b9bbff344a3c5814b1b727061233ada8ed24c180d9e5477c3243a5aac7",
+    "src/cli.ts": "caa59417165912d20dd8f6292dac3e1cc6f046c4448ee8aad1d63e8ea1f5ff67",
+    "src/custom-tools.ts": "d9244e369b874436b2e26d0057b9821d0ba400b7cd86e9af20b8090fc78fa71f",
+    "src/extraction.ts": "8647fbab7d6e5d8e42fe63b5e3baabd0a5de8fa0bb3f5e41d524a4809032f329",
+    "src/index.ts": "244357d529dd99c57f2f1df986c7d366383f1dcbf281efb69a2bc0b18dd42fe6",
+    "src/server.ts": "79c0f09b73052bdd941dc3840ba7ccf842ce9555eb642a53063a2734cde9d88b",
+    "src/snapshot.ts": "0753753c143408074d03ce7834c230b6e8f555a0c79eca1bcdee8d0ef722ab40",
+    "tests/advanced-races.test.mjs": "fa183be9a8bb3da327c3d2ce9daf17de8c9e645430d82ba4f55dffcf7a207cbf",
+    "tests/advanced-workflows.test.mjs": "3c256ffd9973884270a430ec391b16c29c2af5fd1a938ac4dbfc6ef86686bbd7",
+    "tests/agent-bound-tools.test.mjs": "7e09e67e397f121b3348a5391d92a76efc446d5b8de7370de49d439d64b8a00b",
+    "tests/agent-cli.test.mjs": "e6c8ffbf756ac2cf51bac62bd9c55762803fefee50883a1ea2b49807cda7b0c1",
+    "tests/agent-diagnostics.test.mjs": "12814df20870f79565f61bc5f128733b3d24a9526aa19cd432757668cec45ad6",
+    "tests/agent-popup-init.test.mjs": "a84a63814389613ec9a4e511bbf7eac1acff046b9b97f4611e131de770b476f9",
+    "tests/agent-recovery-review.test.mjs": "fe570e269293069cf3920dbee614af506745f24e12d3c3a98547d5d5fbea05af",
+    "tests/agent-recovery.test.mjs": "867b21bdf893f75fba53015afe146e002e40c77236e31ff20c18d0e77bf7368a",
+    "tests/agent-resume-cli.test.mjs": "67f54dcd9d203efb91cf621b2cf11aefeec0608d402abceacd7bffeb156b53b2",
+    "tests/agent-start-url.test.mjs": "e2f1b7616c58c72a4b3e3457f029fa3d6cc4b48a627f003d4f28e098f22a6898",
+    "tests/agent.test.mjs": "fe46a6e183bb6713453b9f35ef6bd8271185caeddf2c77f41cb1f6fa034856b7",
+    "tests/browser-binding.test.mjs": "800e985a4a4090db70a51a5b77d4c380d5caa63c27bacce4e240db9bc77da7dc",
+    "tests/browser.test.mjs": "dd7bebb00f7691342df20549b983501fb38fd8578eacee2293711eac6818009b",
+    "tests/cdp.test.mjs": "0a3ee31cd09e8741cd4e2bf4f9072bbd70bddeb263e292fab90088c062bd2ea7",
+    "tests/codex-event-semantics.test.mjs": "337a911b02c03f8804a582d44232b95e497ee6facf35acd3fc7692a1ca4ecdca",
+    "tests/codex-transport-review.test.mjs": "5ff361bb64af7d375eb906812504d145e78d8c9bb34b8acfabb5c640d5208dd6",
+    "tests/codex-transport.test.mjs": "a09eb4a739f9245c18b1f43291b39fb98084481484291c5bb880f4b4bd1f3d1c",
+    "tests/comparison-phases.test.mjs": "2a3140e49c745fe9ee0a6efd272fc7d5d2bf4f108aa4bce95f4c2289b271a32a",
+    "tests/comparison-runner-review.test.mjs": "77ace15549d8ea0c824b1ad3d291ef0b7fc91e470347555c4896f15e37669ef1",
+    "tests/comparison.test.mjs": "8e339a1fcf430adfddf30483878c638d28e7be1c560afecc08ebc8f657a21df8",
+    "tests/custom-tool-workflows.test.mjs": "02a63f9c098abd4a13f183f955f39397c2fd6f02477f818771deddc78074fe1b",
+    "tests/custom-tools-cli.test.mjs": "7340b1509bd07f5930b8758a23c46c01c629c1678f28eafa95fd36374d1f954b",
+    "tests/custom-tools.test.mjs": "6b65fc9d32374b7a9fddad0a34b5323c11d2a21c869bd2ed48828ab4af340fd4",
+    "tests/dom-reading.test.mjs": "7d6d45b09e0aa5057c1ba873c6d1bca8ed512f8117cf3d273325ac259073906b",
+    "tests/drag-controls.test.mjs": "5f4571a9561180ab3f030a69b02101011afa62f4524b54a976fb24a13685311f",
+    "tests/extraction.test.mjs": "d7255eae49dc44512a6a586eb577eb4e32514070d3f696f3c9da1b49937f17eb",
+    "tests/fixture.mjs": "f0d47ed99f495f9f9a6bf47bd115a01986f22bec94246b82475831321480cace",
+    "tests/lifecycle-races.test.mjs": "a00a03258d8acc54cc426c35ff4681fbffe40a44dc1ca6301d0d6665d58b7b31",
+    "tests/open-cancellation.test.mjs": "a2a414432793bd022b8936faca6b1a9d78a2f369d1b527eb9709aab6bfe31a88",
+    "tests/planner-projection.test.mjs": "07c9614b1eb3cb94a2a74301d88222bf2e16e67e91e5c503982582a6385f83e6",
+    "tests/popup-policy.test.mjs": "9648ea5ae7c9095c16d6879258b63e016d0c3991acd142942acf21305024a804",
+    "tests/protocol.test.mjs": "b7ef90a8aa7979c1b7a93f27fc1df124536df29d4c71b5edb0e28cae6f9ff618",
+    "tests/ref-verification.test.mjs": "707f8c53c0e6fbfec9b0b30a5c17c793b3aa2f78ee06e2977ead1b127834216c",
+    "tests/structured-mcp.test.mjs": "4dc99383617f246bd93e6fc34175082e133a95d0d10d9b215960453b38bc1f3a",
+    "tests/workflows.test.mjs": "ce1ef5c38255a69a1dd08934e82fb40f55c4ba2425e9057c6b7f415e54c19782",
+    "tsconfig.json": "77b7f663cdcb5bf93d71b14db756d04f5405bca98479df9cbff4b743be8237e6"
+  },
+  "superiority_proven": false,
+  "real_model_comparison": {
+    "report": "codex-matched-smoke-v3.json",
+    "analysis": "codex-matched-smoke-v3-analysis.json",
+    "tasks": 5,
+    "attempts": 10,
+    "business_outcomes_passed": {
+      "tablaze": 5,
+      "browser_use": 5
+    },
+    "agent_success_reported": {
+      "tablaze": 4,
+      "browser_use": 5
+    },
+    "normal_run_return_and_business_pass": {
+      "tablaze": 4,
+      "browser_use": 5
+    },
+    "returned_before_deadline": {
+      "tablaze": 5,
+      "browser_use": 5
+    },
+    "qualification": "Tablaze duplicate-write made one order and observed its receipt, but its third inference emitted an error event and the old bridge terminated the process. No accepted finish; underlying message and usage absent. Failed return remains counted, not a fast success.",
+    "superiority_proven": false
+  },
+  "real_model_comparison_previous": {
+    "report": "codex-matched-smoke-v2.json",
+    "analysis": "codex-matched-smoke-v2-analysis.json",
+    "tasks": 2,
+    "attempts": 4,
+    "business_outcomes_passed": {
+      "tablaze": 2,
+      "browser_use": 2
+    },
+    "agent_success_reported": {
+      "tablaze": 2,
+      "browser_use": 2
+    },
+    "normal_run_return_and_business_pass": {
+      "tablaze": 2,
+      "browser_use": 1
+    },
+    "qualification": "Browser Use popup reached done(success=True) and independent acceptance before a default post-task judge timed out; raw adapter status remains failed. Model-call counts include this extra judge.",
+    "superiority_proven": false
+  },
+  "test_log_sha256": "1e157065e9aae9f99baea181ee39091014d01e79b909955c345262f569b88caa",
+  "real_model_comparison_initial": {
+    "report": "codex-matched-smoke-v1.json",
+    "analysis": "codex-matched-smoke-analysis.json",
+    "tasks": 2,
+    "attempts": 4,
+    "normal_completion_and_business_pass": {
+      "tablaze": 1,
+      "browser_use": 2
+    },
+    "business_outcomes_passed": {
+      "tablaze": 2,
+      "browser_use": 2
+    },
+    "superiority_proven": false
+  },
+  "real_model_followups": [
+    {
+      "report": "codex-terminal-followup-v1.json",
+      "analysis": "codex-terminal-followup-v1-analysis.json",
+      "tasks": 1,
+      "attempts": 2,
+      "business_outcomes_passed": {
+        "tablaze": 1,
+        "browser_use": 1
+      },
+      "normal_run_return_and_business_pass": {
+        "tablaze": 1,
+        "browser_use": 1
+      },
+      "scope": "Independent matched duplicate-write pair after safe diagnostics and Codex terminal-state fixes. Historical v3 failure is retained and not replaced.",
+      "real_nonterminal_error_observed": {
+        "engine": "browser-use",
+        "model_call": 1,
+        "phase": "planning",
+        "terminal_event": "turn.completed",
+        "exit_code": 0,
+        "diagnostic_category": "unknown"
+      },
+      "superiority_proven": false
+    }
+  ]
+}

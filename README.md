@@ -17,7 +17,7 @@
   <a href="package.json"><img src="https://img.shields.io/badge/node-%E2%89%A520-80b7ff?style=flat-square" alt="Node.js 20 or later"></a>
 </p>
 
-**Give your agent a browser it can work with.** Tablaze connects Codex and other MCP clients to Chromium through eight focused tools. Inspect a page, fill a form, extract a result, and check that the task actually succeeded.
+**Give your agent a browser it can work with.** Tablaze connects Codex and other MCP clients to Chromium through fifteen focused tools. Inspect a page, fill a form, extract a result, and check that the task actually succeeded.
 
 Built with Playwright. Browser sessions stay running between calls; your MCP client supplies the reasoning. No additional model API key required.
 
@@ -32,6 +32,21 @@ A real MCP SDK client searches for a stay in Lisbon, verifies five outcomes, the
 `Observe the form` → `Fill · select · check · search` → `Verify the result`
 
 [Reproduce the recording](demo/README.md) · [Inspect the full trace](docs/evidence/demo-run.json)
+
+## Measured development results
+
+The [third matched Codex run](docs/CODEX_COMPARISON_RESULTS_V3.md) used five visible development tasks, one attempt per engine and task. Both engines passed independent business checks **5/5**; Tablaze returned complete success **4/5**, Browser Use **5/5**. Tablaze's order task was interrupted by the old inference bridge after the order was recorded. Its failed call had no usage data, so total tokens remain unknown.
+
+A [separate order follow-up after the bridge fix](docs/CODEX_TERMINAL_FOLLOWUP.md) completed successfully for both engines, each creating one order with no duplicate write:
+
+| Follow-up measurement | Tablaze | Browser Use |
+| --- | ---: | ---: |
+| Agent reported completion | 59.247 s | 75.354 s |
+| End-to-end time | 59.415 s | 93.706 s |
+| Model calls, including judging | 4 | 4 (1 judge) |
+| Input / output tokens | 59,123 / 664 | 70,868 / 1,002 |
+
+Browser Use's default judge is included in its totals. Agent and end-to-end clocks have different starting boundaries. This single follow-up does not replace the original 4/5 result, and these small, visible samples do not establish overall superiority. Both reports retain raw results, source hashes, settings, and limitations.
 
 ## Get started
 
@@ -81,18 +96,25 @@ Then ask Codex:
 | **Ordered batches** | Send up to 20 actions in one call, with completed, failed and skipped steps. Stops on error; earlier effects remain. |
 | **Explicit verification** | Check the resulting URL, title, text, field values, visibility and element counts. |
 
-### Eight tools
+### Fifteen tools
 
 | Tool | Use it to |
 | --- | --- |
 | `tab_open` | Open a page and receive its first snapshot. |
 | `tab_snapshot` | Observe the page, changes or a selected frame. |
-| `tab_act` | Click, fill, press, select, check, scroll or wait. |
-| `tab_verify` | Test explicit assertions against the current page. |
+| `tab_act` | Guarded form input, drag/drop, container scrolling, file selection and coordinate actions. |
+| `tab_verify` | Test explicit page assertions and guarded form values by ref or CSS selector. |
 | `tab_extract` | Read text, links or tables. |
 | `tab_capture` | Capture a JPEG screenshot. |
 | `tab_list` | Inspect owned sessions. |
 | `tab_close` | Close a session and release its resources. |
+| `tab_navigate` | Navigate, go back/forward, or reload without losing session state. |
+| `tab_tabs` | Open, switch, and close owned tabs, including popups. |
+| `tab_downloads` | Inspect download status and local artifacts. |
+| `tab_dialog` | Arm a one-shot accept/dismiss response to a native dialog. |
+| `tab_state` | Save authentication state for explicit import into a new session. |
+| `tab_extract_structured` | Extract typed fields against a JSON schema with DOM source citations. |
+| `tab_pdf` | Export a private PDF artifact with source URL and SHA-256 digest. |
 
 ## Explore the project
 
@@ -100,15 +122,18 @@ Then ask Codex:
 | --- | --- |
 | [Codex integration](docs/CODEX.md) | Copyable configuration, tool arguments and troubleshooting. |
 | [Runtime reference](docs/RUNTIME.md#english) | Reference lifetime, batch semantics, browser modes and current limits. |
+| [Typed custom tools](docs/CUSTOM_TOOLS.md) | SDK schemas, trusted application context, browser bindings and recovery contracts. |
 | [Benchmark](bench/README.md) | Reproduce the local workload and inspect every raw sample. |
 | [Validation evidence](docs/VALIDATION.md) | Real browser, SDK and Codex results, with their measured scope. |
 | [Security](SECURITY.md) | Data handling, resource ownership and private reporting. |
 | [Release packaging](docs/RELEASE.md) | Build the npm tarball and source archive. |
 
-[Ubuntu CI on Node 20 and 22](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909) passed the build, browser/MCP tests and package inspection. To check a source checkout yourself, run `npm test`; use `npm run bench` for the separate local benchmark.
+The [historical 0.1.0 Ubuntu CI run on Node 20 and 22](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909) passed its build, browser/MCP tests and package inspection. Current development validation is recorded [separately](docs/DEVELOPMENT_STATUS.md). To check a source checkout yourself, run `npm test`; use `npm run bench` for the separate local benchmark.
 
 ## Contribute
 
 Bring a reproducible browser case, improve a guide, or send a focused fix. [Open an issue](https://github.com/SweetDianDian/tablaze/issues) · [Submit a pull request](https://github.com/SweetDianDian/tablaze/pulls) · [Read the contribution guide](CONTRIBUTING.md)
 
 [MIT licensed](LICENSE) · [Dependency credits and project provenance](NOTICE)
+
+The current development branch adds scoped/viewport snapshots, consistent composed-DOM reading, rich controls, file workflows, tabs, [structured extraction](docs/EXTRACTION.md), and a [model-driven agent loop with checkpoint/resume](docs/AGENT.md). These additions have not yet been published to npm. See [current validation](docs/DEVELOPMENT_STATUS.md). The [Browser Use comparison](docs/BROWSER_USE_COMPARISON.md) records remaining gaps and unmeasured acceptance criteria; it does not claim superiority.

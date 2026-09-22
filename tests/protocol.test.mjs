@@ -8,7 +8,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const cli = fileURLToPath(new URL("../dist/cli.js", import.meta.url));
-const toolNames = ["tab_act", "tab_capture", "tab_close", "tab_extract", "tab_list", "tab_open", "tab_snapshot", "tab_verify"];
+const toolNames = ["tab_act", "tab_capture", "tab_close", "tab_dialog", "tab_downloads", "tab_extract", "tab_extract_structured", "tab_list", "tab_navigate", "tab_open", "tab_pdf", "tab_snapshot", "tab_state", "tab_tabs", "tab_verify"];
 
 async function connect(args = []) {
   const env = {};
@@ -31,7 +31,7 @@ function data(response) {
   return response.structuredContent;
 }
 
-test("stdio handshake exposes exactly eight bounded tools and structured session errors", { timeout: 20_000 }, async t => {
+test("stdio handshake exposes the bounded browser tools and structured session errors", { timeout: 20_000 }, async t => {
   const connection = await connect();
   t.after(() => connection.client.close());
   const listed = await connection.client.listTools();
@@ -40,7 +40,7 @@ test("stdio handshake exposes exactly eight bounded tools and structured session
     assert.equal(tool.inputSchema.type, "object");
     assert.equal(tool.inputSchema.additionalProperties, false);
     assert.equal(tool.annotations.openWorldHint, true);
-    assert.equal(tool.annotations.readOnlyHint, !["tab_open", "tab_act", "tab_close"].includes(tool.name));
+    assert.equal(tool.annotations.readOnlyHint, !["tab_open", "tab_act", "tab_close", "tab_navigate", "tab_tabs", "tab_dialog", "tab_state", "tab_pdf"].includes(tool.name));
   }
   const list = data(await connection.client.callTool({ name: "tab_list", arguments: {} }));
   assert.equal(list.ok, true);

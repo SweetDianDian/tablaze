@@ -1,0 +1,437 @@
+{
+  "schema_version": 2,
+  "source_report": "codex-terminal-followup-v1.json",
+  "source_report_sha256": "937141051d43ce61ffaafe55f99412827f30623fdd20fb652a7960472d3a58e2",
+  "scope": "Independent matched duplicate-write follow-up, one fresh attempt per engine after the bridge and Agent diagnostics fixes. Historical v3 remains unchanged; no aggregate superiority claim.",
+  "superiority_proven": false,
+  "engine_options": {
+    "tablaze": {
+      "initializeUrl": true,
+      "popupPolicy": "follow-single"
+    },
+    "browserUse": {
+      "useJudge": true
+    }
+  },
+  "model_configuration": {
+    "model": "gpt-6-astra",
+    "transport": "codex-cli",
+    "endpoint": null,
+    "temperature": null,
+    "reasoningEffort": "ultra",
+    "maxOutputTokens": null,
+    "tokenBudget": 250000,
+    "transportRetries": 0,
+    "codexVersion": "0.155.0-alpha.9.2",
+    "providerHTTPOverride": true,
+    "provider": "tablaze-comparison",
+    "providerConfiguredRequestRetries": 0,
+    "providerConfiguredStreamRetries": 0,
+    "disabledFeatures": [
+      "shell_tool",
+      "unified_exec",
+      "apps",
+      "plugins",
+      "hooks",
+      "memories",
+      "chronicle",
+      "browser_use",
+      "browser_use_external",
+      "computer_use",
+      "in_app_browser",
+      "multi_agent",
+      "multi_agent_v2",
+      "image_generation",
+      "view_image",
+      "goals",
+      "sleep_tool",
+      "workspace_dependencies",
+      "shell_snapshot"
+    ],
+    "limitations": [
+      "Codex CLI is an inference bridge with its own fixed system instructions, not a raw model API.",
+      "The CLI has no verified per-call output token or temperature control in this transport.",
+      "The CLI provider disables request and stream retries; unobservable retries remain unknown."
+    ]
+  },
+  "deadline_scope": "schema v2: common absolute deadline begins before gateway and adapter startup; adapter return and owned cleanup, final independent business judging and gateway teardown all count in runReturnedBeforeDeadline wall time; cancellation and cleanup may use bounded grace after deadline",
+  "summary": {
+    "tablaze": {
+      "passed": 1,
+      "completedAndPassed": 1,
+      "unfinishedWithPassedOutcome": 0,
+      "businessPassed": 1,
+      "agentDoneObserved": 1,
+      "agentSuccessObserved": 1,
+      "runReturnedBeforeDeadline": 1,
+      "allAxesPassed": 1,
+      "failed": 0,
+      "notRun": 0,
+      "falseSuccess": 0
+    },
+    "browser-use": {
+      "passed": 1,
+      "completedAndPassed": 1,
+      "unfinishedWithPassedOutcome": 0,
+      "businessPassed": 1,
+      "agentDoneObserved": 1,
+      "agentSuccessObserved": 1,
+      "runReturnedBeforeDeadline": 1,
+      "allAxesPassed": 1,
+      "failed": 0,
+      "notRun": 0,
+      "falseSuccess": 0
+    }
+  },
+  "attempts": [
+    {
+      "engine": "tablaze",
+      "task": "duplicate-write",
+      "business_passed": true,
+      "agent_done_observed": true,
+      "agent_success_observed": true,
+      "raw_agent_status": "succeeded",
+      "run_returned_before_deadline": true,
+      "agent_done_observed_ms": 59247.1975,
+      "wall_time_ms": 59414.610582999994,
+      "model_calls": 4,
+      "judge_model_calls": 0,
+      "judge_usage": null,
+      "input_tokens": 59123,
+      "output_tokens": 664,
+      "cached_tokens": 0,
+      "write_count": 1,
+      "duplicate_writes": 0,
+      "false_success": false,
+      "trace_sha256": "0209f0d30c3d221f430f75abd3b7b5b97d6d15494196b6a5004000250504741e",
+      "transport_error_codes": [],
+      "agent_failure": null,
+      "run_failure_class": null,
+      "transport_observations": [
+        {
+          "call": 1,
+          "terminal_event": "turn.completed",
+          "exit_code": 0,
+          "exit_signal": null,
+          "bridge_failure_code": null,
+          "event_order": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "usages": [
+            {
+              "input_tokens": 13847,
+              "output_tokens": 185,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 81
+            }
+          ]
+        },
+        {
+          "call": 2,
+          "terminal_event": "turn.completed",
+          "exit_code": 0,
+          "exit_signal": null,
+          "bridge_failure_code": null,
+          "event_order": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "usages": [
+            {
+              "input_tokens": 14567,
+              "output_tokens": 136,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 32
+            }
+          ]
+        },
+        {
+          "call": 3,
+          "terminal_event": "turn.completed",
+          "exit_code": 0,
+          "exit_signal": null,
+          "bridge_failure_code": null,
+          "event_order": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "usages": [
+            {
+              "input_tokens": 15214,
+              "output_tokens": 212,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 107
+            }
+          ]
+        },
+        {
+          "call": 4,
+          "terminal_event": "turn.completed",
+          "exit_code": 0,
+          "exit_signal": null,
+          "bridge_failure_code": null,
+          "event_order": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "usages": [
+            {
+              "input_tokens": 15495,
+              "output_tokens": 131,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 46
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "engine": "browser-use",
+      "task": "duplicate-write",
+      "business_passed": true,
+      "agent_done_observed": true,
+      "agent_success_observed": true,
+      "raw_agent_status": "succeeded",
+      "run_returned_before_deadline": true,
+      "agent_done_observed_ms": 75354.321,
+      "wall_time_ms": 93705.571917,
+      "model_calls": 4,
+      "judge_model_calls": 1,
+      "judge_usage": {
+        "inputTokens": 14490,
+        "outputTokens": 198,
+        "cachedTokens": 0,
+        "totalTokens": 14688,
+        "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+      },
+      "input_tokens": 70868,
+      "output_tokens": 1002,
+      "cached_tokens": 9600,
+      "write_count": 1,
+      "duplicate_writes": 0,
+      "false_success": false,
+      "trace_sha256": "ccbcc3902df9e268f14f2fe132003dd44d89eed9d28b38a491320afea5c47a33",
+      "transport_error_codes": [],
+      "agent_failure": null,
+      "run_failure_class": null,
+      "transport_observations": [
+        {
+          "call": 1,
+          "terminal_event": "turn.completed",
+          "exit_code": 0,
+          "exit_signal": null,
+          "bridge_failure_code": null,
+          "event_order": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "error"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [
+            {
+              "source": "stream_error",
+              "code": "unknown",
+              "category": "unknown",
+              "retryable": null,
+              "willRetry": null
+            }
+          ],
+          "usages": [
+            {
+              "input_tokens": 18727,
+              "output_tokens": 239,
+              "cached_input_tokens": 9600,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 78
+            }
+          ]
+        },
+        {
+          "call": 2,
+          "terminal_event": "turn.completed",
+          "exit_code": 0,
+          "exit_signal": null,
+          "bridge_failure_code": null,
+          "event_order": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "usages": [
+            {
+              "input_tokens": 18789,
+              "output_tokens": 243,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 73
+            }
+          ]
+        },
+        {
+          "call": 3,
+          "terminal_event": "turn.completed",
+          "exit_code": 0,
+          "exit_signal": null,
+          "bridge_failure_code": null,
+          "event_order": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "usages": [
+            {
+              "input_tokens": 18862,
+              "output_tokens": 322,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 162
+            }
+          ]
+        },
+        {
+          "call": 4,
+          "terminal_event": "turn.completed",
+          "exit_code": 0,
+          "exit_signal": null,
+          "bridge_failure_code": null,
+          "event_order": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "usages": [
+            {
+              "input_tokens": 14490,
+              "output_tokens": 198,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 74
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "runtime_archive": {
+    "filename": "tablaze-runtime.tgz",
+    "sha256": "0dd34298d22cd7ecab0a2d8d704d77cf67bbb442a7f8f2f709c5f413f138640d",
+    "matchedSourceEntries": 31,
+    "sourceTreeSha256": "b5f89a52aeadf32bec8d32f69d94fc4bef62c7f3ece93ac4d73c827834105c99",
+    "qualification": "npm pack archive of the exact measured runtime. Included documentation predates this follow-up report; no publication."
+  },
+  "event_semantics_observation": {
+    "engine": "browser-use",
+    "call": 1,
+    "phase": "planning",
+    "same_process_sequence": [
+      "thread.started",
+      "turn.started",
+      "error",
+      "item.completed",
+      "turn.completed"
+    ],
+    "exit_code": 0,
+    "configured_request_retries": 0,
+    "configured_stream_retries": 0,
+    "classification": "unknown",
+    "qualification": "This fresh request completed after a nonterminal error notification. The raw message was not retained; its cause and unobservable provider retry behavior remain unknown. It does not reconstruct the historical v3 failure."
+  }
+}

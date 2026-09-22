@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "source_report": "codex-matched-smoke-v1.json",
+  "source_report_sha256": "e151c065ca2016135526f6d347f2ec086bc9bf4b057b4553f16519954db74af7",
+  "scope": "Two development tasks, one attempt per engine per task; not a superiority experiment. Business outcomes and normal agent completion are counted separately.",
+  "superiority_proven": false,
+  "attempts": [
+    {
+      "engine": "tablaze",
+      "task": "form",
+      "judge_passed": true,
+      "agent_status": "limit_reached",
+      "completed_and_passed": false,
+      "duration_seconds": 180.334,
+      "model_calls": 7,
+      "input_tokens": 111243,
+      "output_tokens": 2155,
+      "duplicate_writes": 0,
+      "false_success": false
+    },
+    {
+      "engine": "browser-use",
+      "task": "form",
+      "judge_passed": true,
+      "agent_status": "succeeded",
+      "completed_and_passed": true,
+      "duration_seconds": 78.013,
+      "model_calls": 3,
+      "input_tokens": 50848,
+      "output_tokens": 750,
+      "duplicate_writes": 0,
+      "false_success": false
+    },
+    {
+      "engine": "tablaze",
+      "task": "popup",
+      "judge_passed": true,
+      "agent_status": "succeeded",
+      "completed_and_passed": true,
+      "duration_seconds": 144.497,
+      "model_calls": 7,
+      "input_tokens": 116363,
+      "output_tokens": 1144,
+      "duplicate_writes": 0,
+      "false_success": false
+    },
+    {
+      "engine": "browser-use",
+      "task": "popup",
+      "judge_passed": true,
+      "agent_status": "succeeded",
+      "completed_and_passed": true,
+      "duration_seconds": 98.203,
+      "model_calls": 4,
+      "input_tokens": 70990,
+      "output_tokens": 955,
+      "duplicate_writes": 0,
+      "false_success": false
+    }
+  ]
+}

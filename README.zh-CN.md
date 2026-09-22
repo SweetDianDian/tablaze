@@ -17,7 +17,7 @@
   <a href="package.json"><img src="https://img.shields.io/badge/node-%E2%89%A520-80b7ff?style=flat-square" alt="Node.js 20 及以上"></a>
 </p>
 
-**让 Agent 真正操作浏览器。** Tablaze / 闪页通过八个专注的 MCP 工具，让 Codex 等客户端连接 Chromium：观察页面、填写表单、提取结果，再检查任务是否完成。
+**让 Agent 真正操作浏览器。** Tablaze / 闪页通过十五个 MCP 工具，让 Codex 等客户端连接 Chromium：观察页面、填写表单、提取结果，再检查任务是否完成。
 
 基于 Playwright，浏览器会话在调用之间持续运行，推理由你的 MCP 客户端完成，无需额外模型 API Key。
 
@@ -32,6 +32,21 @@
 `观察表单` → `填写 · 选择 · 勾选 · 搜索` → `验收结果`
 
 [本地复现录制](demo/README.md) · [查看完整调用记录](docs/evidence/demo-run.json)
+
+## 当前量化记录
+
+[第三轮同模型 Codex 对比](docs/CODEX_COMPARISON_RESULTS_V3.md)包含五个可见开发任务，每项任务每引擎运行一次。双方独立业务验收均为 **5/5**；Tablaze 完整成功结束为 **4/5**，Browser Use 为 **5/5**。Tablaze 的订单已写入，但旧推理连接层随后中断，未完成验收和最终报告；失败调用没有用量数据，因此总 tokens 保留未知。
+
+[连接层修复后的独立订单复测](docs/CODEX_TERMINAL_FOLLOWUP.md)中，双方均完整成功，各创建一笔订单，没有重复写入：
+
+| 独立复测指标 | Tablaze | Browser Use |
+| --- | ---: | ---: |
+| Agent 报告完成 | 59.247 秒 | 75.354 秒 |
+| 全程时间 | 59.415 秒 | 93.706 秒 |
+| 模型调用，含评审 | 4 | 4（其中评审 1 次） |
+| 输入 / 输出 tokens | 59,123 / 664 | 70,868 / 1,002 |
+
+Browser Use 默认评审已计入总时间和用量。Agent 完成与全程时间的起点不同。这次独立复测不替换原来的 4/5；少量可见样本不能证明整体超过 Browser Use。两份报告均保留原始结果、代码哈希、运行条件与限制。
 
 ## 开始使用
 
@@ -81,18 +96,27 @@ codex mcp get tablaze
 | **顺序批次** | 一次最多提交 20 个操作，分别报告完成、失败和跳过状态。遇错停止，先前操作仍然生效。 |
 | **明确验收** | 核对实际 URL、标题、文字、字段值、可见性与元素数量。 |
 
-### 八个工具
+### 十五个工具
 
 | 工具 | 用途 |
 | --- | --- |
 | `tab_open` | 打开页面并返回首次快照。 |
 | `tab_snapshot` | 观察页面、变化或指定 frame。 |
-| `tab_act` | 点击、填写、按键、选择、勾选、滚动或等待。 |
-| `tab_verify` | 对当前页面执行明确断言。 |
+| `tab_act` | 受保护的表单操作、拖拽、容器滚动、文件选择与坐标操作。 |
+| `tab_verify` | 执行页面断言，通过受保护的 ref 或 CSS 选择器验收表单值。 |
 | `tab_extract` | 读取文字、链接或表格。 |
 | `tab_capture` | 获取 JPEG 截图。 |
 | `tab_list` | 查看自有会话。 |
 | `tab_close` | 关闭会话并释放资源。 |
+| `tab_navigate` | 在会话内前进、后退、刷新或导航。 |
+| `tab_tabs` | 创建、切换和关闭自有标签页，接续弹窗流程。 |
+| `tab_downloads` | 查看下载状态与本地文件。 |
+| `tab_dialog` | 为下一次原生对话框设置接受或取消响应。 |
+| `tab_state` | 导出可用于新会话恢复的登录状态文件。 |
+| `tab_extract_structured` | 按 JSON Schema 提取类型化字段，返回 DOM 来源证据。 |
+| `tab_pdf` | 导出私有 PDF 文件，返回来源 URL 和 SHA-256。 |
+
+当前开发分支增加定向/视口快照、统一 Shadow DOM 读取、拖拽、容器滚动、文件流程、多标签页、[结构化提取](docs/EXTRACTION.md)和可断点恢复的[模型驱动 Agent](docs/AGENT.md)。新增能力尚未发布到 npm，已验收范围见[开发状态](docs/DEVELOPMENT_STATUS.md)。[Browser Use 对照与未完成验收](docs/BROWSER_USE_COMPARISON.md)明确记录差距，不宣称已超过对方。
 
 ## 深入了解
 
@@ -100,12 +124,13 @@ codex mcp get tablaze
 | --- | --- |
 | [Codex 接入](docs/CODEX.zh-CN.md) | 可复制的配置、工具参数与排错。 |
 | [运行机制](docs/RUNTIME.md#简体中文) | 引用生命周期、批次语义、浏览器模式与当前限制。 |
+| [类型化自定义工具](docs/CUSTOM_TOOLS.md) | SDK Schema、可信应用上下文、浏览器绑定与恢复约定。 |
 | [基准测试](bench/README.md) | 复现本地场景，检查每个原始样本。 |
 | [验证记录](docs/VALIDATION.md) | 真实浏览器、SDK 与 Codex 的结果和验证范围。 |
 | [安全边界](SECURITY.md) | 数据处理、资源归属与私密漏洞报告。 |
 | [发布打包](docs/RELEASE.md) | 生成 npm 安装包和源码归档。 |
 
-[Ubuntu 的 Node 20/22 CI](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909) 已通过构建、浏览器/MCP 测试和包内容检查。源码目录中运行 `npm test` 可执行测试；`npm run bench` 单独运行本地基准。
+[历史 0.1.0 的 Ubuntu Node 20/22 CI](https://github.com/SweetDianDian/tablaze/actions/runs/35696802909)已通过当时的构建、浏览器/MCP 测试和包内容检查；当前开发分支的验收[单独记录](docs/DEVELOPMENT_STATUS.md)。源码目录中运行 `npm test` 可执行测试；`npm run bench` 单独运行本地基准。
 
 ## 参与贡献
 

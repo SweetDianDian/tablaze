@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { BrowserEngine, BrowserError, type BrowserOptions } from "./browser.js";
+import { ExtractionError } from "./extraction.js";
 
 export const SERVER_VERSION = "0.1.0";
 
@@ -15,15 +16,22 @@ const actions = z.discriminatedUnion("type", [
   z.object({ type: z.literal("press"), ref, key: z.string().min(1).max(100) }).strict(),
   z.object({ type: z.literal("select"), ref, values: z.array(z.string().max(1_000)).max(50) }).strict(),
   z.object({ type: z.literal("check"), ref, checked: z.boolean() }).strict(),
-  z.object({ type: z.literal("scroll"), direction: z.enum(["up", "down"]), pixels: z.number().int().min(1).max(10_000).optional() }).strict(),
+  z.object({ type: z.literal("hover"), ref }).strict(),
+  z.object({ type: z.literal("double_click"), ref }).strict(),
+  z.object({ type: z.literal("upload"), ref, files: z.array(z.string().min(1).max(4096)).max(20) }).strict(),
+  z.object({ type: z.literal("upload_chooser"), ref, files: z.array(z.string().min(1).max(4096)).max(20) }).strict(),
+  z.object({ type: z.literal("drag"), ref, target_ref: ref }).strict(),
+  z.object({ type: z.literal("click_xy"), x: z.number().nonnegative().max(100000), y: z.number().nonnegative().max(100000) }).strict(),
+  z.object({ type: z.literal("scroll"), direction: z.enum(["up", "down", "left", "right"]), pixels: z.number().int().min(1).max(10_000).optional(), ref: ref.optional() }).strict(),
   z.object({ type: z.literal("wait"), text: z.string().min(1).max(2_000), timeout_ms: timeout.optional() }).strict(),
 ]);
-const checks = z.discriminatedUnion("kind", [
+const checks = z.union([
   z.object({ kind: z.literal("url"), value: z.string().min(1).max(8_192) }).strict(),
   z.object({ kind: z.literal("title"), contains: z.string().min(1).max(2_000) }).strict(),
   z.object({ kind: z.literal("text"), contains: z.string().min(1).max(2_000) }).strict(),
   z.object({ kind: z.literal("visible"), selector }).strict(),
   z.object({ kind: z.literal("value"), selector, value: z.string().max(10_000) }).strict(),
+  z.object({ kind: z.literal("value"), ref, value: z.string().max(10_000) }).strict(),
   z.object({ kind: z.literal("count"), selector, value: z.number().int().min(0).max(100_000) }).strict(),
 ]);
 
@@ -57,8 +65,9 @@ function redactErrors(output: Record<string, unknown>, protectedValues: string[]
 }
 
 function safeError(error: unknown, protectedValues: string[]): Record<string, unknown> {
-  const message = redactErrorMessage(error instanceof BrowserError ? error.message : "Browser operation failed. Re-observe the session and retry.", protectedValues);
-  return { ok: false, error: { code: error instanceof BrowserError ? error.code : "INTERNAL_ERROR", message } };
+  const known = error instanceof BrowserError || error instanceof ExtractionError;
+  const message = redactErrorMessage(known ? error.message : "Browser operation failed. Re-observe the session and retry.", protectedValues);
+  return { ok: false, error: { code: known ? error.code : "INTERNAL_ERROR", message, ...(error instanceof ExtractionError && error.issues ? { issues: error.issues } : {}) } };
 }
 
 async function guarded(operation: () => Promise<Record<string, unknown>>, protectedValues: string[] = []): Promise<CallToolResult> {
@@ -74,19 +83,20 @@ export function createServer(options: BrowserOptions = {}): { server: McpServer;
   });
 
   server.registerTool("tab_open", {
-    title: "Open browser session", description: "Open an HTTP(S) page in a new session and return a compact full snapshot. The browser stays warm for subsequent calls.",
-    inputSchema: z.object({ url: z.string().url().max(8_192) }).strict(), annotations: writeAnnotations,
-  }, ({ url }) => guarded(() => engine.open(url)));
+    title: "Open browser session", description: "Open an HTTP(S) page in a new session and return a compact full snapshot. Cancellation cleans up this opening attempt, including late-created pages, without closing sibling sessions or the shared browser. The browser stays warm for subsequent calls.",
+    inputSchema: z.object({ url: z.string().url().max(8_192), storage_state: z.string().min(1).max(4096).optional().describe("Explicit local storage-state file from tab_state. Restores cookies, localStorage and IndexedDB into an isolated session.") }).strict(), annotations: writeAnnotations,
+  }, ({ url, storage_state }, extra) => guarded(() => engine.open(url, { storageState: storage_state, signal: extra.signal })));
 
   server.registerTool("tab_snapshot", {
-    title: "Observe page", description: "Read the page and mint a new snapshot_id. Full returns current state; diff reports changes from the previous snapshot. Respect truncation and frame metadata.",
-    inputSchema: z.object({ session_id: sessionId, mode: z.enum(["full", "diff"]).optional(), max_elements: z.number().int().min(1).max(500).optional(), text_limit: z.number().int().min(0).max(20_000).optional(), frame_id: z.string().min(1).max(160).optional() }).strict(), annotations: readAnnotations,
-  }, ({ session_id, mode, max_elements, text_limit, frame_id }) => guarded(() => engine.snapshot(session_id, { mode, maxElements: max_elements, textLimit: text_limit, frameId: frame_id })));
+    title: "Observe page", description: "Read the page and mint a new snapshot_id. Scope to one CSS root with selector or the visible viewport with viewport_only to reach controls beyond a truncated page. Changing scope resets the diff baseline. Respect truncation and frame metadata.",
+    inputSchema: z.object({ session_id: sessionId, mode: z.enum(["full", "diff"]).optional(), max_elements: z.number().int().min(1).max(500).optional(), text_limit: z.number().int().min(0).max(20_000).optional(), frame_id: z.string().min(1).max(160).optional(), selector: selector.optional(), viewport_only: z.boolean().optional() }).strict(), annotations: readAnnotations,
+  }, ({ session_id, mode, max_elements, text_limit, frame_id, selector, viewport_only }) => guarded(() => engine.snapshot(session_id, { mode, maxElements: max_elements, textLimit: text_limit, frameId: frame_id, selector, viewportOnly: viewport_only })));
 
   server.registerTool("tab_act", {
-    title: "Act on observed elements", description: "Execute 1–20 ordered actions against a current snapshot, with a 30s batch budget by default (60s maximum). Stops at the first failure. Cancellation closes the owned session to interrupt work; completed effects remain. Use tab_verify for outcome evidence.",
+    title: "Act on observed elements", description: "Execute 1–20 ordered actions against a current snapshot. Includes hover, double_click, explicit local-file upload, and click_xy in main-viewport CSS pixels after visual inspection (coordinates lack DOM identity guards). Default 30s budget, maximum 60s. Stops on first failure. If the operator enabled follow-single popup policy, a unique owned popup associated with an activating action within 250ms can become active: returns its snapshot and replan_required, skips remaining actions, and batch_complete is false if any were skipped even when ok is true. Replan before more input. Cancellation closes the session; completed effects remain. Verify outcomes.",
     inputSchema: z.object({ session_id: sessionId, snapshot_id: z.string().min(1).max(160), actions: z.array(actions).min(1).max(20), include_snapshot: z.boolean().optional(), timeout_ms: timeout.optional() }).strict(), annotations: writeAnnotations,
   }, ({ session_id, snapshot_id, actions: steps, include_snapshot, timeout_ms }, extra) => guarded(() => engine.act(session_id, snapshot_id, steps.map(step => {
+    if (step.type === "drag") { const { target_ref, ...rest } = step; return { ...rest, targetRef: target_ref }; }
     if (step.type !== "wait") return step;
     const { timeout_ms, ...rest } = step;
     return { ...rest, timeoutMs: timeout_ms };
@@ -98,9 +108,9 @@ export function createServer(options: BrowserOptions = {}): { server: McpServer;
   }, ({ session_id, kind, selector, max_items }) => guarded(() => engine.extract(session_id, { kind, selector, maxItems: max_items })));
 
   server.registerTool("tab_verify", {
-    title: "Verify browser outcome", description: "Check 1–20 explicit page assertions and return pass/fail evidence. A successful click alone does not prove a workflow succeeded. Selectors are CSS.",
-    inputSchema: z.object({ session_id: sessionId, checks: z.array(checks).min(1).max(20), timeout_ms: timeout.optional() }).strict(), annotations: readAnnotations,
-  }, ({ session_id, checks, timeout_ms }) => guarded(() => engine.verify(session_id, checks, timeout_ms), checks.flatMap(check => check.kind === "value" ? [check.value] : [])));
+    title: "Verify browser outcome", description: "Check 1–20 explicit assertions. For current input/textarea/select values, use kind:value with exactly one observed ref or CSS selector. Any ref requires the current snapshot_id; the same snapshot remains readable after act if no newer snapshot or document change replaced it. Text checks inspect visible page text, excluding raw form values. A successful click alone does not prove success.",
+    inputSchema: z.object({ session_id: sessionId, snapshot_id: z.string().min(1).max(160).describe("Required when any value check uses ref. Use the latest snapshot_id, including one returned by tab_act.").optional(), checks: z.array(checks).min(1).max(20), timeout_ms: timeout.optional() }).strict(), annotations: readAnnotations,
+  }, ({ session_id, snapshot_id, checks, timeout_ms }) => guarded(() => engine.verify(session_id, checks, timeout_ms, snapshot_id), checks.flatMap(check => check.kind === "value" ? [check.value] : [])));
 
   server.registerTool("tab_capture", {
     title: "Capture page", description: "Capture the current viewport, or the full page when explicitly requested. Images can contain visible page data. Returns an image and URL metadata.",
@@ -108,7 +118,7 @@ export function createServer(options: BrowserOptions = {}): { server: McpServer;
   }, async ({ session_id, full_page }) => {
     try {
       const capture = await engine.screenshot(session_id, full_page);
-      return result({ ok: true, session_id, url: capture.url, mime_type: capture.mimeType, bytes: capture.buffer.byteLength }, capture);
+      return result({ ok: true, session_id, url: capture.url, mime_type: capture.mimeType, bytes: capture.buffer.byteLength, tab_id: capture.tabId, viewport: capture.viewport, coordinate_space: capture.coordinateSpace }, capture);
     } catch (error) { return result(safeError(error, [])); }
   });
 
@@ -121,6 +131,41 @@ export function createServer(options: BrowserOptions = {}): { server: McpServer;
     title: "Close session", description: "Close one session owned by this server and release its resources. Unsaved changes in that session are lost.",
     inputSchema: z.object({ session_id: sessionId }).strict(), annotations: writeAnnotations,
   }, ({ session_id }) => guarded(() => engine.close(session_id)));
+
+  server.registerTool("tab_navigate", {
+    title: "Navigate current tab", description: "Navigate within an existing session while retaining cookies and tabs. Supports goto, back, forward and reload. Returns a fresh snapshot; previous references are invalidated.",
+    inputSchema: z.object({ session_id: sessionId, action: z.enum(["goto", "back", "forward", "reload"]), url: z.string().url().max(8192).optional() }).strict(), annotations: writeAnnotations,
+  }, ({ session_id, action, url }) => guarded(() => engine.navigate(session_id, { action, url })));
+
+  server.registerTool("tab_tabs", {
+    title: "Manage owned tabs", description: "List, open, switch or close tabs within a session. Popups stay open and appear in snapshots; switch explicitly to work in them. Only this session's pages are accessible. Closing its last tab closes the session.",
+    inputSchema: z.object({ session_id: sessionId, action: z.enum(["list", "new", "switch", "close"]), tab_id: z.string().min(1).max(160).optional(), url: z.string().url().max(8192).optional() }).strict(), annotations: writeAnnotations,
+  }, ({ session_id, action, tab_id, url }) => guarded(() => engine.tabs(session_id, { action, tabId: tab_id, url })));
+
+  server.registerTool("tab_downloads", {
+    title: "Inspect downloads", description: "List downloads created by this session. Supply download_id to wait up to timeout_ms for completion. Completed results include an owned local artifact path. Pending is not completed; failed downloads set isError. Files remain after closing the session.",
+    inputSchema: z.object({ session_id: sessionId, download_id: z.string().min(1).max(160).optional(), timeout_ms: timeout.optional() }).strict(), annotations: readAnnotations,
+  }, ({ session_id, download_id, timeout_ms }) => guarded(() => engine.downloads(session_id, download_id, timeout_ms)));
+
+  server.registerTool("tab_dialog", {
+    title: "Handle next native dialog", description: "Arm a one-shot accept or dismiss response before the action that opens an alert, confirm or prompt. Optional prompt_text is entered only for that dialog. Unarmed dialogs are dismissed and reported as unsupported flow; check actual outcomes before retrying.",
+    inputSchema: z.object({ session_id: sessionId, action: z.enum(["accept", "dismiss"]), prompt_text: z.string().max(10000).optional() }).strict(), annotations: writeAnnotations,
+  }, ({ session_id, action, prompt_text }) => guarded(() => engine.dialog(session_id, { action, promptText: prompt_text }), prompt_text ? [prompt_text] : []));
+
+  server.registerTool("tab_state", {
+    title: "Save browser authentication state", description: "Save cookies, localStorage and IndexedDB to a private local artifact file for a later tab_open storage_state import. The file can contain credentials; state contents are not returned to the model. SessionStorage, extensions and open tabs are not saved.",
+    inputSchema: z.object({ session_id: sessionId }).strict(), annotations: writeAnnotations,
+  }, ({ session_id }) => guarded(() => engine.saveState(session_id)));
+
+  server.registerTool("tab_pdf", {
+    title: "Export page as PDF", description: "Print the active page into a private local PDF artifact and return its path, SHA-256 and source URL. Files survive closing. Print layout can differ from the screen; inspect the artifact when layout matters.",
+    inputSchema: z.object({ session_id: sessionId, format: z.enum(["A4", "Letter"]).optional(), landscape: z.boolean().optional() }).strict(), annotations: writeAnnotations,
+  }, ({ session_id, format, landscape }) => guarded(() => engine.pdf(session_id, { format, landscape })));
+
+  server.registerTool("tab_extract_structured", {
+    title: "Extract schema-validated fields", description: "Read named fields from observed DOM using selectors, validate strict JSON Schema draft-07, and return per-field source URL/selector/quote provenance. Supports text, attributes, current non-sensitive values, typed scalars and arrays. At most 30 fields, 20 matches per field, 100 total. Does not call a model or infer missing facts; hidden/password controls and truncated evidence are rejected.",
+    inputSchema: z.object({ session_id: sessionId, schema: z.union([z.record(z.unknown()), z.boolean()]), fields: z.array(z.object({ name: z.string().min(1).max(160), selector, mode: z.enum(["text", "attribute", "value"]), attribute: z.string().min(1).max(100).optional(), type: z.enum(["string", "number", "integer", "boolean"]).optional(), multiple: z.boolean().optional(), required: z.boolean().optional() }).strict()).min(1).max(30) }).strict(), annotations: readAnnotations,
+  }, ({ session_id, schema, fields }) => guarded(() => engine.extractStructured(session_id, { schema, fields })));
 
   let disposal: Promise<void> | undefined;
   const dispose = () => disposal ??= engine.dispose();

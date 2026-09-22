@@ -1,13 +1,17 @@
 #!/usr/bin/env node
 import { accessSync, constants, existsSync, readFileSync, statSync } from "node:fs";
+import { mkdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import { dirname, join, resolve } from "node:path";
 import { createRequire } from "node:module";
 import { spawn } from "node:child_process";
 import { parseArgs } from "node:util";
 import { chromium } from "playwright";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import type { BrowserOptions } from "./browser.js";
+import { BrowserError, type BrowserOptions, type BrowserWorkspace } from "./browser.js";
 import { createServer, SERVER_VERSION } from "./server.js";
+import { connectAgentTools, createOpenAICompatiblePlanner, runAgent } from "./agent.js";
+import { normalizeStartUrl, parseAgentCheckpoint, type AgentCheckpoint } from "./checkpoint.js";
 
 const require = createRequire(import.meta.url);
 const HELP = `Tablaze / 闪页 — compact browser MCP
@@ -16,6 +20,7 @@ Usage / 用法:
   tablaze [options]          Start the stdio MCP server / 启动 MCP
   tablaze doctor [options]   Print JSON diagnostics / 输出诊断
   tablaze setup              Install managed Chromium / 安装 Chromium
+  tablaze run [options]      Execute a model-driven task / 执行模型驱动任务
 
 Options / 选项:
   --headless                Run headless (default) / 无头模式
@@ -24,8 +29,22 @@ Options / 选项:
   --executable-path <path>  Use a browser executable / 浏览器程序路径
   --cdp-url <url>           Explicitly attach over CDP / 主动连接 CDP
   --timeout-ms <100-60000>  Action timeout (default 10000) / 操作超时
+  --popup-policy <policy>   stay (default) or follow-single / 弹窗跟随策略
   --help                    Print this help / 帮助
   --version                 Print the version / 版本
+
+Agent run options / 任务执行选项:
+  --task <text>             Requested task / 任务描述
+  --start-url <url>         Open this explicit URL once before planning / 首次规划前打开指定网址
+  --model <id>              Model supporting tools / 支持工具的模型
+  --endpoint <url>          Full chat-completions endpoint / 完整模型接口地址
+  --api-key-env <name>      Read key from this env var (default TABLAZE_API_KEY)
+  --max-steps <1-1000>      Planning limit (default 30) / 规划步数上限
+  --max-calls <1-10000>     Tool limit (default 100) / 工具调用上限
+  --run-timeout-ms <ms>    Task deadline (default 300000) / 任务总时限
+  --checkpoint <path>     Persist private run/browser checkpoints / 保存恢复点
+  --resume <path>         Resume a saved run; old refs must be re-observed / 恢复任务
+  --reconciled <note>     Explicitly confirm ambiguous writes were checked / 核对未决操作
 
 MCP writes protocol messages to stdout; diagnostics use stderr.
 The browser is launched lazily. Startup never downloads a browser.
@@ -34,14 +53,15 @@ The browser is launched lazily. Startup never downloads a browser.
 
 const CHANNELS = new Set(["chromium", "chrome", "chrome-beta", "chrome-dev", "chrome-canary", "msedge", "msedge-beta", "msedge-dev", "msedge-canary"]);
 
-function parseOptions(): { command: string; options: BrowserOptions } {
+interface RunOptions { task?: string; startUrl?: string; model: string; endpoint: string; apiKey?: string; maxSteps?: number; maxToolCalls?: number; timeoutMs?: number; checkpointPath?: string; resumePath?: string; reconciled?: string }
+function parseOptions(): { command: string; options: BrowserOptions; run?: RunOptions } {
   const { values, positionals } = parseArgs({
-    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" } },
+    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, model: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
     allowPositionals: true, strict: true,
   });
   if (values.help) return { command: "help", options: {} };
   if (values.version) return { command: "version", options: {} };
-  if (positionals.length > 1 || (positionals[0] && !["doctor", "setup"].includes(positionals[0]))) throw new Error("Expected no command, doctor, or setup. Run tablaze --help.");
+  if (positionals.length > 1 || (positionals[0] && !["doctor", "setup", "run"].includes(positionals[0]))) throw new Error("Expected no command, doctor, setup, or run. Run tablaze --help.");
   if (values.headless && values.headed) throw new Error("Choose either --headless or --headed.");
   const cdpUrl = values["cdp-url"];
   const channel = values.channel ?? (cdpUrl ? undefined : process.env.TABLAZE_BROWSER_CHANNEL);
@@ -56,7 +76,26 @@ function parseOptions(): { command: string; options: BrowserOptions } {
   }
   const timeoutMs = values["timeout-ms"] === undefined ? 10_000 : Number(values["timeout-ms"]);
   if (!Number.isInteger(timeoutMs) || timeoutMs < 100 || timeoutMs > 60_000) throw new Error("--timeout-ms must be an integer from 100 to 60000.");
-  return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, timeoutMs } };
+  let run: RunOptions | undefined;
+  let popupPolicy: BrowserOptions["popupPolicy"];
+  if (values["popup-policy"] !== undefined && values["popup-policy"] !== "stay" && values["popup-policy"] !== "follow-single") throw new Error("--popup-policy must be stay or follow-single.");
+  popupPolicy = values["popup-policy"];
+  const runKeys = ["task", "start-url", "model", "endpoint", "api-key-env", "max-steps", "max-calls", "run-timeout-ms", "checkpoint", "resume", "reconciled"] as const;
+  if (positionals[0] === "run") {
+    if ((!values.task?.trim() && !values.resume) || !values.model?.trim() || !values.endpoint) throw new Error("run requires --task (or --resume), --model and --endpoint. The endpoint must support chat-completions tool calls.");
+    if (values.reconciled !== undefined && (!values.resume || !values.reconciled.trim())) throw new Error("--reconciled requires --resume and an explicit note describing the checked business state.");
+    if (values.resume && cdpUrl) throw new Error("--resume restores isolated contexts and cannot use --cdp-url.");
+    const envName = values["api-key-env"] ?? "TABLAZE_API_KEY";
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(envName)) throw new Error("--api-key-env must name an environment variable.");
+    const limit = (key: "max-steps" | "max-calls" | "run-timeout-ms", fallback: number, max: number) => {
+      if (values.resume && values[key] === undefined) return undefined;
+      const value = values[key] === undefined ? fallback : Number(values[key]);
+      if (!Number.isInteger(value) || value < 1 || value > max) throw new Error(`--${key} must be an integer from 1 to ${max}.`);
+      return value;
+    };
+    run = { task: values.task, startUrl: values["start-url"] === undefined ? undefined : normalizeStartUrl(values["start-url"]), model: values.model, endpoint: values.endpoint, apiKey: process.env[envName], maxSteps: limit("max-steps", 30, 1000), maxToolCalls: limit("max-calls", 100, 10000), timeoutMs: limit("run-timeout-ms", 300000, 86400000), checkpointPath: values.checkpoint ? resolve(values.checkpoint) : undefined, resumePath: values.resume ? resolve(values.resume) : undefined, reconciled: values.reconciled };
+  } else if (runKeys.some(key => values[key] !== undefined)) throw new Error("Agent options require the run command.");
+  return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, timeoutMs, popupPolicy }, run };
 }
 
 function channelExecutable(channel: string): string | undefined {
@@ -106,7 +145,7 @@ function doctor(options: BrowserOptions): void {
     tablaze_version: SERVER_VERSION, node_version: process.version, platform: process.platform, architecture: process.arch,
     playwright_version: playwrightPackage.version, mode: options.cdpUrl ? "cdp" : "isolated",
     browser: { source: options.cdpUrl ? "external-cdp" : options.executablePath ? "executable" : options.channel ?? "managed-chromium", executable: executable ?? null, installed, detected_version: detectedBrowserVersion(executable), expected_managed_version: bundled ? managed?.browserVersion ?? null : null, expected_managed_revision: bundled ? managed?.revision ?? null : null },
-    headless: options.cdpUrl ? null : options.headless, timeout_ms: options.timeoutMs,
+    headless: options.cdpUrl ? null : options.headless, timeout_ms: options.timeoutMs, popup_policy: options.popupPolicy ?? "stay",
     ready: options.cdpUrl ? null : installed,
     next_step: options.cdpUrl ? "CDP configuration supplied. No connection was attempted; endpoint details are omitted." : installed ? "The browser executable exists. Run an MCP smoke test to verify launch permissions." : "Run tablaze setup, or select an installed browser with --channel chrome.",
   };
@@ -123,12 +162,106 @@ async function setup(): Promise<void> {
   });
 }
 
+interface RunCheckpointFile { version: 1; savedAt: string; agent: AgentCheckpoint; browser: BrowserWorkspace }
+async function loadRunCheckpoint(path: string): Promise<RunCheckpointFile> {
+  if ((await stat(path)).size > 64 * 1024 * 1024) throw new Error("Checkpoint file exceeds 64 MiB.");
+  const value = JSON.parse(await readFile(path, "utf8")) as RunCheckpointFile;
+  if (!value || value.version !== 1 || !value.browser || value.browser.version !== 1 || !Array.isArray(value.browser.sessions)) throw new Error("Invalid run checkpoint envelope.");
+  return { ...value, agent: parseAgentCheckpoint(value.agent) };
+}
+async function saveRunCheckpoint(path: string, value: RunCheckpointFile): Promise<void> {
+  const directory = dirname(path);
+  await mkdir(directory, { recursive: true });
+  const temp = join(directory, `.tablaze-${randomUUID()}.tmp`);
+  try {
+    const text = JSON.stringify(value);
+    if (Buffer.byteLength(text) > 64 * 1024 * 1024) throw new Error("Checkpoint file exceeds 64 MiB.");
+    await writeFile(temp, text, { flag: "wx", mode: 0o600 });
+    await rename(temp, path);
+  } finally { await rm(temp, { force: true }).catch(() => {}); }
+}
+
 async function main(): Promise<void> {
-  const { command, options } = parseOptions();
+  const { command, options, run } = parseOptions();
   if (command === "help") { process.stdout.write(HELP); return; }
   if (command === "version") { process.stdout.write(`${SERVER_VERSION}\n`); return; }
   if (command === "doctor") { doctor(options); return; }
   if (command === "setup") { await setup(); return; }
+  if (command === "run" && run) {
+    const saved = run.resumePath ? await loadRunCheckpoint(run.resumePath) : undefined;
+    if (saved && run.task && run.task !== saved.agent.task) throw new Error("A resumed run must retain the saved task.");
+    if (saved && run.startUrl !== undefined && run.startUrl !== saved.agent.initialization?.url) throw new Error("A resumed run cannot add or change its saved startUrl.");
+    if (saved?.agent.executionIdentity) throw new Error("This checkpoint requires its application's bound tool registry. Resume it through the SDK with the original context and tool contracts; the CLI cannot restore these handlers.");
+    if (saved && options.popupPolicy !== undefined && options.popupPolicy !== (saved.browser.popupPolicy ?? "stay")) throw new Error("A resumed run must retain its saved popup policy.");
+    if (saved?.agent.requiresCompletionPolicy) throw new Error("This checkpoint requires its application validateCompletion policy. Resume through the library with that policy; the CLI cannot restore executable application code.");
+    if (saved && (saved.agent.steps >= (run.maxSteps ?? saved.agent.limits.maxSteps) || saved.agent.toolCalls >= (run.maxToolCalls ?? saved.agent.limits.maxToolCalls) || saved.agent.elapsedMs >= (run.timeoutMs ?? saved.agent.limits.timeoutMs))) {
+      process.stdout.write(`${JSON.stringify({ status: "limit_reached", reason: "The saved run has exhausted the requested budget; no browser or model was started. Increase the relevant limit explicitly to continue.", steps: saved.agent.steps, tool_calls: saved.agent.toolCalls, planner_calls: saved.agent.plannerCalls }, null, 2)}\n`);
+      process.exitCode = 1; return;
+    }
+    const uncertain = saved ? [...new Set([...saved.agent.ambiguousCalls.map(call => call.id), ...(saved.agent.pendingTool?.mutating ? [saved.agent.pendingTool.call.id] : [])])] : [];
+    if (uncertain.length && !run.reconciled) {
+      process.stdout.write(`${JSON.stringify({ status: "needs_input", reason: "The saved run has actions with unknown outcomes. Check the business state before using --reconciled with an explicit note; no browser or model was started.", unresolved_tool_calls: uncertain }, null, 2)}\n`);
+      process.exitCode = 2; return;
+    }
+    const usage: Record<string, unknown>[] = [];
+    const planner = createOpenAICompatiblePlanner({ endpoint: run.endpoint, model: run.model, apiKey: run.apiKey, onUsage: entry => { usage.push({ ...entry }); } });
+    const { server, engine, dispose } = createServer(options);
+    const connection = await connectAgentTools(server);
+    const controller = new AbortController();
+    let report: Record<string, unknown> | undefined;
+    let cleanupFailure: { code: string; message: string } | undefined;
+    const recordCleanupFailure = (error: unknown) => {
+      if (!cleanupFailure) {
+        cleanupFailure = error instanceof BrowserError ? { code: error.code, message: error.message } : { code: "CLEANUP_FAILED", message: "Browser or MCP resource cleanup failed." };
+        process.stderr.write(`Tablaze cleanup failed (${cleanupFailure.code}): ${cleanupFailure.message}\n`);
+      }
+      process.exitCode = 1;
+    };
+    const abort = () => controller.abort(new Error("Task interrupted."));
+    process.once("SIGINT", abort); process.once("SIGTERM", abort);
+    try {
+      let restored: Awaited<ReturnType<typeof engine.restoreWorkspace>> | undefined;
+      if (saved) {
+        const start = performance.now();
+        let expired = false;
+        const stopRestoring = () => { void dispose().catch(recordCleanupFailure); };
+        const timer = setTimeout(() => { expired = true; stopRestoring(); }, (run.timeoutMs ?? saved.agent.limits.timeoutMs) - saved.agent.elapsedMs);
+        controller.signal.addEventListener("abort", stopRestoring, { once: true });
+        try {
+          if (controller.signal.aborted) throw new Error("Task interrupted before browser restoration.");
+          restored = await engine.restoreWorkspace(saved.browser);
+          if (expired || controller.signal.aborted) throw new Error("Task interrupted or exhausted its time budget while restoring browser state.");
+          saved.agent.elapsedMs += performance.now() - start;
+        } finally { clearTimeout(timer); controller.signal.removeEventListener("abort", stopRestoring); }
+      }
+      let workspace: BrowserWorkspace = restored ? await engine.exportWorkspace() : { version: 1, popupPolicy: options.popupPolicy ?? "stay", sessions: [] };
+      const checkpointPath = run.checkpointPath ?? run.resumePath;
+      const result = await runAgent({ task: run.task ?? saved!.agent.task, startUrl: run.startUrl, planner, tools: connection.tools, maxSteps: run.maxSteps, maxToolCalls: run.maxToolCalls, timeoutMs: run.timeoutMs, signal: controller.signal,
+        resume: saved?.agent, resumeSessionMap: restored?.sessionMap,
+        resumeFeedback: restored ? `Browser contexts were recreated from cookies/localStorage/IndexedDB and URLs. DOM, form drafts and sessionStorage were not restored. Old refs are invalid. Observe every needed tab before acting. Restored sessions: ${JSON.stringify(restored.snapshots.map(snapshot => ({ session_id: snapshot.session_id, tab_id: snapshot.tab_id, tabs: snapshot.tabs, url: snapshot.url })))}` : undefined,
+        reconciliation: run.reconciled ? { resolvedCallIds: uncertain, note: run.reconciled } : undefined,
+        onCheckpoint: checkpointPath ? async checkpoint => {
+          const persistenceStart = performance.now();
+          if ((checkpoint.phase === "decision" || checkpoint.phase === "terminal") && !checkpoint.pendingTool && !checkpoint.ambiguousCalls.length) workspace = await engine.exportWorkspace();
+          await saveRunCheckpoint(checkpointPath, { version: 1, savedAt: new Date().toISOString(), agent: { ...checkpoint, elapsedMs: Math.round(checkpoint.elapsedMs + performance.now() - persistenceStart) }, browser: workspace });
+        } : undefined,
+        onEvent: event => { if (event.type === "planning") process.stderr.write(`Tablaze: planning step ${event.step}\n`); },
+      });
+      // Default CLI output omits raw prompts, tool arguments and page history.
+      report = { status: result.status, reason: result.reason, ...(result.failure ? { failure: result.failure } : {}), summary: result.summary, question: result.question, steps: result.steps, tool_calls: result.toolCalls, planner_calls: result.plannerCalls, checkpoint: checkpointPath, model_usage: usage, verification: result.evidence.map(item => ({ tool_call_id: item.toolCallId, session_id: item.sessionId, checks: item.checks })) };
+      if (result.status !== "succeeded") process.exitCode = result.status === "needs_input" ? 2 : 1;
+    } finally {
+      process.removeListener("SIGINT", abort); process.removeListener("SIGTERM", abort);
+      try { await dispose(); } catch (error) { recordCleanupFailure(error); }
+      try { await connection.close(); } catch (error) { recordCleanupFailure(error); }
+      if (cleanupFailure) {
+        process.exitCode = 1;
+        if (report) report = { ...report, agent_status: report.status, agent_reason: report.reason, status: "failed", reason: "Resource cleanup did not complete; inspect the cleanup error.", cleanup: { status: "incomplete", ...cleanupFailure } };
+      }
+      if (report) process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
+    }
+    return;
+  }
   const { server, dispose } = createServer(options);
   let stopping = false;
   const shutdown = async () => {
@@ -136,9 +269,12 @@ async function main(): Promise<void> {
     stopping = true;
     const deadline = setTimeout(() => process.exit(1), 8_000);
     deadline.unref();
-    try { await dispose(); await server.close(); }
-    catch { process.stderr.write("Tablaze: browser cleanup failed.\n"); process.exitCode = 1; }
-    finally { clearTimeout(deadline); }
+    try {
+      try { await dispose(); }
+      catch (error) { process.stderr.write(error instanceof BrowserError ? `Tablaze cleanup failed (${error.code}): ${error.message}\n` : "Tablaze: browser cleanup failed.\n"); process.exitCode = 1; }
+      try { await server.close(); }
+      catch { process.stderr.write("Tablaze: MCP transport cleanup failed.\n"); process.exitCode = 1; }
+    } finally { clearTimeout(deadline); }
   };
   process.once("SIGINT", () => { void shutdown(); });
   process.once("SIGTERM", () => { void shutdown(); });

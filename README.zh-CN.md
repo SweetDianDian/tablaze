@@ -121,6 +121,8 @@ SDK 调用方可用 `createAgentControl()` 在安全边界暂停、加入可信�
 
 调试真实运行时，可通过 `--record-video` 为每个自有独立标签页生成私有 WebM；`tab_close` 返回最终路径和 SHA-256，独立 `run` 会在清理后把录像清单写入报告。默认关闭，不叠加模拟光标，也不录声音。详见[真实浏览器录制与隐私边界](docs/RECORDING.md)。
 
+可信操作者可通过 `--viewport`、`--device-scale-factor` 和 `--permissions` 设置自有浏览器的视口、像素比与页面权限；`doctor` 会报告配置，外部 CDP 浏览器不会被修改。详见[浏览器配置与限制](docs/BROWSER_CONFIGURATION.md)。
+
 ## 简单的工作流，明确的控制
 
 | 能力 | 给 Agent 带来什么 |

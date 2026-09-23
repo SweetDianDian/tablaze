@@ -21,7 +21,7 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; captureNetwork?: boolean; recordVideo?: boolean; allowPageScript?: boolean }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; viewport?: { width: number; height: number }; deviceScaleFactor?: number; permissions?: string[]; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; captureNetwork?: boolean; recordVideo?: boolean; allowPageScript?: boolean }
 export interface BrowserRecording { session_id: string; tab_id: string; path: string; bytes: number; mime_type: 'video/webm'; sha256: string }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
 export interface FindTextOptions { text: string; frameId?: string; containerRef?: string; snapshotId?: string; maxScrolls?: number; timeoutMs?: number; signal?: AbortSignal }
@@ -100,6 +100,11 @@ export class BrowserEngine {
   private readonly completedRecordings: BrowserRecording[] = [];
   constructor(private options: BrowserOptions = {}) {
     this.timeout = integer(options.timeoutMs, 10000, 100, 60000, 'timeoutMs');
+    if (options.viewport && (typeof options.viewport !== 'object' || options.viewport === null || Array.isArray(options.viewport) || !Number.isInteger(options.viewport.width) || !Number.isInteger(options.viewport.height) || options.viewport.width < 320 || options.viewport.width > 3840 || options.viewport.height < 240 || options.viewport.height > 2160)) throw new BrowserError('INVALID_ARGUMENT', 'viewport width must be 320–3840 and height 240–2160.');
+    if (options.deviceScaleFactor !== undefined && (typeof options.deviceScaleFactor !== 'number' || !Number.isFinite(options.deviceScaleFactor) || options.deviceScaleFactor < 0.5 || options.deviceScaleFactor > 4)) throw new BrowserError('INVALID_ARGUMENT', 'deviceScaleFactor must be a finite number from 0.5 to 4.');
+    const allowedPermissions = new Set(['geolocation', 'notifications', 'clipboard-read', 'clipboard-write', 'camera', 'microphone', 'midi', 'midi-sysex', 'background-sync', 'ambient-light-sensor', 'accelerometer', 'gyroscope', 'magnetometer', 'accessibility-events', 'payment-handler']);
+    if (options.permissions !== undefined && (!Array.isArray(options.permissions) || options.permissions.length > 15 || options.permissions.some(permission => typeof permission !== 'string' || !allowedPermissions.has(permission)) || new Set(options.permissions).size !== options.permissions.length)) throw new BrowserError('INVALID_ARGUMENT', 'permissions must be a unique list of supported browser permission names.');
+    if (options.cdpUrl && (options.viewport || options.deviceScaleFactor !== undefined || options.permissions !== undefined)) throw new BrowserError('BROWSER_CONFIG_CDP_UNSUPPORTED', 'Viewport, device scale and permissions require a browser context owned by this engine.');
     if (options.recordVideo !== undefined && typeof options.recordVideo !== 'boolean') throw new BrowserError('INVALID_ARGUMENT', 'recordVideo must be a boolean.');
     if (options.profileDir !== undefined && (typeof options.profileDir !== 'string' || !isAbsolute(options.profileDir) || options.profileDir === '/')) throw new BrowserError('PROFILE_PATH_INVALID', 'profileDir must be a dedicated absolute directory.');
     if (options.expectedProfileId !== undefined && (typeof options.expectedProfileId !== 'string' || !options.expectedProfileId)) throw new BrowserError('PROFILE_ID_MISMATCH', 'expectedProfileId must be a nonempty profile identifier.');
@@ -159,7 +164,7 @@ export class BrowserEngine {
           ? acquireOwnedProfile(this.options.profileDir, this.options.expectedProfileId).then(async lease => {
             this.profileLease = lease;
             try {
-              const context = await chromium.launchPersistentContext(lease.directory, { headless: this.options.headless ?? true, channel: this.options.channel, executablePath: this.options.executablePath, timeout: 30000, viewport: { width: 1280, height: 800 }, acceptDownloads: true });
+              const context = await chromium.launchPersistentContext(lease.directory, { headless: this.options.headless ?? true, channel: this.options.channel, executablePath: this.options.executablePath, timeout: 30000, viewport: this.options.viewport ?? { width: 1280, height: 800 }, deviceScaleFactor: this.options.deviceScaleFactor, permissions: this.options.permissions, acceptDownloads: true });
               this.profileContext = context;
               const browser = context.browser();
               if (!browser) { await context.close(); throw new BrowserError('BROWSER_LAUNCH_FAILED', 'The persistent Chrome context has no browser connection.'); }
@@ -373,7 +378,7 @@ export class BrowserEngine {
       context = this.options.profileDir
         ? this.profileContext
         : ownsContext
-        ? await phase(browser.newContext({ viewport: { width: 1280, height: 800 }, acceptDownloads: true, storageState: options.storageState, ...(this.navigationPolicy ? { serviceWorkers: 'block' as const } : {}), ...(this.options.recordVideo ? { recordVideo: { dir: await this.artifacts(), size: { width: 1280, height: 800 } } } : {}) }), value => { context = value; }, value => value.close())
+        ? await phase(browser.newContext({ viewport: this.options.viewport ?? { width: 1280, height: 800 }, deviceScaleFactor: this.options.deviceScaleFactor, permissions: this.options.permissions, acceptDownloads: true, storageState: options.storageState, ...(this.navigationPolicy ? { serviceWorkers: 'block' as const } : {}), ...(this.options.recordVideo ? { recordVideo: { dir: await this.artifacts(), size: this.options.viewport ?? { width: 1280, height: 800 } } } : {}) }), value => { context = value; }, value => value.close())
         : browser.contexts()[0];
       if (!context) throw new BrowserError('CDP_CONTEXT_MISSING', 'The attached browser has no default context.');
       check();

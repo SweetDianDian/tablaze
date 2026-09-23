@@ -121,6 +121,8 @@ The separate [cross-origin authorization-return task](docs/CODEX_AUTH_RETURN_SMO
 
 For debugging an actual run, `--record-video` optionally records each owned isolated tab as a private WebM. `tab_close` returns finalized paths and SHA-256 digests; the standalone `run` report includes them after cleanup. It is off by default and adds no simulated cursor or audio. See [real browser recording and privacy limits](docs/RECORDING.md).
 
+Trusted operators can set `--viewport`, `--device-scale-factor` and `--permissions` on owned browser contexts; these settings are reported by `doctor` and cannot alter an external CDP browser. See [browser configuration and limits](docs/BROWSER_CONFIGURATION.md).
+
 ## A small loop, with useful controls
 
 | Capability | What it gives your agent |

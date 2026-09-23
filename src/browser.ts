@@ -425,7 +425,37 @@ export class BrowserEngine {
       // without making every page wait for network-idle or third-party frames.
       const pendingFrames = openedPage.frames().filter(frame => frame !== openedPage.mainFrame() && (!frame.url() || frame.url() === 'about:blank')).slice(0, 5);
       if (pendingFrames.length) await phase(Promise.allSettled(pendingFrames.map(frame => frame.waitForURL(target => !!target.toString() && target.toString() !== 'about:blank', { timeout: 800 }).catch(() => {}))));
-      const snapshot = await phase(this.snapshotInternal(session, {}));
+      const mainSnapshot = await phase(this.snapshotInternal(session, {}));
+      let snapshot = mainSnapshot;
+      // When the top page has no controls and exactly one visible child frame
+      // contains the task UI, make that child's refs actionable in the first
+      // result. The parent's redacted text remains available as context.
+      const actionableRoles = new Set(['button', 'link', 'textbox', 'combobox', 'checkbox', 'radio', 'menuitem', 'option', 'tab', 'slider', 'spinbutton']);
+      const formRoles = new Set(['textbox', 'combobox', 'checkbox', 'radio', 'slider', 'spinbutton']);
+      const mainElements = mainSnapshot.elements as { role?: string }[];
+      const children = openedPage.frames().filter(frame => frame !== openedPage.mainFrame() && !frame.isDetached() && !!frame.url() && frame.url() !== 'about:blank');
+      if (!mainElements.some(entry => actionableRoles.has(entry.role ?? '')) && children.length === 1) {
+        const child = children[0];
+        try {
+          const owner = await phase(child.frameElement());
+          let visible = false;
+          try { visible = await phase(owner.isVisible()); }
+          finally { await owner.dispose(); }
+          if (visible) {
+            this.frameList(session);
+            const frameId = session.frames.get(child);
+            if (frameId) {
+              const childSnapshot = await phase(this.snapshotInternal(session, { frameId }));
+              if ((childSnapshot.elements as { role?: string }[]).some(entry => formRoles.has(entry.role ?? ''))) {
+                snapshot = { ...childSnapshot, frame_selection: { reason: 'single_actionable_child', parent_frame_id: 'f0', parent_text: String(mainSnapshot.text ?? '').slice(0, 2000) } };
+              } else snapshot = await phase(this.snapshotInternal(session, {}));
+            }
+          }
+        } catch (error) {
+          if (this.navigationGuardFailure(navigationGuard) || error instanceof BrowserError && !['FRAME_NOT_FOUND', 'SNAPSHOT_CHANGED'].includes(error.code)) throw error;
+          if (session.snapshot?.id !== mainSnapshot.snapshot_id) snapshot = await phase(this.snapshotInternal(session, {}));
+        }
+      }
       check();
       this.assertNavigationGuard(navigationGuard);
       this.sessions.set(session.id, session);

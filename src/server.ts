@@ -87,7 +87,7 @@ export function createServer(options: BrowserOptions = {}): { server: McpServer;
   });
 
   server.registerTool("tab_open", {
-    title: "Open browser session", description: "Open an HTTP(S) page in a new session and return a compact full snapshot. Cancellation cleans up this opening attempt, including late-created pages, without closing sibling sessions or the shared browser. The browser stays warm for subsequent calls.",
+    title: "Open browser session", description: "Open an HTTP(S) page in a new session and return a compact full snapshot. If the main page has no actionable controls and exactly one visible child frame has a form field, the first snapshot selects that frame; use its frame_id and refs directly. Cancellation cleans up this opening attempt, including late-created pages, without closing sibling sessions or the shared browser. The browser stays warm for subsequent calls.",
     inputSchema: z.object({ url: z.string().url().max(8_192), storage_state: z.string().min(1).max(4096).optional().describe("Explicit local storage-state file from tab_state. Restores cookies, localStorage and IndexedDB into an isolated session.") }).strict(), annotations: writeAnnotations,
   }, ({ url, storage_state }, extra) => guarded(() => engine.open(url, { storageState: storage_state, signal: extra.signal })));
 

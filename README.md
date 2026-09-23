@@ -90,6 +90,8 @@ Then ask Codex:
 
 For workflows that need page-origin JavaScript, `--page-script` adds an opt-in `tab_script` tool. It has the page's full authority, including account data and network requests; it is unavailable with configured secrets, external CDP or a navigation policy. Scripts require a current main-frame snapshot and return a fresh one. See [the page-script contract and recovery limits](docs/PAGE_SCRIPT.md). The default catalog remains sixteen tools.
 
+A [separate native-Codex page-script smoke](docs/CODEX_PAGE_SCRIPT_SMOKE.md) passed the independent authenticated-response judge once for both Tablaze and Browser Use CLI-MCP, with one correct write and no duplicates per arm. Codex-process samples were 198.359 s and 239.400 s respectively; browser setup differed, so this is not a controlled speed ranking or overall win.
+
 ### Run a standalone task
 
 The optional `run` command supports `codex`, `anthropic`, `ollama`, and `openai-compatible` planners. Always specify a model. Codex reuses the installed CLI and its existing login:

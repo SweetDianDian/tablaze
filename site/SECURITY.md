@@ -26,11 +26,11 @@ Other input values, page text, accessible names, URLs (including their query par
 
 ## Actions and cancellation / 操作与取消
 
-References bind a snapshot revision to observed DOM nodes and semantic metadata. Checks run again after actionability waits, but the page can change between checking and input. This time-of-check/time-of-use window is not eliminated. Trial checks can scroll and trigger page logic. No arbitrary eval tool is exposed, but clicking a website's controls still executes that website's scripts.
+References bind a snapshot revision to observed DOM nodes and semantic metadata. Checks run again after actionability waits, but the page can change between checking and input. This time-of-check/time-of-use window is not eliminated. Trial checks can scroll and trigger page logic. The default catalog has no arbitrary eval tool; the explicit `--page-script` mode adds page-origin JavaScript with full access to the page's account state and network. It cannot be combined with configured secrets, external CDP, or a navigation policy. See [its authority and recovery limits](PAGE_SCRIPT.md).
 
 Action batches stop at the first error. An active cancellation or total-budget expiry closes the owned session to interrupt pending work and skip later actions. It does not undo earlier submissions or stop network requests already accepted elsewhere. A failed step may have side effects even when it was not counted as completed. Read partial-result fields and verify the business state before retrying.
 
-引用将快照版本与观察到的节点、语义元数据关联，等待后再次检查，但无法消除检查到输入之间的竞态。预检可能滚动并触发逻辑；虽然没有通用 eval 工具，网页控件仍会执行网页脚本。取消和超时关闭自有会话、停止后续操作，但不撤回已经生效的提交或外部请求。失败步骤也可能有副作用，重试前应检查部分完成字段与业务结果。
+引用将快照版本与观察到的节点、语义元数据关联，等待后再次检查，但无法消除检查到输入之间的竞态。预检可能滚动并触发逻辑。默认工具集没有通用 eval；显式 `--page-script` 会增加拥有页面登录状态和网络权限的脚本工具，不能与密钥配置、外部 CDP 或导航策略同时使用。取消和超时关闭自有会话、停止后续操作，但不撤回已经生效的提交或外部请求。失败步骤也可能有副作用，重试前应检查部分完成字段与业务结果。详见[页面脚本权限与恢复边界](PAGE_SCRIPT.md)。
 
 ## Custom tool context / 自定义工具上下文
 

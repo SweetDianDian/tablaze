@@ -13,8 +13,10 @@ const publicGuides = new Map([
   ['docs/NAVIGATION_POLICY.md', 'NAVIGATION_POLICY.md'],
   ['docs/NAVIGATION_POLICY_VALIDATION.md', 'NAVIGATION_POLICY_VALIDATION.md'],
   ['docs/NETWORK.md', 'NETWORK.md'],
+  ['docs/PAGE_SCRIPT.md', 'PAGE_SCRIPT.md'],
   ['docs/PROFILES.md', 'PROFILES.md'],
   ['docs/CODEX_NETWORK_RECEIPT_SMOKE.md', 'CODEX_NETWORK_RECEIPT_SMOKE.md'],
+  ['docs/CODEX_PAGE_SCRIPT_SMOKE.md', 'CODEX_PAGE_SCRIPT_SMOKE.md'],
   ['docs/CODEX.md', 'CODEX.md'],
   ['docs/CODEX.zh-CN.md', 'CODEX.zh-CN.md'],
   ['SECURITY.md', 'SECURITY.md'],
@@ -54,5 +56,7 @@ for (const name of [
   'native-mcp-network-browser-use-mcp-full-attempt1.jsonl', 'native-mcp-network-browser-use-mcp-full-attempt2.jsonl',
   'network-receipt-direct-runner-v1.mjs', 'development-tests-network-receipt.txt',
   'owned-profile-validation.json',
+  'native-mcp-page-script-v1.json', 'native-mcp-page-script-v1.json.tablaze.jsonl',
+  'native-mcp-page-script-v1.json.browser-use-cli-mcp.jsonl',
 ]) await copyFile(join(root, 'docs/evidence', name), join(site, 'evidence', name));
 console.log('Synchronized public guides, comparison reports, and their fixed evidence files. Historical benchmark.json is unchanged.');

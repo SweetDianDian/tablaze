@@ -90,6 +90,8 @@ codex mcp get tablaze
 
 需要页面内 JavaScript 时，可显式加 `--page-script`，启用 `tab_script`。它拥有页面同源权限，包括读取登录后的数据和发起网络请求；不能与密钥配置、外部 CDP 或导航策略同时使用。每次执行需要当前主框架快照，并返回新快照。详见[页面脚本权限与恢复边界](docs/PAGE_SCRIPT.md)。默认仍为十六个工具。
 
+[独立的原生 Codex 页面脚本复测](docs/CODEX_PAGE_SCRIPT_SMOKE.md)中，Tablaze 与 Browser Use CLI-MCP 各一次通过认证响应任务的服务端验收：每侧恰好一次正确提交、零重复写入。Codex 进程样本分别为 198.359 秒和 239.400 秒；浏览器启动方式不同，不构成受控的速度排名或整体胜出结论。
+
 ### 独立执行任务
 
 可选 `run` 命令支持 `codex`、`anthropic`、`ollama`、`openai-compatible` 四类规划器，始终要求明确指定模型。Codex 复用本机 CLI 和已有登录：

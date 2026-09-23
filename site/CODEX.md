@@ -4,7 +4,7 @@
 
 This guide connects the locally built Tablaze stdio server to Codex. It uses the current Tablaze source contract, local `codex-cli 0.154.0` help, and official OpenAI documentation checked on 2026-09-22. Registering a command is separate from proving that its browser tools work; finish with the smoke task below.
 
-The current development branch exposes 16 MCP tools by default, or 17 when the trusted operator adds `--capture-network` for bounded owned-tab response inspection. See the [network journal contract](NETWORK.md). The recorded 0.1.0 release and Codex acceptance evidence describe an earlier build; they do not validate every capability now present in source. Use the checkout's tool catalog and commit when identifying a build.
+The current development branch exposes 16 MCP tools by default. A trusted operator can add `--capture-network` for bounded owned-tab responses, `--page-script` for full-authority page-origin JavaScript, or both; each adds one optional tool. See the [network journal](NETWORK.md) and [page-script](PAGE_SCRIPT.md) contracts. The recorded 0.1.0 release and Codex acceptance evidence describe an earlier build; they do not validate every capability now present in source. Use the checkout's tool catalog and commit when identifying a build.
 
 ## 1. Build and choose a browser
 

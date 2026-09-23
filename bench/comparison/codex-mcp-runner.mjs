@@ -19,6 +19,7 @@ const archivePath = process.env.TABLAZE_HARNESS_PIN_ARCHIVE || '/private/tmp/bro
 const output = process.env.TABLAZE_MCP_REPORT || join(root, 'bench', 'comparison', 'codex-mcp-smoke.json');
 const taskId = process.argv[2] || 'form';
 const arms = (process.env.TABLAZE_MCP_ARMS || 'tablaze,harness').split(',');
+const pageScript = process.env.TABLAZE_MCP_PAGE_SCRIPT === '1';
 const timeoutMs = Number(process.env.TABLAZE_MCP_TIMEOUT_MS || 180_000);
 const fullToolTimeoutSec = Number(process.env.TABLAZE_MCP_FULL_TOOL_TIMEOUT_SEC || 300);
 const sha256 = content => createHash('sha256').update(content).digest('hex');
@@ -148,7 +149,7 @@ async function runArm(kind, directory, service) {
     harnessEnv.BROWSER_USE_CONFIG_PATH = configPath;
   }
   const command = kind === 'tablaze' ? process.execPath : kind === 'harness' ? harnessBinary : browserUseCli;
-  const commandArgs = kind === 'tablaze' ? [join(root, 'dist', 'cli.js'), '--cdp-url', chrome.endpoint, ...(taskId === 'network-receipt' ? ['--capture-network'] : [])]
+  const commandArgs = kind === 'tablaze' ? [join(root, 'dist', 'cli.js'), ...(pageScript ? ['--channel', 'chrome', '--page-script'] : ['--cdp-url', chrome.endpoint]), ...(taskId === 'network-receipt' && !pageScript ? ['--capture-network'] : [])]
     : kind === 'browser-use-cli-mcp' ? ['--cli-mcp'] : kind.startsWith('browser-use-mcp') ? ['--mcp'] : [];
   const flags = [
     'exec', '--ignore-user-config', '--skip-git-repo-check', '--approve-for-me', '--json',
@@ -198,7 +199,7 @@ async function main() {
   const report = { kind: 'native-codex-external-mcp-smoke-v1', generatedAt: new Date().toISOString(),
     codexVersion: version, model: 'gpt-6-astra', reasoningEffort: 'ultra', provider: CODEX_PROVIDER_CONFIG,
     featureOverrides: CODEX_DISABLED_FEATURES.filter(feature => feature !== 'view_image'),
-    viewImageEnabled: true, taskId, timeoutMs, fullToolTimeoutSec,
+    viewImageEnabled: true, taskId, timeoutMs, fullToolTimeoutSec, tablazePageScript: pageScript,
     source: { tablazeHead: spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).stdout.trim(),
       harnessCommit: 'afbcc381b963040c19627d788e40c7e7663171ee',
       browserUseCommit: 'd8110c5ff87ccba887aaa726cdb780f2f84bef8d',

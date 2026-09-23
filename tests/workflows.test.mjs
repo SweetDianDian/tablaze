@@ -68,6 +68,7 @@ async function open(t) {
 
 test('popup tabs stay owned, switching invalidates references and last close ends session', async t => {
   const first = await open(t);
+  assert.equal(first.elements.find(element => element.name === 'Open child')?.opens_new_tab, true);
   const clicked = await engine.act(first.session_id, first.snapshot_id, [{ type: 'click', ref: ref(first, 'Open child') }]);
   assert.equal(clicked.ok, true, JSON.stringify(clicked));
   const list = await engine.tabs(first.session_id, { action: 'list' });

@@ -1022,7 +1022,8 @@ export class BrowserEngine {
         let actionStarted = false;
         let popupWindow: { until: number; candidates: Set<Page>; listener: (popup: Page) => void } | undefined;
         const armPopupWindow = () => {
-          if (this.popupPolicy !== 'follow-single' || !['click', 'click_named', 'double_click', 'press', 'click_xy', 'upload_chooser'].includes(action.type)) return;
+          const knownNewTab = action.type === 'click' && state.refs.get(action.ref)?.entry.opens_new_tab === true;
+          if ((this.popupPolicy !== 'follow-single' && !knownNewTab) || !['click', 'click_named', 'double_click', 'press', 'click_xy', 'upload_chooser'].includes(action.type)) return;
           const candidates = new Set<Page>(), until = Math.min(deadline, performance.now() + popupWindowMs);
           const listener = (popup: Page) => {
             // This is a bounded opener/window association, not proof that the
@@ -1270,7 +1271,7 @@ export class BrowserEngine {
             checkInterruption();
             observedPage.off('popup', window.listener);
             const candidates = [...window.candidates];
-            if (candidates.length === 1 && !candidates[0].isClosed()) {
+            if (this.popupPolicy === 'follow-single' && candidates.length === 1 && !candidates[0].isClosed()) {
               const tab = [...session.tabs].find(([, page]) => page === candidates[0]);
               if (tab) {
                 popupFollowed = { from_tab_id: session.activeTabId, tab_id: tab[0], action_index: index, window_ms: popupWindowMs };

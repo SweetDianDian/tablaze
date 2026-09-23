@@ -188,6 +188,7 @@ export function inspectDOM(input: any): any {
     const scrollY = /^(auto|scroll)$/.test(style.overflowY) && element.scrollHeight > element.clientHeight;
     if (scrollX || scrollY) entry.scrollable = { x: scrollX, y: scrollY, left: element.scrollLeft, top: element.scrollTop, max_left: element.scrollWidth - element.clientWidth, max_top: element.scrollHeight - element.clientHeight };
     if (element.hasAttribute('href')) { const href = (element as HTMLAnchorElement).href || element.getAttribute('href') || ''; entry.href = href.slice(0, 2000 + outputPadding); fieldsTruncated ||= href.length > 2000; }
+    if (tag === 'a' && element.getAttribute('target')?.toLowerCase() === '_blank') entry.opens_new_tab = true;
     return { entry, fingerprint, fieldsTruncated, visible: visible(element) };
   };
   if (input.op === 'inspect') return describe(input.node);

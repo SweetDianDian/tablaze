@@ -167,6 +167,32 @@ test('stall detection uses repeated actual outcomes, provides one replan, then s
   assert.equal(progress.checkpoint.stall.warnings, 0);
 });
 
+test('queued actions skipped after replanning do not count as repeated execution', async t => {
+  const runtime = await fixture(t);
+  let observed = 0; let dispatchedWrites = 0;
+  const run = await runAgent({ task: 'Observe a changing page before writing.', maxSteps: 6, stallDetection: { repeatThreshold: 2, maxWarnings: 0 }, tools: {
+    listTools: runtime.tools.listTools,
+    callTool: async call => {
+      if (call.name === 'change') { dispatchedWrites++; throw new Error('A queued write must be skipped.'); }
+      assert.equal(call.name, 'tab_snapshot');
+      observed++;
+      return result({ ok: true, session_id: 's1', snapshot_id: `s1:${observed}`, observedCounter: observed, replan_required: true });
+    },
+  }, planner: async ({ step }) => step <= 5 ? { type: 'tools', calls: [
+    { name: 'tab_snapshot', arguments: { session_id: 's1' } },
+    { name: 'change', arguments: { session_id: 's1', value: 'same-queued-write' } },
+  ] } : input() });
+  assert.equal(run.reason, 'Human input is required.');
+  assert.equal(run.toolCalls, 5);
+  assert.equal(observed, 5);
+  assert.equal(dispatchedWrites, 0);
+  assert.equal(run.checkpoint.stall.warnings, 0);
+  assert.equal(run.events.filter(event => event.type === 'feedback' && event.code === 'STALL_DETECTED').length, 0);
+  const skipped = run.events.filter(event => event.type === 'tool_result' && event.skipped);
+  assert.equal(skipped.length, 5);
+  assert.ok(skipped.every(event => event.result.structuredContent.error.code === 'CALL_SKIPPED'));
+});
+
 test('bounded retry and fallback only repeat planning; tools with uncertain effects are not retried', async t => {
   const runtime = await fixture(t);
   let primary = 0; let fallback = 0;

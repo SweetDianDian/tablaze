@@ -21,7 +21,7 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; viewport?: { width: number; height: number }; deviceScaleFactor?: number; permissions?: string[]; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; captureNetwork?: boolean; recordVideo?: boolean; allowPageScript?: boolean }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; viewport?: { width: number; height: number }; deviceScaleFactor?: number; permissions?: string[]; proxy?: { server: string; bypass?: string; username?: string; password?: string }; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; captureNetwork?: boolean; recordVideo?: boolean; allowPageScript?: boolean }
 export interface BrowserRecording { session_id: string; tab_id: string; path: string; bytes: number; mime_type: 'video/webm'; sha256: string }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
 export interface FindTextOptions { text: string; frameId?: string; containerRef?: string; snapshotId?: string; maxScrolls?: number; timeoutMs?: number; signal?: AbortSignal }
@@ -105,6 +105,13 @@ export class BrowserEngine {
     const allowedPermissions = new Set(['geolocation', 'notifications', 'clipboard-read', 'clipboard-write', 'camera', 'microphone', 'midi', 'midi-sysex', 'background-sync', 'ambient-light-sensor', 'accelerometer', 'gyroscope', 'magnetometer', 'accessibility-events', 'payment-handler']);
     if (options.permissions !== undefined && (!Array.isArray(options.permissions) || options.permissions.length > 15 || options.permissions.some(permission => typeof permission !== 'string' || !allowedPermissions.has(permission)) || new Set(options.permissions).size !== options.permissions.length)) throw new BrowserError('INVALID_ARGUMENT', 'permissions must be a unique list of supported browser permission names.');
     if (options.cdpUrl && (options.viewport || options.deviceScaleFactor !== undefined || options.permissions !== undefined)) throw new BrowserError('BROWSER_CONFIG_CDP_UNSUPPORTED', 'Viewport, device scale and permissions require a browser context owned by this engine.');
+    if (options.proxy !== undefined) {
+      if (typeof options.proxy !== 'object' || options.proxy === null || Array.isArray(options.proxy) || typeof options.proxy.server !== 'string' || options.proxy.server.length > 2048 || typeof options.proxy.bypass === 'string' && options.proxy.bypass.length > 1024 || options.proxy.bypass !== undefined && typeof options.proxy.bypass !== 'string' || options.proxy.username !== undefined && (typeof options.proxy.username !== 'string' || options.proxy.username.length > 512) || options.proxy.password !== undefined && (typeof options.proxy.password !== 'string' || options.proxy.password.length > 512)) throw new BrowserError('PROXY_CONFIG_INVALID', 'Invalid proxy configuration.');
+      let server: URL;
+      try { server = new URL(options.proxy.server); } catch { throw new BrowserError('PROXY_CONFIG_INVALID', 'Invalid proxy server URL.'); }
+      if (!['http:', 'https:', 'socks5:'].includes(server.protocol) || !server.hostname || server.username || server.password || !['', '/'].includes(server.pathname) || server.search || server.hash) throw new BrowserError('PROXY_CONFIG_INVALID', 'Proxy server must be an HTTP(S) or SOCKS5 URL without embedded credentials or a path.');
+      if (options.cdpUrl) throw new BrowserError('PROXY_CDP_UNSUPPORTED', 'An external CDP browser cannot be reconfigured with a proxy.');
+    }
     if (options.recordVideo !== undefined && typeof options.recordVideo !== 'boolean') throw new BrowserError('INVALID_ARGUMENT', 'recordVideo must be a boolean.');
     if (options.profileDir !== undefined && (typeof options.profileDir !== 'string' || !isAbsolute(options.profileDir) || options.profileDir === '/')) throw new BrowserError('PROFILE_PATH_INVALID', 'profileDir must be a dedicated absolute directory.');
     if (options.expectedProfileId !== undefined && (typeof options.expectedProfileId !== 'string' || !options.expectedProfileId)) throw new BrowserError('PROFILE_ID_MISMATCH', 'expectedProfileId must be a nonempty profile identifier.');
@@ -164,7 +171,7 @@ export class BrowserEngine {
           ? acquireOwnedProfile(this.options.profileDir, this.options.expectedProfileId).then(async lease => {
             this.profileLease = lease;
             try {
-              const context = await chromium.launchPersistentContext(lease.directory, { headless: this.options.headless ?? true, channel: this.options.channel, executablePath: this.options.executablePath, timeout: 30000, viewport: this.options.viewport ?? { width: 1280, height: 800 }, deviceScaleFactor: this.options.deviceScaleFactor, permissions: this.options.permissions, acceptDownloads: true });
+              const context = await chromium.launchPersistentContext(lease.directory, { headless: this.options.headless ?? true, channel: this.options.channel, executablePath: this.options.executablePath, timeout: 30000, viewport: this.options.viewport ?? { width: 1280, height: 800 }, deviceScaleFactor: this.options.deviceScaleFactor, permissions: this.options.permissions, proxy: this.options.proxy, acceptDownloads: true });
               this.profileContext = context;
               const browser = context.browser();
               if (!browser) { await context.close(); throw new BrowserError('BROWSER_LAUNCH_FAILED', 'The persistent Chrome context has no browser connection.'); }
@@ -378,7 +385,7 @@ export class BrowserEngine {
       context = this.options.profileDir
         ? this.profileContext
         : ownsContext
-        ? await phase(browser.newContext({ viewport: this.options.viewport ?? { width: 1280, height: 800 }, deviceScaleFactor: this.options.deviceScaleFactor, permissions: this.options.permissions, acceptDownloads: true, storageState: options.storageState, ...(this.navigationPolicy ? { serviceWorkers: 'block' as const } : {}), ...(this.options.recordVideo ? { recordVideo: { dir: await this.artifacts(), size: this.options.viewport ?? { width: 1280, height: 800 } } } : {}) }), value => { context = value; }, value => value.close())
+        ? await phase(browser.newContext({ viewport: this.options.viewport ?? { width: 1280, height: 800 }, deviceScaleFactor: this.options.deviceScaleFactor, permissions: this.options.permissions, proxy: this.options.proxy, acceptDownloads: true, storageState: options.storageState, ...(this.navigationPolicy ? { serviceWorkers: 'block' as const } : {}), ...(this.options.recordVideo ? { recordVideo: { dir: await this.artifacts(), size: this.options.viewport ?? { width: 1280, height: 800 } } } : {}) }), value => { context = value; }, value => value.close())
         : browser.contexts()[0];
       if (!context) throw new BrowserError('CDP_CONTEXT_MISSING', 'The attached browser has no default context.');
       check();

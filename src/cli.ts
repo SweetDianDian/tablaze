@@ -36,6 +36,10 @@ Options / 选项:
   --viewport <WIDTHxHEIGHT>  Browser viewport, 320–3840 × 240–2160 / 页面视口
   --device-scale-factor <n>  Browser pixel ratio, 0.5–4 / 设备像素比
   --permissions <names>     Comma-separated browser permissions / 浏览器权限
+  --proxy-server <url>      HTTP(S)/SOCKS5 proxy for owned contexts / 自有浏览器代理
+  --proxy-bypass <hosts>    Comma-separated proxy bypass rules / 代理绕过规则
+  --proxy-username <name>   Proxy username, if required / 代理用户名
+  --proxy-password-env <n>  Read proxy password from this env var / 从环境变量读取代理密码
   --page-script             Expose page-origin JavaScript (full page authority) / 开启页面脚本
   --profile-dir <path>       Use a dedicated persistent Chrome profile / 使用专有持久资料目录
   --profile-id <id>          Required identity when reopening that profile / 重开资料时核对身份
@@ -136,7 +140,7 @@ function loadOutputSchema(path: string, flag = "--output-schema"): ExtractionSch
 
 function parseOptions(): { command: string; options: BrowserOptions; run?: RunOptions } {
   const { values, positionals } = parseArgs({
-    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, "capture-network": { type: "boolean" }, "record-video": { type: "boolean" }, viewport: { type: "string" }, "device-scale-factor": { type: "string" }, permissions: { type: "string" }, "page-script": { type: "boolean" }, "profile-dir": { type: "string" }, "profile-id": { type: "string" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, "secret-config": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "output-schema": { type: "string" }, "partial-schema": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
+    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, "capture-network": { type: "boolean" }, "record-video": { type: "boolean" }, viewport: { type: "string" }, "device-scale-factor": { type: "string" }, permissions: { type: "string" }, "proxy-server": { type: "string" }, "proxy-bypass": { type: "string" }, "proxy-username": { type: "string" }, "proxy-password-env": { type: "string" }, "page-script": { type: "boolean" }, "profile-dir": { type: "string" }, "profile-id": { type: "string" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, "secret-config": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "output-schema": { type: "string" }, "partial-schema": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
     allowPositionals: true, strict: true,
   });
   if (values.help) return { command: "help", options: {} };
@@ -145,6 +149,17 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
   if (values.headless && values.headed) throw new Error("Choose either --headless or --headed.");
   if (values["page-script"] && (values["secret-config"] || values["cdp-url"] || values["navigation-policy"])) throw new Error("--page-script cannot be combined with --secret-config, --cdp-url, or --navigation-policy.");
   const cdpUrl = values["cdp-url"];
+  if (!values["proxy-server"] && (values["proxy-bypass"] !== undefined || values["proxy-username"] !== undefined || values["proxy-password-env"] !== undefined)) throw new Error("Proxy bypass and credentials require --proxy-server.");
+  if (cdpUrl && values["proxy-server"]) throw new Error("--proxy-server requires an owned browser, not --cdp-url.");
+  const proxyPasswordEnv = values["proxy-password-env"];
+  if (proxyPasswordEnv !== undefined && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(proxyPasswordEnv)) throw new Error("--proxy-password-env must name an environment variable.");
+  if (proxyPasswordEnv && process.env[proxyPasswordEnv] === undefined) throw new Error("The named proxy password environment variable is not set.");
+  const proxy = values["proxy-server"] === undefined ? undefined : { server: values["proxy-server"], bypass: values["proxy-bypass"], username: values["proxy-username"], password: proxyPasswordEnv ? process.env[proxyPasswordEnv] : undefined };
+  if (proxy) {
+    let parsed: URL;
+    try { parsed = new URL(proxy.server); } catch { throw new Error("--proxy-server must be a valid HTTP(S) or SOCKS5 URL."); }
+    if (!['http:', 'https:', 'socks5:'].includes(parsed.protocol) || !parsed.hostname || parsed.username || parsed.password || !['', '/'].includes(parsed.pathname) || parsed.search || parsed.hash || proxy.server.length > 2048 || proxy.bypass && proxy.bypass.length > 1024 || proxy.username && proxy.username.length > 512 || proxy.password && proxy.password.length > 512) throw new Error("--proxy-server must be an HTTP(S) or SOCKS5 URL without embedded credentials or a path.");
+  }
   if (cdpUrl && (values.viewport !== undefined || values["device-scale-factor"] !== undefined || values.permissions !== undefined)) throw new Error("Viewport, device scale and permissions require an owned browser context, not --cdp-url.");
   const viewportMatch = values.viewport?.match(/^(\d+)x(\d+)$/i);
   if (values.viewport !== undefined && !viewportMatch) throw new Error("--viewport must use WIDTHxHEIGHT.");
@@ -212,7 +227,7 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
     };
     run = { task: values.task, startUrl: values["start-url"] === undefined ? undefined : normalizeStartUrl(values["start-url"]), provider, model: values.model, endpoint: values.endpoint, apiKey: provider === "codex" ? undefined : process.env[envName] || undefined, codexCommand: values["codex-command"], reasoningEffort, maxOutputTokens, maxSteps: limit("max-steps", 30, 1000), maxToolCalls: limit("max-calls", 100, 10000), ...(values["output-schema"] !== undefined ? { finalOutputSchema: loadOutputSchema(values["output-schema"]) } : {}), ...(values["partial-schema"] !== undefined ? { partialOutputSchema: loadOutputSchema(values["partial-schema"], "--partial-schema") } : {}), timeoutMs: limit("run-timeout-ms", 300000, 86400000), checkpointPath: values.checkpoint ? resolve(values.checkpoint) : undefined, resumePath: values.resume ? resolve(values.resume) : undefined, reconciled: values.reconciled };
   } else if (runKeys.some(key => values[key] !== undefined)) throw new Error("Agent options require the run command.");
-  return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, profileDir: values["profile-dir"] !== undefined ? resolve(values["profile-dir"]) : undefined, expectedProfileId: values["profile-id"], viewport, deviceScaleFactor, permissions, timeoutMs, popupPolicy, navigationPolicy, secrets, captureNetwork: values["capture-network"] ?? false, recordVideo: values["record-video"] ?? false, allowPageScript: values["page-script"] ?? false }, run };
+  return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, profileDir: values["profile-dir"] !== undefined ? resolve(values["profile-dir"]) : undefined, expectedProfileId: values["profile-id"], viewport, deviceScaleFactor, permissions, proxy, timeoutMs, popupPolicy, navigationPolicy, secrets, captureNetwork: values["capture-network"] ?? false, recordVideo: values["record-video"] ?? false, allowPageScript: values["page-script"] ?? false }, run };
 }
 
 function channelExecutable(channel: string): string | undefined {
@@ -264,6 +279,7 @@ function doctor(options: BrowserOptions): void {
     browser: { source: options.cdpUrl ? "external-cdp" : options.executablePath ? "executable" : options.channel ?? "managed-chromium", executable: executable ?? null, installed, detected_version: detectedBrowserVersion(executable), expected_managed_version: bundled ? managed?.browserVersion ?? null : null, expected_managed_revision: bundled ? managed?.revision ?? null : null },
     headless: options.cdpUrl ? null : options.headless, timeout_ms: options.timeoutMs, popup_policy: options.popupPolicy ?? "stay", record_video: options.recordVideo ?? false,
     viewport: options.viewport ?? { width: 1280, height: 800 }, device_scale_factor: options.deviceScaleFactor ?? 1, permissions: options.permissions ?? [],
+    proxy: { enabled: options.proxy !== undefined, protocol: options.proxy ? new URL(options.proxy.server).protocol.slice(0, -1) : null, has_credentials: !!(options.proxy?.username || options.proxy?.password) },
     navigation_policy: { enabled: options.navigationPolicy !== undefined, allowed_origin_count: options.navigationPolicy?.allowedOrigins?.length ?? null, blocked_origin_count: options.navigationPolicy?.blockedOrigins?.length ?? 0 },
     secrets: { enabled: options.secrets !== undefined, alias_count: options.secrets?.secrets.length ?? 0, allow_sensitive_artifacts: options.secrets?.allowSensitiveArtifacts ?? false },
     ready: options.cdpUrl ? null : installed,

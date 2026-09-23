@@ -43,7 +43,7 @@ for (const [source, target] of publicGuides) {
 }
 for (const name of ['CODEX_COMPARISON_RESULTS_V3.md', 'CODEX_TERMINAL_FOLLOWUP.md', 'CODEX_PROVIDER_SMOKE.md', 'CODEX_VIRTUAL_LIST_SMOKE.md', 'CODEX_AUTH_RETURN_SMOKE.md', 'CODEX_NATIVE_MCP_SMOKE.md', 'CODEX_MCP_VARIANTS_V2.md']) await copyFile(join(root, 'docs', name), join(site, name));
 for (const name of [
-  'development-tests.txt', 'development-tests-2026-09-23.txt', 'development-tests-auth-return.txt', 'development-tests-profile.txt', 'development-tests-click-named.txt', 'development-tests-recording-node24.txt', 'development-tests-control-state-node24.txt', 'development-tests-browser-config-node24.txt', 'development-validation.json',
+  'development-tests.txt', 'development-tests-2026-09-23.txt', 'development-tests-auth-return.txt', 'development-tests-profile.txt', 'development-tests-click-named.txt', 'development-tests-recording-node24.txt', 'development-tests-control-state-node24.txt', 'development-tests-browser-config-node24.txt', 'development-tests-proxy-node24.txt', 'development-validation.json',
   'navigation-policy-probe-v1.json', 'codex-provider-smoke-v1.json', 'codex-e2e.json', 'codex-matched-smoke-v3.json',
   'codex-matched-smoke-v3-analysis.json', 'codex-terminal-followup-v1.json', 'codex-terminal-followup-v1-analysis.json',
   'codex-virtual-list-smoke-v1.json', 'codex-auth-return-smoke-v1.json', 'native-mcp-preflight-v1.json',

@@ -1,0 +1,22 @@
+# Direct child-form open: six matched Codex development pairs
+
+Date: 2026-09-24. Both batches used the **clean committed Tablaze source** `0c60b06f1467aac286e16eb3ea7c9707394e5e09`, empty patch SHA-256 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`, and source-tree SHA-256 `648f16257eeb66dd9caa63ca7c90f5a2ec0a9a7db5b8b86a17e5047235cf63e3`. Browser Use Python Agent was pinned to 0.13.10, commit `d8110c5ff87ccba887aaa726cdb780f2f84bef8d`. Each pair received fresh isolated Chrome and fixture state. Both used `gpt-6-astra / ultra` through the same Codex CLI inference bridge, a 160,000 reported-token ceiling, 40 planning steps and a 240-second deadline. Tablaze initialized the supplied URL and used `follow-single`; Browser Use's default post-task judge remained enabled. The first run used seeds 49–51, then a separate repeat used seeds 46–48, which had also appeared in an older-source study.
+
+| Seed | Tablaze full / Agent done | Browser Use full / Agent done | Model calls | Server result |
+| --- | ---: | ---: | --- | --- |
+| 46 | 32.740 / 32.586 s | 56.223 / 40.827 s | T 2; BU 3 incl. 1 judge | Both passed; one correct write each, zero duplicates |
+| 47 | 62.688 / 62.520 s | 56.747 / 40.794 s | T 3; BU 3 incl. 1 judge | Both passed; one correct write each, zero duplicates |
+| 48 | 33.922 / 33.762 s | 57.522 / 36.507 s | T 2; BU 3 incl. 1 judge | Both passed; one correct write each, zero duplicates |
+| 49 | 42.841 / 42.688 s | 57.865 / 36.509 s | T 2; BU 3 incl. 1 judge | Both passed; one correct write each, zero duplicates |
+| 50 | 33.039 / 32.883 s | 65.304 / 42.256 s | T 2; BU 3 incl. 1 judge | Both passed; one correct write each, zero duplicates |
+| 51 | 34.334 / 34.184 s | 57.530 / 38.761 s | T 2; BU 3 incl. 1 judge | Both passed; one correct write each, zero duplicates |
+
+All 12 attempts passed independent business acceptance, observed Agent completion and full return before the deadline. The server recorded exactly one correct submission and no duplicate writes in every run. Every Tablaze `tab_open` returned frame `f1` with `frame_selection.reason=single_actionable_child` and usable form refs; **none** of the six traces called `tab_snapshot` before acting. Five Tablaze runs used `tab_open` → `tab_act`, two model calls. On seed 47 the model incorrectly checked the input value `Vega` as visible page text. The form was submitted once, that text check failed, and the action feedback retained frame `f1`; the model then called `tab_verify` without replaying the write or taking another frame snapshot. This is a slower counterexample, not a hidden failure.
+
+The visible six-pair median whole-run time was **34.128 s for Tablaze versus 57.526 s for Browser Use**. Median observed Agent-done time was **33.973 versus 39.778 s**. Tablaze finished its Agent earlier in four of six pairs and returned earlier in five of six; seed 47 was slower on both axes. Browser Use's one default judge model call and other post-done work count in whole-run time, not Agent-done time. Thus the whole-run comparison cannot be read as a pure task-execution speed ratio. The direct-open mechanism demonstrably removed the separate child-frame snapshot call in these traces, but the earlier source's seeds 46–48 were run at a different time with different model sampling; subtracting those latencies is not a controlled causal speedup estimate.
+
+This is one synthetic iframe form, six visible pairs, with a bridge that lacks verified per-call temperature and output-token controls. It cannot establish a production median or p95, reliability parity, or overall capability superiority across Browser Use's Agent, MCP, Harness, Pi and cloud surfaces. More held-out tasks, repetitions and matched operational modes remain necessary.
+
+The unmodified [seeds 46–48 report](evidence/iframe-direct-open/seeds46-48.json) has SHA-256 `b6abd5aad1fb69c1134ce21b6499332cb250ba9d6955de033a9f0fd809164b23`; the [seeds 49–51 report](evidence/iframe-direct-open/seeds49-51.json) has SHA-256 `8da5b76b6c4efa35945e8d027478a171893870bb7df944dd6280ebcc8092c7a0`. The [trace index](evidence/iframe-direct-open/README.md) links all 12 model-visible trajectories.
+
+中文结论：六组 iframe 同模型对照双方业务均通过、零重复写入。Tablaze 首次打开就返回可操作的子表单，六组均省去了单独的 `tab_snapshot`；五组以两次模型调用结束。全程中位数为 34.128 对 57.526 秒，Agent 完成中位数为 33.973 对 39.778 秒；但种子 47 因错误文本检查变慢。Browser Use 的默认评审计入全程。这些可见本地样本不足以证明稳定效率或整体功能超过 Browser Use。

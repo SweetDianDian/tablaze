@@ -146,6 +146,43 @@ test('CLI passes a final schema to the model and returns only corrected verified
   assert.equal(report.verification[0].session_id, sessionId);
 });
 
+test('CLI publishes checked partials in an incomplete report with their verification', { timeout: 30_000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'tablaze-partial-schema-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const schemaPath = join(directory, 'partial.json');
+  const schema = { type: 'object', properties: { title: { type: 'string', const: 'Agent CLI fixture' } }, required: ['title'], additionalProperties: false };
+  await writeFile(schemaPath, JSON.stringify(schema));
+  let sessionId, verificationId;
+  const service = await fixture(t, (body, step) => {
+    const publish = body.tools.find(item => item.function.name === 'agent_publish')?.function.parameters;
+    assert.ok(publish);
+    assert.deepEqual(publish.properties.data, schema);
+    if (step === 1) return { name: 'tab_open', arguments: { url: `${service.url}/form` } };
+    const previous = latest(body);
+    if (step === 2) {
+      sessionId = previous.structuredContent.session_id;
+      return { name: 'tab_verify', arguments: { session_id: sessionId, checks: [{ kind: 'title', contains: 'Agent CLI fixture' }] } };
+    }
+    if (step === 3) {
+      verificationId = previous.toolCallId;
+      return { name: 'agent_publish', arguments: { key: 'title', data: { title: 'Agent CLI fixture' }, evidence: [verificationId] } };
+    }
+    assert.equal(step, 4);
+    assert.ok(body.messages.some(message => typeof message.content === 'string' && message.content.includes('Executor checked partial:')));
+    return { name: 'agent_request_input', arguments: { question: 'Which record should be processed next?' } };
+  });
+  const child = await launch(['run', '--task', 'Check one title and then ask.', '--model', 'scripted-cli-fixture', '--endpoint', service.endpoint, '--channel', process.env.TABLAZE_BROWSER_CHANNEL || 'chrome', '--partial-schema', schemaPath, '--max-steps', '4']);
+  assert.deepEqual(service.errors, [], service.errors.map(error => error.message).join('\n'));
+  assert.equal(child.code, 2, child.stderr + child.stdout);
+  const report = JSON.parse(child.stdout);
+  assert.equal(report.status, 'needs_input');
+  assert.equal(report.data, undefined);
+  assert.deepEqual(report.partials.map(item => item.key), ['title']);
+  assert.deepEqual(report.partials[0].data, { title: 'Agent CLI fixture' });
+  assert.equal(report.partials[0].evidence[0].toolCallId, verificationId);
+  assert.equal(report.partials[0].evidence[0].sessionId, sessionId);
+});
+
 test('run CLI returns human input with exit 2 and an explicit failure with exit 1', { timeout: 30_000 }, async t => {
   for (const kind of ['human_input', 'failure']) {
     const service = await fixture(t, () => kind === 'human_input'
@@ -220,6 +257,26 @@ test('CLI rejects invalid or changed final schema before restoring a browser', {
   const changed = await launch(['run', '--resume', checkpoint, '--model', 'scripted-cli-fixture', '--endpoint', 'http://127.0.0.1:1/unused', '--output-schema', schemaPath]);
   assert.equal(changed.code, 1);
   assert.match(changed.stderr, /original --output-schema/);
+  assert.equal(changed.stdout, '');
+});
+
+test('CLI rejects a missing or changed partial schema before browser restoration', { timeout: 30_000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'tablaze-partial-resume-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const schemaPath = join(directory, 'partial.json');
+  const schema = { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] };
+  await writeFile(schemaPath, JSON.stringify(schema));
+  const saved = await runAgent({ task: 'Resume checked partials.', partialOutputSchema: schema, tools: { listTools: async () => [], callTool: async () => { throw new Error('unused'); } }, planner: async () => ({ type: 'human_input', question: 'Which ID?' }) });
+  const checkpoint = join(directory, 'run.json');
+  await writeFile(checkpoint, JSON.stringify({ version: 1, savedAt: new Date().toISOString(), agent: saved.checkpoint, browser: { version: 1, sessions: [] } }));
+  const base = ['run', '--resume', checkpoint, '--model', 'scripted-cli-fixture', '--endpoint', 'http://127.0.0.1:1/unused'];
+  const missing = await launch(base);
+  assert.equal(missing.code, 1);
+  assert.match(missing.stderr, /original --partial-schema/);
+  await writeFile(schemaPath, JSON.stringify({ type: 'string' }));
+  const changed = await launch([...base, '--partial-schema', schemaPath]);
+  assert.equal(changed.code, 1);
+  assert.match(changed.stderr, /original --partial-schema/);
   assert.equal(changed.stdout, '');
 });
 

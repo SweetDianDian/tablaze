@@ -206,8 +206,9 @@ test('bound checkpoints reject missing runtimes and changed registry or same-ori
 test('version-one and version-two checkpoints explicitly migrate unbound and cannot gain a registry', async t => {
   const runtime = await fixture(t);
   const original = await runAgent({ task: 'Keep the legacy execution boundary.', tools: runtime.connection.tools, planner: async () => input() });
+  const { partialSchemaHash, requiresPartialPolicy, partials, ...legacyBase } = original.checkpoint;
   for (const version of [1, 2]) {
-    const old = { ...original.checkpoint, schemaVersion: version };
+    const old = { ...legacyBase, schemaVersion: version };
     const migrated = parseAgentCheckpoint(old);
     assert.equal(migrated.schemaVersion, AGENT_CHECKPOINT_VERSION); assert.equal(migrated.executionIdentity, undefined);
     await assert.rejects(runAgent({ task: old.task, resume: old, tools: runtime.tools, planner: async () => input() }), /unbound checkpoint/);
@@ -221,7 +222,8 @@ test('version-one and version-two checkpoints explicitly migrate unbound and can
 test('version-three bound checkpoints migrate without gaining a final output contract', async t => {
   const runtime = await fixture(t);
   const original = await runAgent({ task: 'Preserve the old registry identity.', tools: runtime.tools, planner: async () => input() });
-  const old = { ...original.checkpoint, schemaVersion: 3 };
+  const { partialSchemaHash, requiresPartialPolicy, partials, ...legacyBase } = original.checkpoint;
+  const old = { ...legacyBase, schemaVersion: 3 };
   const migrated = parseAgentCheckpoint(old);
   assert.equal(migrated.schemaVersion, AGENT_CHECKPOINT_VERSION);
   assert.deepEqual(migrated.executionIdentity, original.checkpoint.executionIdentity);
@@ -230,6 +232,9 @@ test('version-three bound checkpoints migrate without gaining a final output con
   const resumed = await runAgent({ task: old.task, resume: old, tools: runtime.tools, planner: async () => input() });
   assert.equal(resumed.status, 'needs_input');
   assert.equal(resumed.steps, 2);
+  const oldV4 = { ...legacyBase, schemaVersion: 4 };
+  assert.deepEqual(parseAgentCheckpoint(oldV4).partials, []);
+  assert.throws(() => parseAgentCheckpoint({ ...oldV4, partials: [] }), /version 4/);
 });
 
 test('resume rechecks a pending call effect rather than trusting a tampered mutating flag', async t => {

@@ -4,7 +4,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CallToolResultSchema, type CallToolResult, type Tool } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { createHash, randomUUID } from "node:crypto";
-import { AGENT_CHECKPOINT_VERSION, checkpointHistory, compactAgentHistory, executionIdentitySchema, normalizeStartUrl, parseAgentCheckpoint, type AgentCheckpoint } from "./checkpoint.js";
+import { AGENT_CHECKPOINT_VERSION, PARTIAL_HISTORY_PREFIX, checkpointHistory, compactAgentHistory, executionIdentitySchema, normalizeStartUrl, parseAgentCheckpoint, type AgentCheckpoint } from "./checkpoint.js";
 import { compileFinalOutput } from "./final-output.js";
 import { ExtractionError, type ExtractionSchema, type JSONValue } from "./extraction.js";
 import type { AgentControl } from "./agent-control.js";
@@ -43,6 +43,7 @@ export type AgentMessage =
 const decisionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("tools"), calls: z.array(z.object({ name: z.string().min(1), arguments: z.record(z.unknown()) }).strict()).min(1).max(20) }).strict(),
   z.object({ type: z.literal("finish"), summary: z.string().min(1), evidence: z.array(z.string().min(1)).min(1).max(100), data: z.unknown().optional() }).strict(),
+  z.object({ type: z.literal("publish"), key: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/), evidence: z.array(z.string().min(1)).min(1).max(100), data: z.unknown() }).strict(),
   z.object({ type: z.literal("human_input"), question: z.string().min(1) }).strict(),
   z.object({ type: z.literal("fail"), reason: z.string().min(1) }).strict(),
 ]);
@@ -51,7 +52,7 @@ const dispatchResultSchema = z.object({
   contextChanged: z.boolean().optional(), sessionId: z.string().min(1).max(160).optional(),
 }).strict();
 export type AgentDecision = z.infer<typeof decisionSchema>;
-export type AgentPlanner = (request: { task: string; messages: readonly AgentMessage[]; tools: readonly AgentTool[]; step: number; signal: AbortSignal; finalOutputSchema?: ExtractionSchema }) => Promise<AgentDecision>;
+export type AgentPlanner = (request: { task: string; messages: readonly AgentMessage[]; tools: readonly AgentTool[]; step: number; signal: AbortSignal; finalOutputSchema?: ExtractionSchema; partialOutputSchema?: ExtractionSchema }) => Promise<AgentDecision>;
 export interface AgentEvidence {
   toolCallId: string;
   sessionId: string;
@@ -59,13 +60,19 @@ export interface AgentEvidence {
   arguments: Record<string, unknown>;
   result: CallToolResult;
 }
+export interface AgentPartial {
+  key: string;
+  data: JSONValue;
+  /** Passing checks at publication time; later page changes do not revoke this snapshot. */
+  evidence: Array<{ toolCallId: string; sessionId: string; checks: Record<string, unknown>[] }>;
+}
 /** Public diagnostics use a fixed vocabulary; never provider text or exception properties. */
 export interface AgentFailure {
   phase: "planner" | "catalog" | "application" | "persistence" | "executor";
   code: "PLANNER_FAILED" | "PLANNER_TRANSPORT_FAILED" | "PLANNER_HTTP_ERROR" | "PLANNER_INVALID_RESPONSE" | "PLANNER_RESPONSE_TOO_LARGE" | "PLANNER_RESPONSE_READ_FAILED" | "PLANNER_TOOL_NAME_CONFLICT"
     | "PLANNER_PROCESS_FAILED" | "TOOL_CATALOG_FAILED" | "TOOL_CATALOG_INVALID" | "TOOL_NAMES_DUPLICATED" | "INITIALIZATION_TOOL_MISSING"
     | "EXECUTION_IDENTITY_INVALID" | "EXECUTION_IDENTITY_MISMATCH" | "TOOL_CATALOG_CLOSE_FAILED"
-    | "EVENT_HOOK_FAILED" | "METRICS_HOOK_FAILED" | "COMPLETION_HOOK_FAILED" | "RETRY_POLICY_FAILED" | "USAGE_HOOK_FAILED"
+    | "EVENT_HOOK_FAILED" | "METRICS_HOOK_FAILED" | "COMPLETION_HOOK_FAILED" | "PARTIAL_HOOK_FAILED" | "RETRY_POLICY_FAILED" | "USAGE_HOOK_FAILED"
     | "CHECKPOINT_PERSISTENCE_FAILED" | "CHECKPOINT_PERSISTENCE_TIMEOUT" | "EXECUTOR_FAILED";
   /** The current policy recognizes this failure as retryable; no retry is implied. */
   retryable: boolean;
@@ -76,6 +83,7 @@ export type AgentEvent =
   | { type: "tool_start"; step: number; call: AgentToolCall }
   | { type: "tool_result"; step: number; call: AgentToolCall; result: CallToolResult; skipped?: boolean }
   | { type: "feedback"; step: number; code: string; message: string }
+  | { type: "partial_published"; step: number; key: string }
   | { type: "failure"; step: number; failure: AgentFailure };
 export interface AgentPlannerMetric { step: number; attempt: number; planner: "primary" | "fallback"; latencyMs: number; outcome: "success" | "error" }
 export class AgentPlannerError extends Error {
@@ -127,6 +135,10 @@ export interface AgentOptions {
   historyCompaction?: { keepRecentGroups?: number };
   /** Optional bounded draft-07 final-result contract; resume requires the same schema. */
   finalOutputSchema?: ExtractionSchema;
+  /** Optional independent schema for append-only checked partial results. */
+  partialOutputSchema?: ExtractionSchema;
+  /** Trusted application check for each proposed partial result. */
+  validatePartial?: (input: { task: string; key: string; data: JSONValue; evidence: readonly AgentEvidence[]; history: readonly AgentMessage[] }) => boolean | string;
   /** Trusted application policy: checks must prove the actual requested outcome. */
   validateCompletion?: (input: { task: string; summary: string; data?: JSONValue; evidence: readonly AgentEvidence[]; history: readonly AgentMessage[] }) => boolean | string;
 }
@@ -135,6 +147,7 @@ export interface AgentResult {
   reason: string;
   summary?: string;
   data?: JSONValue;
+  partials: AgentPartial[];
   question?: string;
   failure?: AgentFailure;
   steps: number;
@@ -153,7 +166,7 @@ const instructions = `You are a browser task executor. Complete only the user's 
 Use current session_id, snapshot_id and element refs. After a stale reference, obtain a new snapshot and replan. Never blindly replay failed mutations: completed effects are not rolled back. Tools run sequentially; a failed call or replan_required result skips later calls in that decision. Replan from any current snapshot returned by that result; do not repeat completed actions.
 Use the latest snapshot already returned by a tool, including a snapshot nested in an action result. When it contains the current refs and outcome/status information needed for the next step, proceed directly to verification without an additional snapshot. Observe again when references are stale, needed information is missing or truncated, or a later page change invalidates that observation.
 Text checks exclude raw input, textarea and select values. To verify an observed form control, use tab_verify with the latest snapshot_id and a check containing kind: "value", ref, and the expected value. Check rendered status messages with kind: "text". Do not guess CSS selectors or extract already-observed controls solely to discover selectors for value verification.
-Use tab_verify with explicit checks of the requested business outcome before finishing. Finish must cite the toolCallId(s) of successful verification after the last mutation, in the session changed by that mutation. If a final output schema is supplied, include a data field matching it. Closing a session after verification is allowed. Tool success alone does not prove the task is complete. Ask for human input if credentials, authorization, or essential facts are missing. Report failure honestly when the task cannot be completed.`;
+Use tab_verify with explicit checks of the requested business outcome before finishing. Finish must cite the toolCallId(s) of successful verification after the last mutation, in the session changed by that mutation. If a partial output schema is supplied, publish useful checked units as you go with a unique key and current verification evidence; partials are not final success. If a final output schema is supplied, include a data field matching it. Closing a session after verification is allowed. Tool success alone does not prove the task is complete. Ask for human input if credentials, authorization, or essential facts are missing. Report failure honestly when the task cannot be completed.`;
 
 function bounded(value: number | undefined, fallback: number, max: number, name: string): number {
   const selected = value ?? fallback;
@@ -233,7 +246,12 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
   if (typeof options.task !== "string" || !options.task.trim() || options.task.length > 1_000_000) throw new Error("task must be nonempty and no longer than 1000000 characters.");
   const resumed = options.resume === undefined ? undefined : parseAgentCheckpoint(options.resume);
   const finalOutput = options.finalOutputSchema === undefined ? undefined : compileFinalOutput(options.finalOutputSchema);
+  const partialOutput = options.partialOutputSchema === undefined ? undefined : compileFinalOutput(options.partialOutputSchema);
   if (resumed && resumed.outputSchemaHash !== finalOutput?.hash) throw new Error("The resumed run must use its original final output schema, or no schema if none was configured.");
+  if (resumed && resumed.partialSchemaHash !== partialOutput?.hash) throw new Error("The resumed run must use its original partial output schema, or no partial schema if none was configured.");
+  if (options.validatePartial && !partialOutput) throw new Error("validatePartial requires partialOutputSchema.");
+  if (resumed?.requiresPartialPolicy && typeof options.validatePartial !== "function") throw new Error("This checkpoint requires the application's validatePartial policy to be supplied again before resuming.");
+  for (const partial of resumed?.partials ?? []) partialOutput?.validate(partial.data);
   const boundExecution = options.tools.getExecutionIdentity !== undefined || options.tools.prepareTools !== undefined;
   if (boundExecution && (typeof options.tools.getExecutionIdentity !== "function" || typeof options.tools.prepareTools !== "function")) throw new Error("getExecutionIdentity and prepareTools must be supplied together.");
   if (resumed?.executionIdentity && !boundExecution) throw new Error("This checkpoint requires its bound tool execution runtime.");
@@ -277,6 +295,7 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
   const events: AgentEvent[] = [];
   const metrics: AgentPlannerMetric[] = [];
   const evidence = new Map<string, AgentEvidence & { revision: number }>();
+  const partials: AgentPartial[] = structuredClone(resumed?.partials ?? []);
   const closedEvidence = new Set<string>();
   const ambiguous = new Map<string, AgentToolCall>((resumed?.ambiguousCalls ?? []).map(call => [call.id, call]));
   if (resumed?.pendingTool?.mutating) ambiguous.set(resumed.pendingTool.call.id, resumed.pendingTool.call);
@@ -328,7 +347,7 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
     return queued.length > 0;
   };
   const checkpoint = (phase: AgentCheckpoint["phase"]): AgentCheckpoint => ({
-    schemaVersion: AGENT_CHECKPOINT_VERSION, runId, task: options.task, ...(applicationPrompt ? { systemPrompt: applicationPrompt } : {}), requiresCompletionPolicy: Boolean(options.validateCompletion) || resumed?.requiresCompletionPolicy === true, ...(finalOutput ? { outputSchemaHash: finalOutput.hash } : {}), phase, createdAt: new Date().toISOString(), nextCallSequence,
+    schemaVersion: AGENT_CHECKPOINT_VERSION, runId, task: options.task, ...(applicationPrompt ? { systemPrompt: applicationPrompt } : {}), requiresCompletionPolicy: Boolean(options.validateCompletion) || resumed?.requiresCompletionPolicy === true, ...(finalOutput ? { outputSchemaHash: finalOutput.hash } : {}), ...(partialOutput ? { partialSchemaHash: partialOutput.hash } : {}), requiresPartialPolicy: Boolean(options.validatePartial) || resumed?.requiresPartialPolicy === true, partials: structuredClone(partials), phase, createdAt: new Date().toISOString(), nextCallSequence,
     ...(initialization ? { initialization: structuredClone(initialization) } : {}),
     ...(executionIdentity ? { executionIdentity: { ...executionIdentity } } : {}),
     steps: step, toolCalls, plannerCalls, elapsedMs: Math.round(elapsed()), limits: { maxSteps, maxToolCalls, timeoutMs, maxHistoryBytes },
@@ -362,7 +381,7 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
     saved.elapsedMs = Math.max(saved.elapsedMs, Math.round(elapsed()));
     if (controller.signal.aborted || elapsed() >= timeoutMs) { status = timedOut || elapsed() >= timeoutMs ? "limit_reached" : "cancelled"; reason = status === "limit_reached" ? "Agent deadline reached." : "Agent cancelled."; }
     const completed = status === "succeeded" ? extra : { ...extra, summary: undefined, data: undefined, evidence: [] };
-    return { status, reason, steps: step, toolCalls, plannerCalls, metrics, checkpoint: saved, evidence: [], history, events, ...(failure ? { failure } : {}), ...(inFlightToolCall ? { inFlightToolCall } : {}), ...completed };
+    return { status, reason, steps: step, toolCalls, plannerCalls, metrics, checkpoint: saved, evidence: [], partials: structuredClone(partials), history, events, ...(failure ? { failure } : {}), ...(inFlightToolCall ? { inFlightToolCall } : {}), ...completed };
   };
   const checkExecutionIdentity = async () => {
     if (!boundExecution) return;
@@ -389,7 +408,7 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
       await persist("planning");
       const before = performance.now();
       let failure: unknown; let proposed: unknown; let success = false;
-      try { proposed = await abortable(() => active({ task: options.task, messages: history, tools: listed, step, signal: controller.signal, ...(finalOutput ? { finalOutputSchema: finalOutput.schema } : {}) }), controller.signal); success = true; }
+      try { proposed = await abortable(() => active({ task: options.task, messages: history, tools: listed, step, signal: controller.signal, ...(finalOutput ? { finalOutputSchema: finalOutput.schema } : {}), ...(partialOutput ? { partialOutputSchema: partialOutput.schema } : {}) }), controller.signal); success = true; }
       catch (error) { failure = error; }
       const metric: AgentPlannerMetric = { step, attempt, planner: role, latencyMs: Math.round((performance.now() - before) * 1000) / 1000, outcome: success ? "success" : "error" };
       metrics.push(metric); applicationHook("METRICS_HOOK_FAILED", () => options.onMetrics?.(metric));
@@ -511,6 +530,33 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
       }
       if (decision.type === "human_input") return await finish("needs_input", "Human input is required.", { question: decision.question });
       if (decision.type === "fail") return await finish("failed", decision.reason);
+      if (decision.type === "publish") {
+        if (!partialOutput) { feedback("PARTIAL_NOT_CONFIGURED", "This run has no partial output schema; do not publish partial data."); await persist("decision"); continue; }
+        if (decision.data === undefined) { feedback("PARTIAL_REQUIRED", "Include data matching the configured partial output schema."); await persist("decision"); continue; }
+        if (partials.some(partial => partial.key === decision.key)) { feedback("PARTIAL_KEY_EXISTS", "A checked partial with this key already exists; use a new key for additional work."); await persist("decision"); continue; }
+        let data: JSONValue;
+        try { data = partialOutput.validate(decision.data); }
+        catch (error) {
+          if (!(error instanceof ExtractionError)) throw error;
+          feedback("PARTIAL_INVALID", `Partial data failed the configured schema or JSON limits (${error.code}); correct it before publishing.`);
+          await persist("decision"); continue;
+        }
+        const selected = [...new Set(decision.evidence)].map(id => evidence.get(id));
+        if (selected.some(item => !item || item.revision !== revision) || !selected.some(item => item && (!latestMutationSession || item.sessionId === latestMutationSession))) {
+          feedback("PARTIAL_VERIFICATION_REQUIRED", "Cite current passing tab_verify toolCallId(s) after the latest mutation; old, failed, or invented checks cannot publish a partial."); await persist("decision"); continue;
+        }
+        const accepted = selected as Array<AgentEvidence & { revision: number }>;
+        const validation = options.validatePartial ? applicationHook("PARTIAL_HOOK_FAILED", () => options.validatePartial!({ task: options.task, key: decision.key, data, evidence: accepted, history })) : true;
+        if (validation !== true) { feedback("PARTIAL_REJECTED", typeof validation === "string" ? validation : "The application's partial-result criteria have not been satisfied."); await persist("decision"); continue; }
+        const partial: AgentPartial = { key: decision.key, data, evidence: accepted.map(item => ({ toolCallId: item.toolCallId, sessionId: item.sessionId, checks: structuredClone(item.checks) })) };
+        if (partials.length >= 100 || Buffer.byteLength(JSON.stringify([...partials, partial])) > 2 * 1024 * 1024) { feedback("PARTIAL_LIMIT", "Checked partial results reached the entry or byte limit; finish or resume with a new task scope."); await persist("decision"); continue; }
+        partials.push(partial);
+        history.push({ role: "assistant", content: PARTIAL_HISTORY_PREFIX + JSON.stringify(partial) });
+        try { await persist("decision"); }
+        catch (error) { partials.pop(); history.pop(); throw error; }
+        emit({ type: "partial_published", step, key: partial.key });
+        continue;
+      }
       if (decision.type === "finish") {
         if (finalOutput && decision.data === undefined) { feedback("FINAL_OUTPUT_REQUIRED", "Include a data field matching the configured final output schema."); await persist("decision"); continue; }
         if (!finalOutput && decision.data !== undefined) { feedback("FINAL_OUTPUT_NOT_CONFIGURED", "This run has no final output schema; omit data from agent_finish."); await persist("decision"); continue; }
@@ -719,6 +765,7 @@ const controlTools: Array<{ name: string; description: string; parameters: Recor
   { name: "agent_finish", description: "Finish only with successful verification toolCallId evidence.", parameters: { type: "object", properties: { summary: { type: "string" }, evidence: { type: "array", items: { type: "string" }, minItems: 1 } }, required: ["summary", "evidence"], additionalProperties: false } },
   { name: "agent_request_input", description: "Ask the user for essential missing input or authorization.", parameters: { type: "object", properties: { question: { type: "string" } }, required: ["question"], additionalProperties: false } },
   { name: "agent_fail", description: "Report that the task cannot be completed.", parameters: { type: "object", properties: { reason: { type: "string" } }, required: ["reason"], additionalProperties: false } },
+  { name: "agent_publish", description: "Publish one checked partial result under a unique key; this does not finish the task.", parameters: { type: "object", properties: { key: { type: "string" }, evidence: { type: "array", items: { type: "string" }, minItems: 1 }, data: {} }, required: ["key", "evidence", "data"], additionalProperties: false } },
 ];
 
 function httpMessages(messages: readonly AgentMessage[], supportsImages: boolean): Record<string, unknown>[] {
@@ -751,11 +798,12 @@ export function createOpenAICompatiblePlanner(options: OpenAICompatiblePlannerOp
   if (!options.model.trim()) throw new Error("model must be nonempty.");
   const request = options.fetch ?? globalThis.fetch;
   const maxBytes = bounded(options.maxResponseBytes, 8 * 1024 * 1024, 64 * 1024 * 1024, "maxResponseBytes");
-  return async ({ messages, tools, signal, step, finalOutputSchema }) => {
+  return async ({ messages, tools, signal, step, finalOutputSchema, partialOutputSchema }) => {
     if (tools.some(tool => controlTools.some(control => control.name === tool.name))) throw plannerError("PLANNER_TOOL_NAME_CONFLICT", "MCP tool name collides with an agent control tool.");
-    const activeControlTools = finalOutputSchema === undefined ? controlTools : [
-      { ...controlTools[0], parameters: { type: "object", properties: { summary: { type: "string" }, evidence: { type: "array", items: { type: "string" }, minItems: 1 }, data: finalOutputSchema }, required: ["summary", "evidence", "data"], additionalProperties: false } },
-      ...controlTools.slice(1),
+    const activeControlTools = [
+      finalOutputSchema === undefined ? controlTools[0] : { ...controlTools[0], parameters: { type: "object", properties: { summary: { type: "string" }, evidence: { type: "array", items: { type: "string" }, minItems: 1 }, data: finalOutputSchema }, required: ["summary", "evidence", "data"], additionalProperties: false } },
+      ...controlTools.slice(1, 3),
+      ...(partialOutputSchema === undefined ? [] : [{ ...controlTools[3], parameters: { type: "object", properties: { key: { type: "string", pattern: "^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$" }, evidence: { type: "array", items: { type: "string" }, minItems: 1 }, data: partialOutputSchema }, required: ["key", "evidence", "data"], additionalProperties: false } }]),
     ];
     const started = performance.now();
     let response: Response;
@@ -800,8 +848,8 @@ export function createOpenAICompatiblePlanner(options: OpenAICompatiblePlannerOp
       });
       const control = calls.find(call => controlTools.some(tool => tool.name === call.name));
       if (control) {
-        if (calls.length !== 1) throw plannerError("PLANNER_INVALID_RESPONSE", "Finish, human input, or failure must be the only tool call in a decision.");
-        return decisionSchema.parse({ ...control.arguments, type: control.name === "agent_finish" ? "finish" : control.name === "agent_request_input" ? "human_input" : "fail" });
+        if (calls.length !== 1) throw plannerError("PLANNER_INVALID_RESPONSE", "An agent control decision must be the only tool call in a decision.");
+        return decisionSchema.parse({ ...control.arguments, type: control.name === "agent_finish" ? "finish" : control.name === "agent_publish" ? "publish" : control.name === "agent_request_input" ? "human_input" : "fail" });
       }
       return decisionSchema.parse({ type: "tools", calls });
     } catch (error) { throw error instanceof AgentPlannerError && plannerDiagnostics.has(error) ? error : plannerError("PLANNER_INVALID_RESPONSE", "Model endpoint returned an invalid tool decision."); }

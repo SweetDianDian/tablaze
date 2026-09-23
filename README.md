@@ -31,7 +31,7 @@ A real MCP SDK client completes one travel workflow: six form actions in one bat
 
 `Batch the form` → `Verify` → `Stop and re-observe` → `Approve in the popup` → `Check the file`
 
-The 126-second recording presents actual tool responses and screenshots, with labelled reading pauses. A deterministic SDK script drives the local fixture; no model inference is involved. It is a presentation recording, not a continuous video feed from the controlled tab.
+The 154-second recording presents actual tool responses and screenshots with conversational English male narration and optional captions. It contains no simulated cursor. A deterministic SDK script drives the local fixture; no model inference is involved. It is a presentation recording, not a continuous video feed from the controlled tab.
 
 [Reproduce the recording](demo/README.md) · [Inspect the full trace](docs/evidence/demo-run.json)
 

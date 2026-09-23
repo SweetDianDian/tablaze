@@ -1,8 +1,8 @@
 import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
-import type { AgentMessage, AgentToolCall, AgentToolExecutionIdentity } from "./agent.js";
+import type { AgentMessage, AgentPartial, AgentToolCall, AgentToolExecutionIdentity } from "./agent.js";
 
-export const AGENT_CHECKPOINT_VERSION = 4 as const;
+export const AGENT_CHECKPOINT_VERSION = 5 as const;
 
 export const executionIdentitySchema = z.object({ registryHash: z.string().regex(/^[a-f0-9]{64}$/), contextHash: z.string().regex(/^[a-f0-9]{64}$/) }).strict();
 
@@ -57,9 +57,21 @@ const versionThreeCheckpointSchema = versionTwoCheckpointSchema.extend({
   schemaVersion: z.literal(3),
   executionIdentity: executionIdentitySchema.optional(),
 }).strict();
-const checkpointSchema = versionThreeCheckpointSchema.extend({
-  schemaVersion: z.literal(AGENT_CHECKPOINT_VERSION),
+const versionFourCheckpointSchema = versionThreeCheckpointSchema.extend({
+  schemaVersion: z.literal(4),
   outputSchemaHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+}).strict();
+const partialSchema = z.object({
+  key: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/),
+  data: z.unknown().refine(value => value !== undefined),
+  evidence: z.array(z.object({ toolCallId: z.string().min(1).max(200), sessionId: z.string().min(1).max(160), checks: z.array(z.record(z.unknown())).min(1).max(100) }).strict()).min(1).max(100),
+}).strict();
+export const PARTIAL_HISTORY_PREFIX = "Executor checked partial: ";
+const checkpointSchema = versionFourCheckpointSchema.extend({
+  schemaVersion: z.literal(AGENT_CHECKPOINT_VERSION),
+  partialSchemaHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+  requiresPartialPolicy: z.boolean().optional(),
+  partials: z.array(partialSchema).max(100),
 }).strict();
 
 export interface AgentCheckpoint {
@@ -70,6 +82,10 @@ export interface AgentCheckpoint {
   requiresCompletionPolicy?: boolean;
   /** Resume must supply exactly the original final-result schema. */
   outputSchemaHash?: string;
+  /** Resume must supply exactly the original partial-result schema and policy. */
+  partialSchemaHash?: string;
+  requiresPartialPolicy?: boolean;
+  partials: AgentPartial[];
   /** Bound runs cannot resume with a different registry or caller context. */
   executionIdentity?: AgentToolExecutionIdentity;
   /** An attempted initializer is never automatically replayed, even after reconciliation. */
@@ -112,11 +128,22 @@ export function parseAgentCheckpoint(value: unknown, options: { maxBytes?: numbe
   if (raw?.schemaVersion === 3) {
     const legacy = versionThreeCheckpointSchema.safeParse(raw);
     if (!legacy.success) throw new Error("Invalid version 3 agent checkpoint.");
-    raw = { ...legacy.data, schemaVersion: AGENT_CHECKPOINT_VERSION };
+    raw = { ...legacy.data, schemaVersion: 4 };
+  }
+  if (raw?.schemaVersion === 4) {
+    const legacy = versionFourCheckpointSchema.safeParse(raw);
+    if (!legacy.success) throw new Error("Invalid version 4 agent checkpoint.");
+    raw = { ...legacy.data, schemaVersion: AGENT_CHECKPOINT_VERSION, partials: [] };
   }
   const parsed = checkpointSchema.safeParse(raw);
   if (!parsed.success) throw new Error("Invalid or unsupported agent checkpoint.");
   const checkpoint = parsed.data as AgentCheckpoint;
+  if (checkpoint.partials.length && !checkpoint.partialSchemaHash) throw new Error("Checkpoint partials require their original schema hash.");
+  if (checkpoint.requiresPartialPolicy && !checkpoint.partialSchemaHash) throw new Error("Checkpoint partial policy requires its original schema hash.");
+  if (Buffer.byteLength(JSON.stringify(checkpoint.partials)) > 2 * 1024 * 1024) throw new Error("Checkpoint partial results exceed the size limit.");
+  if (new Set(checkpoint.partials.map(partial => partial.key)).size !== checkpoint.partials.length) throw new Error("Checkpoint repeats a partial key.");
+  const publicationNotes = checkpoint.history.flatMap(message => message.role === "assistant" && message.content.startsWith(PARTIAL_HISTORY_PREFIX) ? [message.content] : []);
+  if (publicationNotes.length !== checkpoint.partials.length || checkpoint.partials.some(partial => !publicationNotes.includes(PARTIAL_HISTORY_PREFIX + JSON.stringify(partial)))) throw new Error("Checkpoint partial results do not match their retained publication history.");
   if (checkpoint.steps > checkpoint.limits.maxSteps || checkpoint.toolCalls > checkpoint.limits.maxToolCalls) throw new Error("Checkpoint counters exceed their recorded budgets.");
   const initialCalls = checkpoint.initialization?.state === "attempted" ? 1 : 0;
   if (checkpoint.toolCalls > checkpoint.steps * 20 + initialCalls || checkpoint.plannerCalls > checkpoint.steps * 7 || checkpoint.nextCallSequence > checkpoint.steps * 20 + initialCalls + 1) throw new Error("Checkpoint counters are inconsistent.");
@@ -209,7 +236,7 @@ export function compactAgentHistory(history: readonly AgentMessage[], options: {
   const kept: AgentMessage[][] = []; const metadata: Record<string, unknown>[] = []; let omittedGroups = 0;
   for (let index = 0; index < groups.length; index++) {
     const group = groups[index];
-    const protectedGroup = group.some(message => message.role === "tool" && protectedIds.has(message.toolCallId));
+    const protectedGroup = group.some(message => message.role === "tool" && protectedIds.has(message.toolCallId) || message.role === "assistant" && message.content.startsWith(PARTIAL_HISTORY_PREFIX));
     if (index >= groups.length - options.keepRecentGroups || protectedGroup) { kept.push(group); continue; }
     omittedGroups++;
     for (const message of group) {

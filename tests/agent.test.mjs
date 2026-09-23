@@ -5,6 +5,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { createServer } from '../dist/server.js';
 import { connectAgentTools, createOpenAICompatiblePlanner, runAgent } from '../dist/agent.js';
+import { parseAgentCheckpoint } from '../dist/checkpoint.js';
 
 const tool = (name, args = {}) => ({ type: 'tools', calls: [{ name, arguments: args }] });
 const done = (...evidence) => ({ type: 'finish', summary: 'Verified requested result.', evidence });
@@ -149,6 +150,50 @@ test('final data needs valid JSON, a matching schema, verification, and applicat
   assert.equal(run.toolCalls, 1);
   assert.deepEqual(run.events.filter(item => item.type === 'feedback').map(item => item.code), ['FINAL_OUTPUT_INVALID', 'COMPLETION_REJECTED']);
   assert.match(run.checkpoint.outputSchemaHash, /^[a-f0-9]{64}$/);
+});
+
+test('checked partials survive limits and resume without duplicating a write', async t => {
+  const connection = await mockMcp(t);
+  const schema = { type: 'object', properties: { receiptId: { type: 'string', pattern: '^WF-[0-9]{3}$' } }, required: ['receiptId'], additionalProperties: false };
+  const validatePartial = ({ data }) => data.receiptId !== 'WF-999' || 'This receipt was not accepted by the application.';
+  let verificationId;
+  const first = await runAgent({ task: 'Process verified receipts.', tools: connection.tools, maxSteps: 6, partialOutputSchema: schema, validatePartial,
+    planner: async ({ step, messages, partialOutputSchema }) => {
+      assert.deepEqual(partialOutputSchema, schema);
+      if (step === 1) return tool('change', { session_id: 's1', value: 'WF-001' });
+      if (step === 2) return tool('tab_verify', check());
+      verificationId = last(messages).toolCallId;
+      if (step === 3) return { type: 'publish', key: 'receipt-1', data: { receiptId: 42 }, evidence: [verificationId] };
+      if (step === 4) return { type: 'publish', key: 'receipt-1', data: { receiptId: 'WF-999' }, evidence: [verificationId] };
+      return { type: 'publish', key: 'receipt-1', data: { receiptId: 'WF-001' }, evidence: [verificationId] };
+    },
+  });
+  assert.equal(first.status, 'limit_reached');
+  assert.equal(first.data, undefined);
+  assert.deepEqual(first.partials.map(item => item.key), ['receipt-1']);
+  assert.deepEqual(first.partials[0].data, { receiptId: 'WF-001' });
+  assert.equal(first.partials[0].evidence[0].toolCallId, verificationId);
+  assert.deepEqual(first.events.filter(item => item.type === 'feedback').map(item => item.code), ['PARTIAL_INVALID', 'PARTIAL_REJECTED', 'PARTIAL_KEY_EXISTS']);
+  assert.deepEqual(first.checkpoint.partials, first.partials);
+  assert.equal(connection.observed.length, 1);
+  const tampered = structuredClone(first.checkpoint);
+  tampered.partials[0].data.receiptId = 'WF-002';
+  assert.throws(() => parseAgentCheckpoint(tampered), /retained publication history/);
+  await assert.rejects(runAgent({ task: first.checkpoint.task, tools: connection.tools, resume: first.checkpoint, planner: async () => { throw new Error('Must not plan.'); } }), /partial output schema/);
+  await assert.rejects(runAgent({ task: first.checkpoint.task, tools: connection.tools, resume: first.checkpoint, partialOutputSchema: schema, planner: async () => { throw new Error('Must not plan.'); } }), /validatePartial policy/);
+  const resumed = await runAgent({ task: first.checkpoint.task, tools: connection.tools, resume: first.checkpoint, maxSteps: 9, partialOutputSchema: schema, validatePartial,
+    planner: async ({ step, messages }) => {
+      if (step === 7) return { type: 'publish', key: 'receipt-2', data: { receiptId: 'WF-002' }, evidence: [verificationId] };
+      if (step === 8) {
+        assert.ok(messages.some(message => message.role === 'user' && message.content.includes('PARTIAL_VERIFICATION_REQUIRED')));
+        return tool('tab_verify', check());
+      }
+      return { type: 'publish', key: 'receipt-2', data: { receiptId: 'WF-002' }, evidence: [last(messages).toolCallId] };
+    },
+  });
+  assert.equal(resumed.status, 'limit_reached');
+  assert.deepEqual(resumed.partials.map(item => item.key), ['receipt-1', 'receipt-2']);
+  assert.deepEqual(connection.observed, [{ session_id: 's1', value: 'WF-001' }]);
 });
 
 test('a resumed run cannot omit or change its final result schema before using tools', async () => {

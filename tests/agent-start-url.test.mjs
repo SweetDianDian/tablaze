@@ -170,7 +170,8 @@ test('settled initialization survives resume and compaction with unique subseque
 
 test('version-one checkpoints migrate explicitly and initialization manifests reject inconsistent history', async () => {
   const legacyRun = await runAgent({ task, tools: toolsFor(), planner: async () => ask });
-  const legacy = { ...legacyRun.checkpoint, schemaVersion: 1 };
+  const { partialSchemaHash, requiresPartialPolicy, partials, ...legacyBase } = legacyRun.checkpoint;
+  const legacy = { ...legacyBase, schemaVersion: 1 };
   assert.equal(parseAgentCheckpoint(legacy).schemaVersion, AGENT_CHECKPOINT_VERSION);
   assert.equal(parseAgentCheckpoint(legacy).initialization, undefined);
   await assert.rejects(runAgent({ task, startUrl: url, resume: legacy, tools: toolsFor(), planner: async () => ask }), /cannot add or change/);

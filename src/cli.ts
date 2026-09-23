@@ -58,6 +58,7 @@ Agent run options / 任务执行选项:
   --max-steps <1-1000>      Planning limit (default 30) / 规划步数上限
   --max-calls <1-10000>     Tool limit (default 100) / 工具调用上限
   --output-schema <file>   Draft-07 JSON Schema for validated final data / 最终数据格式
+  --partial-schema <file>  Draft-07 JSON Schema for checked partial data / 中途数据格式
   --run-timeout-ms <ms>    Task deadline (default 300000) / 任务总时限
   --checkpoint <path>     Persist private run/browser checkpoints / 保存恢复点
   --resume <path>         Resume a saved run; old refs must be re-observed / 恢复任务
@@ -76,6 +77,7 @@ interface RunOptions {
   codexCommand?: string; reasoningEffort?: CodexReasoningEffort; maxOutputTokens?: number;
   maxSteps?: number; maxToolCalls?: number; timeoutMs?: number; checkpointPath?: string; resumePath?: string; reconciled?: string;
   finalOutputSchema?: ExtractionSchema;
+  partialOutputSchema?: ExtractionSchema;
 }
 const PROVIDERS = new Set<RunProvider>(["openai-compatible", "codex", "anthropic", "ollama"]);
 const REASONING_EFFORTS = new Set<CodexReasoningEffort>(["none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"]);
@@ -105,7 +107,7 @@ function loadNavigationPolicy(path: string): NavigationPolicy {
   }
 }
 
-function loadOutputSchema(path: string): ExtractionSchema {
+function loadOutputSchema(path: string, flag = "--output-schema"): ExtractionSchema {
   let descriptor: number | undefined;
   try {
     descriptor = openSync(path, constants.O_RDONLY | constants.O_NONBLOCK);
@@ -122,7 +124,7 @@ function loadOutputSchema(path: string): ExtractionSchema {
     const value: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(buffer.subarray(0, length)));
     return compileFinalOutput(value as ExtractionSchema).schema;
   } catch {
-    throw new Error("--output-schema must reference a readable regular UTF-8 draft-07 JSON Schema file of at most 64 KiB.");
+    throw new Error(`${flag} must reference a readable regular UTF-8 draft-07 JSON Schema file of at most 64 KiB.`);
   } finally {
     if (descriptor !== undefined) closeSync(descriptor);
   }
@@ -130,7 +132,7 @@ function loadOutputSchema(path: string): ExtractionSchema {
 
 function parseOptions(): { command: string; options: BrowserOptions; run?: RunOptions } {
   const { values, positionals } = parseArgs({
-    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, "capture-network": { type: "boolean" }, "page-script": { type: "boolean" }, "profile-dir": { type: "string" }, "profile-id": { type: "string" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, "secret-config": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "output-schema": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
+    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, "capture-network": { type: "boolean" }, "page-script": { type: "boolean" }, "profile-dir": { type: "string" }, "profile-id": { type: "string" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, "secret-config": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "output-schema": { type: "string" }, "partial-schema": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
     allowPositionals: true, strict: true,
   });
   if (values.help) return { command: "help", options: {} };
@@ -167,7 +169,7 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
   let popupPolicy: BrowserOptions["popupPolicy"];
   if (values["popup-policy"] !== undefined && values["popup-policy"] !== "stay" && values["popup-policy"] !== "follow-single") throw new Error("--popup-policy must be stay or follow-single.");
   popupPolicy = values["popup-policy"];
-  const runKeys = ["task", "start-url", "model", "provider", "endpoint", "api-key-env", "codex-command", "reasoning-effort", "max-output-tokens", "max-steps", "max-calls", "output-schema", "run-timeout-ms", "checkpoint", "resume", "reconciled"] as const;
+  const runKeys = ["task", "start-url", "model", "provider", "endpoint", "api-key-env", "codex-command", "reasoning-effort", "max-output-tokens", "max-steps", "max-calls", "output-schema", "partial-schema", "run-timeout-ms", "checkpoint", "resume", "reconciled"] as const;
   if (positionals[0] === "run") {
     const provider = (values.provider ?? "openai-compatible") as RunProvider;
     if (!PROVIDERS.has(provider)) throw new Error("--provider must be openai-compatible, codex, anthropic, or ollama.");
@@ -192,7 +194,7 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
       if (!Number.isInteger(value) || value < 1 || value > max) throw new Error(`--${key} must be an integer from 1 to ${max}.`);
       return value;
     };
-    run = { task: values.task, startUrl: values["start-url"] === undefined ? undefined : normalizeStartUrl(values["start-url"]), provider, model: values.model, endpoint: values.endpoint, apiKey: provider === "codex" ? undefined : process.env[envName] || undefined, codexCommand: values["codex-command"], reasoningEffort, maxOutputTokens, maxSteps: limit("max-steps", 30, 1000), maxToolCalls: limit("max-calls", 100, 10000), ...(values["output-schema"] !== undefined ? { finalOutputSchema: loadOutputSchema(values["output-schema"]) } : {}), timeoutMs: limit("run-timeout-ms", 300000, 86400000), checkpointPath: values.checkpoint ? resolve(values.checkpoint) : undefined, resumePath: values.resume ? resolve(values.resume) : undefined, reconciled: values.reconciled };
+    run = { task: values.task, startUrl: values["start-url"] === undefined ? undefined : normalizeStartUrl(values["start-url"]), provider, model: values.model, endpoint: values.endpoint, apiKey: provider === "codex" ? undefined : process.env[envName] || undefined, codexCommand: values["codex-command"], reasoningEffort, maxOutputTokens, maxSteps: limit("max-steps", 30, 1000), maxToolCalls: limit("max-calls", 100, 10000), ...(values["output-schema"] !== undefined ? { finalOutputSchema: loadOutputSchema(values["output-schema"]) } : {}), ...(values["partial-schema"] !== undefined ? { partialOutputSchema: loadOutputSchema(values["partial-schema"], "--partial-schema") } : {}), timeoutMs: limit("run-timeout-ms", 300000, 86400000), checkpointPath: values.checkpoint ? resolve(values.checkpoint) : undefined, resumePath: values.resume ? resolve(values.resume) : undefined, reconciled: values.reconciled };
   } else if (runKeys.some(key => values[key] !== undefined)) throw new Error("Agent options require the run command.");
   return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, profileDir: values["profile-dir"] !== undefined ? resolve(values["profile-dir"]) : undefined, expectedProfileId: values["profile-id"], timeoutMs, popupPolicy, navigationPolicy, secrets, captureNetwork: values["capture-network"] ?? false, allowPageScript: values["page-script"] ?? false }, run };
 }
@@ -296,17 +298,19 @@ async function main(): Promise<void> {
     const saved = run.resumePath ? await loadRunCheckpoint(run.resumePath) : undefined;
     if (saved && run.task && run.task !== saved.agent.task) throw new Error("A resumed run must retain the saved task.");
     if (saved && saved.agent.outputSchemaHash !== (run.finalOutputSchema === undefined ? undefined : compileFinalOutput(run.finalOutputSchema).hash)) throw new Error("A resumed run must supply its original --output-schema file before browser restoration.");
+    if (saved && saved.agent.partialSchemaHash !== (run.partialOutputSchema === undefined ? undefined : compileFinalOutput(run.partialOutputSchema).hash)) throw new Error("A resumed run must supply its original --partial-schema file before browser restoration.");
     if (saved && run.startUrl !== undefined && run.startUrl !== saved.agent.initialization?.url) throw new Error("A resumed run cannot add or change its saved startUrl.");
     if (saved?.agent.executionIdentity) throw new Error("This checkpoint requires its application's bound tool registry. Resume it through the SDK with the original context and tool contracts; the CLI cannot restore these handlers.");
     if (saved && options.popupPolicy !== undefined && options.popupPolicy !== (saved.browser.popupPolicy ?? "stay")) throw new Error("A resumed run must retain its saved popup policy.");
     if (saved?.agent.requiresCompletionPolicy) throw new Error("This checkpoint requires its application validateCompletion policy. Resume through the library with that policy; the CLI cannot restore executable application code.");
+    if (saved?.agent.requiresPartialPolicy) throw new Error("This checkpoint requires its application validatePartial policy. Resume through the library with that policy; the CLI cannot restore executable application code.");
     if (saved && (saved.agent.steps >= (run.maxSteps ?? saved.agent.limits.maxSteps) || saved.agent.toolCalls >= (run.maxToolCalls ?? saved.agent.limits.maxToolCalls) || saved.agent.elapsedMs >= (run.timeoutMs ?? saved.agent.limits.timeoutMs))) {
-      process.stdout.write(`${JSON.stringify({ status: "limit_reached", reason: "The saved run has exhausted the requested budget; no browser or model was started. Increase the relevant limit explicitly to continue.", steps: saved.agent.steps, tool_calls: saved.agent.toolCalls, planner_calls: saved.agent.plannerCalls }, null, 2)}\n`);
+      process.stdout.write(`${JSON.stringify({ status: "limit_reached", reason: "The saved run has exhausted the requested budget; no browser or model was started. Increase the relevant limit explicitly to continue.", steps: saved.agent.steps, tool_calls: saved.agent.toolCalls, planner_calls: saved.agent.plannerCalls, ...(saved.agent.partialSchemaHash ? { partials: saved.agent.partials } : {}) }, null, 2)}\n`);
       process.exitCode = 1; return;
     }
     const uncertain = saved ? [...new Set([...saved.agent.ambiguousCalls.map(call => call.id), ...(saved.agent.pendingTool?.mutating ? [saved.agent.pendingTool.call.id] : [])])] : [];
     if (uncertain.length && !run.reconciled) {
-      process.stdout.write(`${JSON.stringify({ status: "needs_input", reason: "The saved run has actions with unknown outcomes. Check the business state before using --reconciled with an explicit note; no browser or model was started.", unresolved_tool_calls: uncertain }, null, 2)}\n`);
+      process.stdout.write(`${JSON.stringify({ status: "needs_input", reason: "The saved run has actions with unknown outcomes. Check the business state before using --reconciled with an explicit note; no browser or model was started.", unresolved_tool_calls: uncertain, ...(saved!.agent.partialSchemaHash ? { partials: saved!.agent.partials } : {}) }, null, 2)}\n`);
       process.exitCode = 2; return;
     }
     const usage: Record<string, unknown>[] = [];
@@ -351,7 +355,7 @@ async function main(): Promise<void> {
       }
       let workspace: BrowserWorkspace = await engine.exportWorkspace();
       const checkpointPath = run.checkpointPath ?? run.resumePath;
-      const result = await runAgent({ task: run.task ?? saved!.agent.task, startUrl: run.startUrl, planner, tools: connection.tools, maxSteps: run.maxSteps, maxToolCalls: run.maxToolCalls, timeoutMs: run.timeoutMs, finalOutputSchema: run.finalOutputSchema, signal: controller.signal,
+      const result = await runAgent({ task: run.task ?? saved!.agent.task, startUrl: run.startUrl, planner, tools: connection.tools, maxSteps: run.maxSteps, maxToolCalls: run.maxToolCalls, timeoutMs: run.timeoutMs, finalOutputSchema: run.finalOutputSchema, partialOutputSchema: run.partialOutputSchema, signal: controller.signal,
         resume: saved?.agent, resumeSessionMap: restored?.sessionMap,
         resumeFeedback: restored ? `Browser contexts were recreated from the saved workspace. A session marked requires_reauthentication did not restore its login state or original URLs: use an address authorized by the user task and log in again with the available secret aliases before continuing. Other sessions restored their saved cookies/localStorage/IndexedDB and URLs. DOM, form drafts and sessionStorage were not restored. Old refs are invalid. Observe every needed tab before acting. Reauthentication does not reconcile unknown earlier writes. Restored sessions: ${JSON.stringify(restored.snapshots.map(snapshot => ({ session_id: snapshot.session_id, tab_id: snapshot.tab_id, tabs: snapshot.tabs, url: snapshot.url, requires_reauthentication: snapshot.requires_reauthentication === true })))}` : undefined,
         reconciliation: run.reconciled ? { resolvedCallIds: uncertain, note: run.reconciled } : undefined,
@@ -363,7 +367,7 @@ async function main(): Promise<void> {
         onEvent: event => { if (event.type === "planning") process.stderr.write(`Tablaze: planning step ${event.step}\n`); },
       });
       // Default CLI output omits raw prompts, tool arguments and page history.
-      report = { status: result.status, reason: result.reason, ...(result.failure ? { failure: result.failure } : {}), summary: result.summary, ...(result.status === "succeeded" && result.data !== undefined ? { data: result.data } : {}), question: result.question, steps: result.steps, tool_calls: result.toolCalls, planner_calls: result.plannerCalls, checkpoint: checkpointPath, model_usage: usage, ...(codexPlanner ? { provider_diagnostics: providerDiagnostics } : {}), verification: result.evidence.map(item => ({ tool_call_id: item.toolCallId, session_id: item.sessionId, checks: item.checks })) };
+      report = { status: result.status, reason: result.reason, ...(result.failure ? { failure: result.failure } : {}), summary: result.summary, ...(result.status === "succeeded" && result.data !== undefined ? { data: result.data } : {}), ...(run.partialOutputSchema ? { partials: result.partials } : {}), question: result.question, steps: result.steps, tool_calls: result.toolCalls, planner_calls: result.plannerCalls, checkpoint: checkpointPath, model_usage: usage, ...(codexPlanner ? { provider_diagnostics: providerDiagnostics } : {}), verification: result.evidence.map(item => ({ tool_call_id: item.toolCallId, session_id: item.sessionId, checks: item.checks })) };
       if (result.status !== "succeeded") process.exitCode = result.status === "needs_input" ? 2 : 1;
     } finally {
       process.removeListener("SIGINT", abort); process.removeListener("SIGTERM", abort);

@@ -7,7 +7,7 @@ export { runAgent, connectAgentTools, createMcpToolClient, createOpenAICompatibl
 export { AgentControl, createAgentControl } from "./agent-control.js";
 export { parseAgentCheckpoint, AGENT_CHECKPOINT_VERSION } from "./checkpoint.js";
 export type { AgentCheckpoint } from "./checkpoint.js";
-export type { AgentOptions, AgentResult, AgentFailure, AgentPlanner, AgentDecision, AgentTool, AgentToolCall, AgentToolClient, AgentToolCatalog, AgentToolExecutionIdentity, AgentToolDispatchResult, AgentMessage, AgentEvent, AgentEvidence, AgentPlannerMetric, AgentModelUsage, OpenAICompatiblePlannerOptions } from "./agent.js";
+export type { AgentOptions, AgentResult, AgentPartial, AgentFailure, AgentPlanner, AgentDecision, AgentTool, AgentToolCall, AgentToolClient, AgentToolCatalog, AgentToolExecutionIdentity, AgentToolDispatchResult, AgentMessage, AgentEvent, AgentEvidence, AgentPlannerMetric, AgentModelUsage, OpenAICompatiblePlannerOptions } from "./agent.js";
 export { createAnthropicPlanner, createOllamaPlanner } from "./providers.js";
 export type { NativePlannerOptions, AnthropicPlannerOptions, OllamaPlannerOptions } from "./providers.js";
 export { defineTool, createToolRegistry, ToolRegistryError } from "./custom-tools.js";

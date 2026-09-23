@@ -7,6 +7,9 @@ import { inspectDOM } from './snapshot.js';
 import { assembleDOMExtraction, inspectDOMField, validateDOMFieldPlan, type DOMFieldPlan, type DOMFieldObservation, type ExtractionSchema } from './extraction.js';
 import { compileNavigationPolicy, NavigationPolicyError, type NavigationPolicy, type CompiledNavigationPolicy } from './navigation-policy.js';
 import { startNavigationGuard, type NavigationGuard } from './navigation-guard.js';
+import { compileSecretStore, SecretError, type BrowserSecretOptions, type CompiledSecretStore } from './secret-store.js';
+import { installSecretBridge, type SecretInputBridge } from './secret-input.js';
+import { projectSecretSnapshot, projectSecretExtraction, projectSecretText, redactSecretMetadata } from './secret-projection.js';
 import { prepareVisualPointer, showVisualPointer, pointForElement } from './visual-pointer.js';
 
 export class BrowserError extends Error {
@@ -15,7 +18,7 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; visualPointer?: boolean }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; visualPointer?: boolean }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
 type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
 export interface BrowserWorkspace {
@@ -23,9 +26,11 @@ export interface BrowserWorkspace {
   popupPolicy?: PopupPolicy;
   /** Bind restoration to the same trusted navigation policy; never infer it from saved URLs. */
   navigationPolicyHash?: string;
-  sessions: { sessionId: string; activeTabId: string; storage: StorageState; tabs: { tabId: string; url: string }[] }[];
+  secretPolicyHash?: string;
+  sessions: { sessionId: string; activeTabId: string; storage: StorageState; requiresReauthentication?: boolean; tabs: { tabId: string; url: string }[] }[];
 }
 export type BrowserAction =
+  | { type: 'fill_secret'; ref: string; secret: string }
   | { type: 'click'; ref: string } | { type: 'fill'; ref: string; value: string }
   | { type: 'press'; ref: string; key: string } | { type: 'select'; ref: string; values: string[] }
   | { type: 'check'; ref: string; checked: boolean } | { type: 'scroll'; direction: 'up' | 'down' | 'left' | 'right'; pixels?: number; ref?: string }
@@ -53,8 +58,9 @@ interface Session {
   dialogs: { type: string; message: string; action: string }[];
   unexpected: string[]; cleanup?: Promise<void>;
   navigationGuard?: NavigationGuard; navigationContextId?: string;
+  secretTainted?: boolean;
 }
-const errorInfo = (error: unknown, fallback = 'BROWSER_ERROR') => ({ code: error instanceof BrowserError ? error.code : fallback, message: (error instanceof Error ? error.message : String(error)).split('\nCall log:')[0].slice(0, 2000) });
+const errorInfo = (error: unknown, fallback = 'BROWSER_ERROR') => ({ code: error instanceof BrowserError || error instanceof SecretError ? error.code : fallback, message: (error instanceof Error ? error.message : String(error)).split('\nCall log:')[0].slice(0, 2000) });
 const integer = (value: number | undefined, fallback: number, min: number, max: number, name: string) => { const result = value ?? fallback; if (!Number.isInteger(result) || result < min || result > max) throw new BrowserError('INVALID_ARGUMENT', `${name} must be an integer between ${min} and ${max}.`); return result; };
 const validUrl = (url: string) => { let parsed: URL; try { parsed = new URL(url); } catch { throw new BrowserError('INVALID_URL', 'Use an absolute http:// or https:// URL.'); } if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) throw new BrowserError('INVALID_URL', 'Only HTTP(S) URLs without embedded credentials are supported.'); return parsed.href; };
 
@@ -77,9 +83,13 @@ export class BrowserEngine {
   private popupPolicy: PopupPolicy;
   private readonly navigationPolicy?: CompiledNavigationPolicy;
   private navigationGuards = new Map<Browser, NavigationGuard>();
+  private readonly secretStore?: CompiledSecretStore;
+  private readonly secretBridgeKey = `__tablaze_${randomUUID().replaceAll('-', '')}`;
+  private readonly secretOperations = new Set<AbortController>();
   private artifactDirectory?: Promise<string>;
+  private get visualPointerEnabled(): boolean { return this.options.visualPointer ?? (this.options.headless === false); }
   private async pointAt(page: Page, action: string, target: ElementHandle<Element>, revalidate?: () => Promise<unknown>): Promise<void> {
-    if (this.options.visualPointer === false) return;
+    if (!this.visualPointerEnabled) return;
     const point = await pointForElement(target);
     await revalidate?.();
     if (point) await showVisualPointer(page, point, action);
@@ -91,6 +101,25 @@ export class BrowserEngine {
     try { this.navigationPolicy = compileNavigationPolicy(options.navigationPolicy); }
     catch { throw new BrowserError('NAVIGATION_POLICY_INVALID', 'Invalid navigation policy configuration.'); }
     if (this.navigationPolicy && options.cdpUrl) throw new BrowserError('NAVIGATION_POLICY_CDP_UNSUPPORTED', 'Navigation policy requires an isolated browser owned by this engine.');
+    try { this.secretStore = compileSecretStore(options.secrets); }
+    catch { throw new BrowserError('SECRET_CONFIG_INVALID', 'Invalid browser secret configuration.'); }
+    if (this.secretStore && options.cdpUrl) throw new BrowserError('SECRET_CDP_UNSUPPORTED', 'Browser secrets require an isolated browser owned by this engine.');
+  }
+
+  private secretText(value: string, limit: number): string { return this.secretStore ? projectSecretText(value, limit, this.secretStore) : value.slice(0, limit); }
+  private protectMetadata<T>(value: T): T { return this.secretStore ? redactSecretMetadata(value, this.secretStore) : value; }
+  private errorInfo(error: unknown, fallback = 'BROWSER_ERROR') {
+    return { ...errorInfo(error, fallback), message: this.secretText((error instanceof Error ? error.message : String(error)).split('\nCall log:')[0], 2000) };
+  }
+  private assertArtifactAllowed(session: Session): void {
+    if (session.secretTainted && !this.secretStore?.allowSensitiveArtifacts) throw new BrowserError('SECRET_ARTIFACT_BLOCKED', 'This session received a secret. Binary and authentication-state exports require trusted operator configuration.');
+  }
+  private async secretContext(frame: Frame) {
+    try {
+      const context = await frame.evaluate(key => ((globalThis as any)[key] as SecretInputBridge | undefined)?.context(), this.secretBridgeKey);
+      if (!context?.ok || !/^https?:\/\//i.test(frame.url())) throw new BrowserError('SECRET_ORIGIN_UNSUPPORTED', 'Secrets require a supported HTTP(S) document origin.');
+      return context;
+    } catch (error) { if (error instanceof BrowserError) throw error; throw new BrowserError('SECRET_CONTEXT_CHANGED', 'The secret target document is no longer available.'); }
   }
 
   private assertNavigationAllowed(url: string, internalBlank = false): void {
@@ -145,6 +174,7 @@ export class BrowserEngine {
         return await work(session);
       } catch (error) {
         if (!allowUnhealthy && !this.disposed && !(error instanceof BrowserError && ['CANCELLED', 'BATCH_TIMEOUT', 'ENGINE_CLOSED'].includes(error.code))) this.assertNavigationGuard(session.navigationGuard);
+        if (this.secretStore) { const safe = this.errorInfo(error); throw new BrowserError(safe.code, safe.message); }
         throw error;
       }
     });
@@ -314,9 +344,10 @@ export class BrowserEngine {
         : browser.contexts()[0];
       if (!context) throw new BrowserError('CDP_CONTEXT_MISSING', 'The attached browser has no default context.');
       check();
+      if (this.secretStore) await phase(context.addInitScript(installSecretBridge, { key: this.secretBridgeKey }));
       page = await phase(context.newPage(), value => { page = value; }, value => value.close());
       check();
-      if (this.options.visualPointer !== false) await phase(prepareVisualPointer(page));
+      if (this.visualPointerEnabled) await phase(prepareVisualPointer(page));
       const navigationContextId = navigationGuard ? await phase(navigationGuard.contextIdFor(page)) : undefined;
       session = {
         id: randomUUID(), context, ownsContext, page, tail: Promise.resolve(), closed: false,
@@ -347,7 +378,7 @@ export class BrowserEngine {
     if (existing) return existing[0];
     const id = `t${session.nextTab++}`;
     session.tabs.set(id, page);
-    if (this.options.visualPointer !== false && page !== session.page) void prepareVisualPointer(page).catch(() => {});
+    if (this.visualPointerEnabled && page !== session.page) void prepareVisualPointer(page).catch(() => {});
     page.setDefaultTimeout(this.timeout);
     page.setDefaultNavigationTimeout(this.timeout);
     page.once('close', () => {
@@ -368,7 +399,7 @@ export class BrowserEngine {
     page.on('dialog', dialog => {
       const policy = session.dialogPolicy;
       session.dialogPolicy = undefined;
-      session.dialogs.push({ type: dialog.type(), message: dialog.message().slice(0, 2000), action: policy?.action ?? 'dismiss' });
+      session.dialogs.push({ type: dialog.type(), message: this.secretText(dialog.message(), 2000), action: policy?.action ?? 'dismiss' });
       if (session.dialogs.length > 20) session.dialogs.shift();
       if (!policy) session.unexpected.push(`A ${dialog.type()} dialog was dismissed. Arm tab_dialog before repeating an action that opens a dialog.`);
       const operation = policy?.action === 'accept' ? dialog.accept(policy.promptText) : dialog.dismiss();
@@ -391,21 +422,25 @@ export class BrowserEngine {
   private trackDownload(session: Session, download: Download): void {
     if (session.closed || session.downloads.size >= 100) { void download.cancel().catch(() => {}); return; }
     const id = randomUUID();
-    const record: DownloadRecord = { id, filename: basename(download.suggestedFilename()).slice(0, 200), url: download.url().slice(0, 4000), status: 'pending', download, done: Promise.resolve() };
+    const record: DownloadRecord = { id, filename: this.secretText(basename(download.suggestedFilename()), 200), url: this.secretText(download.url(), 4000), status: 'pending', download, done: Promise.resolve() };
     session.downloads.set(id, record);
     record.done = (async () => {
+      let destination: string | undefined;
       try {
-        const destination = join(await this.artifacts(), `${id}.download`);
+        this.assertArtifactAllowed(session);
+        destination = join(await this.artifacts(), `${id}.download`);
+        this.assertArtifactAllowed(session);
         await download.saveAs(destination);
+        this.assertArtifactAllowed(session);
         await chmod(destination, 0o600);
         record.path = destination;
         record.bytes = (await stat(destination)).size;
         record.status = 'completed';
-      } catch { record.status = 'failed'; record.error = 'The download failed or its session closed before completion.'; }
+      } catch { await download.cancel().catch(() => {}); if (destination) await rm(destination, { force: true }).catch(() => {}); record.status = 'failed'; record.error = 'The download failed, was blocked by secret artifact policy, or its session closed before completion.'; }
     })();
   }
   private tabList(session: Session) {
-    return [...session.tabs].filter(([, page]) => !page.isClosed()).map(([id, page]) => ({ tab_id: id, url: page.url().slice(0, 4000), active: page === session.page }));
+    return [...session.tabs].filter(([, page]) => !page.isClosed()).map(([id, page]) => ({ tab_id: id, url: this.secretText(page.url(), 4000), active: page === session.page }));
   }
   tabs(sessionId: string, options: { action: 'list' | 'new' | 'switch' | 'close'; tabId?: string; url?: string }): Promise<Record<string, unknown>> {
     return this.exclusive(sessionId, async session => {
@@ -418,7 +453,7 @@ export class BrowserEngine {
           await page.close().catch(() => {});
           throw new BrowserError('SESSION_CLOSED', 'The session closed while creating this tab.');
         }
-        if (this.options.visualPointer !== false) await prepareVisualPointer(page);
+        if (this.visualPointerEnabled) await prepareVisualPointer(page);
         const id = this.registerPage(session, page);
         const blockedBefore = this.blockedNavigations(session);
         try { if (url !== 'about:blank') await page.goto(url, { waitUntil: 'domcontentloaded' }); }
@@ -463,6 +498,7 @@ export class BrowserEngine {
   }
   downloads(sessionId: string, downloadId?: string, timeoutMs?: number): Promise<Record<string, unknown>> {
     return this.exclusive(sessionId, async session => {
+      this.assertArtifactAllowed(session);
       if (downloadId) {
         const item = session.downloads.get(downloadId);
         if (!item) throw new BrowserError('DOWNLOAD_NOT_FOUND', 'No owned download with that ID.');
@@ -472,11 +508,12 @@ export class BrowserEngine {
         finally { if (timer) clearTimeout(timer); }
       }
       const records = [...session.downloads.values()].filter(item => !downloadId || item.id === downloadId).map(({ done, download, ...item }) => item);
-      return { ok: records.every(item => item.status !== 'failed'), session_id: session.id, downloads: records };
+      return { ok: records.every(item => item.status !== 'failed'), session_id: session.id, downloads: this.protectMetadata(records) };
     });
   }
   saveState(sessionId: string): Promise<Record<string, unknown>> {
     return this.exclusive(sessionId, async session => {
+      this.assertArtifactAllowed(session);
       const state = await session.context.storageState({ indexedDB: true });
       const path = join(await this.artifacts(), `${randomUUID()}.state.json`);
       await writeFile(path, JSON.stringify(state), { mode: 0o600, flag: 'wx' });
@@ -488,6 +525,10 @@ export class BrowserEngine {
     const sessions: BrowserWorkspace['sessions'] = [];
     for (const id of [...this.sessions.keys()]) {
       const state = await this.exclusive(id, async session => {
+        if (session.secretTainted && !this.secretStore?.allowSensitiveArtifacts) return {
+          sessionId: id, activeTabId: session.activeTabId, storage: { cookies: [], origins: [] }, requiresReauthentication: true,
+          tabs: [...session.tabs].filter(([, page]) => !page.isClosed()).map(([tabId]) => ({ tabId, url: 'about:blank' })),
+        };
         const storage = await session.context.storageState({ indexedDB: true });
         if (session.closed || session.page.isClosed() || !session.tabs.has(session.activeTabId)) throw new BrowserError('SESSION_CLOSED', 'The session closed during state export.');
         return { sessionId: id, activeTabId: session.activeTabId, storage,
@@ -496,7 +537,7 @@ export class BrowserEngine {
       });
       sessions.push(state);
     }
-    return { version: 1, popupPolicy: this.popupPolicy, ...(this.navigationPolicy ? { navigationPolicyHash: this.navigationPolicy.hash } : {}), sessions };
+    return { version: 1, popupPolicy: this.popupPolicy, ...(this.navigationPolicy ? { navigationPolicyHash: this.navigationPolicy.hash } : {}), ...(this.secretStore ? { secretPolicyHash: this.secretStore.hash } : {}), sessions };
   }
   async restoreWorkspace(input: unknown): Promise<{ sessionMap: Record<string, string>; snapshots: Record<string, unknown>[] }> {
     if (this.options.cdpUrl) throw new BrowserError('INVALID_ARGUMENT', 'Workspace restoration requires isolated contexts.');
@@ -504,11 +545,14 @@ export class BrowserEngine {
     const workspace = input as BrowserWorkspace;
     if (!workspace || workspace.version !== 1 || !Array.isArray(workspace.sessions) || workspace.sessions.length > 20 || Buffer.byteLength(JSON.stringify(workspace)) > 10 * 1024 * 1024) throw new BrowserError('INVALID_ARGUMENT', 'Invalid or oversized browser workspace.');
     if (workspace.navigationPolicyHash !== this.navigationPolicy?.hash) throw new BrowserError('NAVIGATION_POLICY_MISMATCH', 'Restore requires the same navigation policy as the saved workspace.');
+    if (workspace.secretPolicyHash !== this.secretStore?.hash) throw new BrowserError('SECRET_POLICY_MISMATCH', 'Restore requires the same secret context, versions and policy as the saved workspace.');
+    if (this.secretStore) await this.secretStore.assertContext(AbortSignal.timeout(this.timeout));
     if (workspace.popupPolicy !== undefined && !['stay', 'follow-single'].includes(workspace.popupPolicy)) throw new BrowserError('INVALID_ARGUMENT', 'Invalid workspace popup policy.');
     const ids = new Set<string>();
     for (const saved of workspace.sessions) {
       if (!saved || typeof saved.sessionId !== 'string' || !saved.sessionId || ids.has(saved.sessionId) || !Array.isArray(saved.tabs) || !saved.tabs.length || saved.tabs.length > 50 || !saved.storage || !Array.isArray(saved.storage.cookies) || !Array.isArray(saved.storage.origins)) throw new BrowserError('INVALID_ARGUMENT', 'Invalid workspace session.');
       ids.add(saved.sessionId);
+      if (saved.requiresReauthentication !== undefined && typeof saved.requiresReauthentication !== 'boolean' || saved.requiresReauthentication && (saved.storage.cookies.length || saved.storage.origins.length || saved.tabs.some(tab => tab.url !== 'about:blank'))) throw new BrowserError('INVALID_ARGUMENT', 'Reauthentication checkpoints must omit storage and document URLs.');
       const tabs = new Set<string>();
       for (const tab of saved.tabs) {
         if (!tab || typeof tab.tabId !== 'string' || !tab.tabId || tabs.has(tab.tabId) || typeof tab.url !== 'string' || tab.url.length > 8192) throw new BrowserError('INVALID_ARGUMENT', 'Invalid workspace tab.');
@@ -538,7 +582,9 @@ export class BrowserEngine {
           const snapshot = await this.tabs(id, { action: 'new', ...(tab.url !== 'about:blank' ? { url: tab.url } : {}) });
           tabMap.set(tab.tabId, snapshot.tab_id as string);
         }
-        snapshots.push(await this.tabs(id, { action: 'switch', tabId: tabMap.get(saved.activeTabId) }));
+        const snapshot = await this.tabs(id, { action: 'switch', tabId: tabMap.get(saved.activeTabId) });
+        if (saved.requiresReauthentication) snapshot.requires_reauthentication = true;
+        snapshots.push(snapshot);
       }
       return { sessionMap, snapshots };
     } catch (error) {
@@ -549,6 +595,7 @@ export class BrowserEngine {
   }
   pdf(sessionId: string, options: { format?: 'A4' | 'Letter'; landscape?: boolean } = {}): Promise<Record<string, unknown>> {
     return this.exclusive(sessionId, async session => {
+      this.assertArtifactAllowed(session);
       const page = session.page;
       const tabId = session.activeTabId, url = page.url();
       const generation = session.generations.get(page.mainFrame()) ?? 0;
@@ -567,7 +614,7 @@ export class BrowserEngine {
         await rm(path, { force: true });
         throw new BrowserError('CAPTURE_CHANGED', 'The page changed while persisting its PDF.');
       }
-      return { ok: true, session_id: session.id, tab_id: tabId, url, path, bytes: buffer.length, mime_type: 'application/pdf', sha256: createHash('sha256').update(buffer).digest('hex') };
+      return { ok: true, session_id: session.id, tab_id: tabId, url: this.secretText(url, 4000), path, bytes: buffer.length, mime_type: 'application/pdf', sha256: createHash('sha256').update(buffer).digest('hex') };
     });
   }
   private async uploadPaths(files: string[]): Promise<string[]> {
@@ -588,7 +635,7 @@ export class BrowserEngine {
     const textLimit = integer(options.textLimit, 6000, 0, 20000, 'textLimit');
     if (options.mode !== undefined && !['full', 'diff'].includes(options.mode)) throw new BrowserError('INVALID_ARGUMENT', 'Snapshot mode must be full or diff.');
     const allFrames = this.frameList(session);
-    const frames = allFrames.slice(0, 100).map(frame => ({ ...frame, url: frame.url.slice(0, 4000), name: frame.name.slice(0, 200) }));
+    const frames = allFrames.slice(0, 100).map(frame => ({ ...frame, url: this.secretText(frame.url, 4000), name: this.secretText(frame.name, 200) }));
     const frameId = options.frameId ?? 'f0';
     const frame = [...session.frames].find(([frame, id]) => id === frameId && !frame.isDetached())?.[0];
     if (!frame) throw new BrowserError('FRAME_NOT_FOUND', `No live frame ${frameId}. Read the frames list from a current snapshot.`);
@@ -606,7 +653,7 @@ export class BrowserEngine {
       root = await roots.elementHandle();
       if (!root) throw new BrowserError('SNAPSHOT_CHANGED', 'The selected root disappeared. Take a fresh snapshot.');
     }
-    const result = await frame.evaluateHandle(inspectDOM, { op: 'snapshot', root, viewportOnly: scope.viewportOnly, maxElements, textLimit, nextRef: session.nextRef, previous: old }).finally(() => root?.dispose());
+    const result = await frame.evaluateHandle(inspectDOM, { op: 'snapshot', root, viewportOnly: scope.viewportOnly, maxElements, textLimit, outputPadding: this.secretStore?.padding, nextRef: session.nextRef, previous: old }).finally(() => root?.dispose());
     const dataHandle = await result.getProperty('data');
     const data = await dataHandle.jsonValue() as any;
     const nodesHandle = await result.getProperty('nodes');
@@ -625,7 +672,7 @@ export class BrowserEngine {
     const id = `${session.id}:${++session.revision}`;
     session.snapshot = { id, frame, generation, refs, actionable: true, entries, scope };
     const metadataTruncated = allFrames.length > 100 || allFrames.some(frame => frame.url.length > 4000 || frame.name.length > 200) || title.length > 1000 || session.page.url().length > 4000;
-    const output: Record<string, unknown> = { ok: true, session_id: session.id, snapshot_id: id, tab_id: session.activeTabId, tabs: this.tabList(session), scope: { selector: scope.selector ?? null, viewport_only: scope.viewportOnly }, mode: options.mode ?? 'full', frame_id: frameId, url: session.page.url().slice(0, 4000), title: title.slice(0, 1000), frames, frame_count: allFrames.length, elements: entries, text: data.text, truncated: data.truncated || metadataTruncated, truncation: { ...data.truncation, metadata: metadataTruncated }, budgets: { max_elements: maxElements, text_limit: textLimit, max_frames: 100 }, elapsed_ms: Math.round(performance.now() - start) };
+    const output: Record<string, unknown> = { ok: true, session_id: session.id, snapshot_id: id, tab_id: session.activeTabId, tabs: this.tabList(session), scope: { selector: scope.selector ?? null, viewport_only: scope.viewportOnly }, mode: options.mode ?? 'full', frame_id: frameId, url: this.secretText(session.page.url(), 4000), title: this.secretText(title, 1000), frames, frame_count: allFrames.length, elements: entries, text: data.text, truncated: data.truncated || metadataTruncated, truncation: { ...data.truncation, metadata: metadataTruncated }, budgets: { max_elements: maxElements, text_limit: textLimit, max_frames: 100 }, elapsed_ms: Math.round(performance.now() - start) };
     this.assertNavigationGuard(session.navigationGuard);
     if (session.navigationGuard) output.navigation_policy = { enabled: true, blocked_requests: this.blockedNavigations(session) };
     if (options.mode === 'diff') {
@@ -639,6 +686,16 @@ export class BrowserEngine {
       delete output.elements;
     }
     await this.releaseRefs(previous);
+    if (this.secretStore) {
+      output.available_secrets = [];
+      // about:blank and opaque frames remain usable, but cannot receive secrets.
+      try {
+        const target = await this.secretContext(frame), top = await this.secretContext(session.page.mainFrame());
+        await this.secretStore.assertContext(AbortSignal.timeout(this.timeout));
+        output.available_secrets = this.secretStore.aliases(target.origin, top.origin);
+      } catch (error) { output.secret_input_error = this.errorInfo(error); }
+      return projectSecretSnapshot(output, textLimit, this.secretStore);
+    }
     return output;
   }
   private async reference(session: Session, state: SnapshotState, ref: string): Promise<ElementHandle<Element>> {
@@ -664,11 +721,14 @@ export class BrowserEngine {
       const blockedBefore = this.blockedNavigations(session);
       state.actionable = false;
       const deadline = start + budget;
+      const secretController = new AbortController();
+      this.secretOperations.add(secretController);
       let interruption: BrowserError | undefined;
       let interruptedCleanup: Promise<void> | undefined;
       const interrupt = (code: string, message: string) => {
         if (interruption) return;
         interruption = new BrowserError(code, message);
+        secretController.abort();
         session.closed = true;
         this.sessions.delete(session.id);
         // Closing only the owned page/context interrupts in-flight Playwright RPCs.
@@ -693,6 +753,7 @@ export class BrowserEngine {
       let failed: Record<string, unknown> | null = null;
       let completed = 0;
       let failedActionMayHaveSideEffects = false;
+      let outcomeUnknown = false;
       let popupFollowed: { from_tab_id: string; tab_id: string; action_index: number; window_ms: number } | undefined;
       const popupWindowMs = 250;
       try {
@@ -721,10 +782,39 @@ export class BrowserEngine {
             const viewport = await observedPage.evaluate(() => ({ width: innerWidth, height: innerHeight }));
             if (!Number.isFinite(action.x) || !Number.isFinite(action.y) || action.x < 0 || action.y < 0 || action.x >= viewport.width || action.y >= viewport.height) throw new BrowserError('INVALID_ARGUMENT', 'Coordinates must be inside the current viewport in CSS pixels.');
             checkInterruption();
-            if (this.options.visualPointer !== false) await showVisualPointer(observedPage, { x: action.x, y: action.y }, action.type);
+            if (this.visualPointerEnabled) await showVisualPointer(observedPage, { x: action.x, y: action.y }, action.type);
             actionStarted = true;
             popupWindow = armPopupWindow();
             await observedPage.mouse.click(action.x, action.y);
+          }
+          else if (action.type === 'fill_secret') {
+            if (!this.secretStore) throw new BrowserError('SECRET_NOT_CONFIGURED', 'Secret input requires trusted operator configuration.');
+            const target = await this.reference(session, state, action.ref);
+            const topFrame = observedPage.mainFrame();
+            const top = await this.secretContext(topFrame);
+            const probe = await target.evaluate((node, key) => ((globalThis as any)[key] as SecretInputBridge | undefined)?.probe(node), this.secretBridgeKey);
+            if (!probe?.ok) throw new BrowserError(probe?.code ?? 'SECRET_TARGET_INVALID', 'The observed secret target is not a writable control in a supported document.');
+            const targetContext = await this.secretContext(state.frame);
+            if (targetContext.documentId !== probe.documentId || targetContext.origin !== probe.origin) throw new BrowserError('SECRET_CONTEXT_CHANGED', 'The secret target document changed.');
+            const value = await this.secretStore.resolve(action.secret, probe.origin, top.origin, secretController.signal);
+            checkInterruption();
+            await this.reference(session, state, action.ref);
+            const currentTop = await this.secretContext(topFrame);
+            if (currentTop.documentId !== top.documentId || currentTop.origin !== top.origin) throw new BrowserError('SECRET_CONTEXT_CHANGED', 'The top document changed while resolving the secret.');
+            await this.secretStore.assertContext(secretController.signal);
+            checkInterruption();
+            await this.pointAt(observedPage, action.type, target, () => this.reference(session, state, action.ref));
+            // No focus, keyboard events, or selector re-resolution with plaintext.
+            // An RPC failure after dispatch cannot prove that the setter did not run.
+            session.secretTainted = true;
+            actionStarted = true;
+            let filled: Awaited<ReturnType<SecretInputBridge['fill']>> | undefined;
+            try { filled = await target.evaluate((node, input) => ((globalThis as any)[input.key] as SecretInputBridge | undefined)?.fill(node, input), { key: this.secretBridgeKey, documentId: probe.documentId, origin: probe.origin, value }); }
+            catch { throw new BrowserError('SECRET_INPUT_FAILED', 'Secret input returned no reliable outcome. Inspect actual effects before retrying.'); }
+            if (!filled?.ok) {
+              if (filled && filled.wrote === false) actionStarted = false;
+              throw new BrowserError(filled?.code ?? 'SECRET_INPUT_FAILED', 'Secret input could not be confirmed. Observe the page and reconcile any possible effects.');
+            }
           }
           else if (action.type === 'scroll') {
             const pixels = integer(action.pixels, 600, 1, 10000, 'pixels');
@@ -736,7 +826,7 @@ export class BrowserEngine {
               await this.pointAt(observedPage, action.type, target, () => this.reference(session, state, ref));
               checkInterruption(); actionStarted = true;
               await target.evaluate((element, { x, y }) => element.scrollBy(x, y), delta);
-            } else { if (this.options.visualPointer !== false) await showVisualPointer(observedPage, { x: 80, y: 80 }, action.type); actionStarted = true; await state.frame.evaluate(({ x, y }) => window.scrollBy(x, y), delta); }
+            } else { actionStarted = true; await state.frame.evaluate(({ x, y }) => window.scrollBy(x, y), delta); }
           }
           else if (action.type === 'wait') { if (!action.text) throw new BrowserError('INVALID_ARGUMENT', 'Wait text must be nonempty.'); await state.frame.getByText(action.text).first().waitFor({ state: 'visible', timeout: remaining(integer(action.timeoutMs, this.timeout, 100, 60000, 'timeoutMs')) }); }
           else {
@@ -841,7 +931,7 @@ export class BrowserEngine {
                 await ensureHit(destination, destinationPoint);
                 await ensureHit(target, source);
                 checkInterruption();
-                if (this.options.visualPointer !== false) await showVisualPointer(observedPage, source, 'drag');
+                if (this.visualPointerEnabled) await showVisualPointer(observedPage, source, 'drag');
                 await observedPage.mouse.move(source.x, source.y);
                 await this.reference(session, state, action.ref);
                 await this.reference(session, state, action.targetRef);
@@ -855,7 +945,7 @@ export class BrowserEngine {
                   await observedPage.mouse.down();
                   checkInterruption();
                   await observedPage.mouse.move(destinationPoint.x, destinationPoint.y, { steps: 12 });
-                  if (this.options.visualPointer !== false) await showVisualPointer(observedPage, destinationPoint, 'drag');
+                  if (this.visualPointerEnabled) await showVisualPointer(observedPage, destinationPoint, 'drag');
                   await observedPage.mouse.move(destinationPoint.x, destinationPoint.y);
                   await this.reference(session, state, action.targetRef);
                   await ensureHit(destination, destinationPoint, target);
@@ -904,16 +994,17 @@ export class BrowserEngine {
             }
           }
           completed++; results.push({ index, type: action.type, status: 'completed' });
-        } catch (error) { if (!interruption && performance.now() >= deadline) interrupt('BATCH_TIMEOUT', 'The action batch exceeded its total time budget. This session was closed; completed actions were not rolled back.'); const policyError = this.blockedNavigations(session) > blockedBefore ? new BrowserError('NAVIGATION_BLOCKED', 'A document request was blocked by the configured navigation policy.') : undefined; const info = errorInfo(interruption ?? this.navigationGuardFailure(session.navigationGuard) ?? policyError ?? error, 'ACTION_FAILED'); if (action.type === 'fill' && action.value) info.message = info.message.split(action.value).join('[redacted]'); failedActionMayHaveSideEffects = actionStarted; failed = { index, action: action.type, error: info }; results.push({ index, type: action.type, status: 'failed', error: info }); }
+        } catch (error) { if (!interruption && performance.now() >= deadline) interrupt('BATCH_TIMEOUT', 'The action batch exceeded its total time budget. This session was closed; completed actions were not rolled back.'); const policyError = this.blockedNavigations(session) > blockedBefore ? new BrowserError('NAVIGATION_BLOCKED', 'A document request was blocked by the configured navigation policy.') : undefined; const info = this.errorInfo(interruption ?? this.navigationGuardFailure(session.navigationGuard) ?? policyError ?? error, 'ACTION_FAILED'); if (action.type === 'fill' && action.value) info.message = info.message.split(action.value).join('[redacted]'); failedActionMayHaveSideEffects = actionStarted; outcomeUnknown = action.type === 'fill_secret' && actionStarted; failed = { index, action: action.type, error: info }; results.push({ index, type: action.type, status: 'failed', error: info }); }
         finally { if (popupWindow) observedPage.off('popup', popupWindow.listener); }
       }
       const output: Record<string, unknown> = { ok: !failed && !interruption, batch_complete: !failed && !interruption && completed === actions.length, session_id: session.id, snapshot_id: snapshotId, partial: !!(failed || interruption) && (completed > 0 || failedActionMayHaveSideEffects) || !!popupFollowed && completed < actions.length, completed, failed, failed_action_may_have_side_effects: failedActionMayHaveSideEffects, results, ...(popupFollowed ? { replan_required: true, popup_followed: popupFollowed } : {}), elapsed_ms: Math.round(performance.now() - start) };
-      if (session.dialogs.length) output.dialogs = session.dialogs.splice(0);
-      if ((options.snapshot !== false || popupFollowed) && !interruption) { try { output.snapshot = await this.snapshotInternal(session, popupFollowed ? {} : { ...(state.generation === (session.generations.get(state.frame) ?? 0) ? state.scope : {}), frameId: state.frame.isDetached() ? 'f0' : session.frames.get(state.frame) }); } catch (error) { output.snapshot_error = errorInfo(interruption ?? error, 'SNAPSHOT_FAILED'); } }
+      if (outcomeUnknown) output.outcome_unknown = true;
+      if (session.dialogs.length) output.dialogs = this.protectMetadata(session.dialogs.splice(0));
+      if ((options.snapshot !== false || popupFollowed) && !interruption) { try { output.snapshot = await this.snapshotInternal(session, popupFollowed ? {} : { ...(state.generation === (session.generations.get(state.frame) ?? 0) ? state.scope : {}), frameId: state.frame.isDetached() ? 'f0' : session.frames.get(state.frame) }); } catch (error) { output.snapshot_error = this.errorInfo(interruption ?? error, 'SNAPSHOT_FAILED'); } }
       if (interruption) { output.ok = false; output.batch_complete = false; output.session_closed = true; output.error = errorInfo(interruption); output.partial = completed > 0 || failedActionMayHaveSideEffects; }
       output.elapsed_ms = Math.round(performance.now() - start);
       return output;
-      } finally { clearTimeout(timer); options.signal?.removeEventListener('abort', onAbort); if (interruptedCleanup) await interruptedCleanup; }
+      } finally { clearTimeout(timer); secretController.abort(); this.secretOperations.delete(secretController); options.signal?.removeEventListener('abort', onAbort); if (interruptedCleanup) await interruptedCleanup; }
     });
   }
   extract(sessionId: string, options: { kind: 'text' | 'links' | 'table'; selector?: string; maxItems?: number }): Promise<Record<string, unknown>> {
@@ -925,8 +1016,8 @@ export class BrowserEngine {
       if (await roots.count() !== 1) throw new BrowserError('SELECTOR_COUNT', 'Extraction selector must match exactly one root element.');
       const root = await roots.elementHandle();
       if (!root) throw new BrowserError('SELECTOR_COUNT', 'Extraction root disappeared.');
-      const result = await frame.evaluate(inspectDOM, { op: 'extract', root, kind: options.kind, maxItems }).finally(() => root.dispose());
-      return { ok: true, session_id: session.id, kind: options.kind, limits: { max_items: maxItems, max_characters: 20000 }, ...result };
+      const result = await frame.evaluate(inspectDOM, { op: 'extract', root, kind: options.kind, maxItems, outputPadding: this.secretStore?.padding }).finally(() => root.dispose());
+      return { ok: true, session_id: session.id, kind: options.kind, limits: { max_items: maxItems, max_characters: 20000 }, ...(this.secretStore ? projectSecretExtraction(result, options.kind, this.secretStore) : result) };
     });
   }
   extractStructured(sessionId: string, options: { schema: ExtractionSchema; fields: DOMFieldPlan[] }): Promise<Record<string, unknown>> {
@@ -953,7 +1044,11 @@ export class BrowserEngine {
         }
       }
       if (frame.isDetached() || session.page !== page || generation !== (session.generations.get(frame) ?? 0)) throw new BrowserError('SNAPSHOT_CHANGED', 'The document changed during structured extraction.');
-      return { ok: true, session_id: session.id, tab_id: session.activeTabId, url: frame.url(), ...assembleDOMExtraction({ schema: options.schema, fields, observations }) };
+      const extracted = assembleDOMExtraction({ schema: options.schema, fields, observations });
+      // A schema-valid fact containing a credential cannot be silently changed
+      // into a different fact by redaction. Ask for a narrower, safe selector.
+      if (this.secretStore?.contains(JSON.stringify({ url: frame.url(), ...extracted }))) throw new BrowserError('SECRET_EVIDENCE_BLOCKED', 'Structured extraction includes a configured secret. Narrow the fields or selector.');
+      return { ok: true, session_id: session.id, tab_id: session.activeTabId, url: frame.url(), ...extracted };
     });
   }
   verify(sessionId: string, checks: BrowserCheck[], timeoutMs?: number, snapshotId?: string): Promise<Record<string, unknown>> {
@@ -982,11 +1077,11 @@ export class BrowserEngine {
       };
       // Compare in the page so even a very large value returns bounded evidence.
       // Checking the sensitive type and reading the value share one evaluation.
-      const readValue = (element: Element, expected: string) => {
+      const readValue = (element: Element, input: { expected: string; outputLimit: number }) => {
         if (element instanceof HTMLInputElement && ['password', 'hidden'].includes(element.type)) return { sensitive: true };
         if (!(element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement)) return { unsupported: true };
         const value = element.value;
-        return { value: value.slice(0, 2000), pass: value === expected };
+        return { value: value.slice(0, input.outputLimit), pass: value === input.expected };
       };
       const results = await Promise.all(checks.map(async (check, index) => {
         const deadline = start + timeout; let actual: unknown; let pass = false; let error: ReturnType<typeof errorInfo> | undefined;
@@ -996,26 +1091,26 @@ export class BrowserEngine {
             switch (check.kind) {
               case 'url': actual = session.page.url(); pass = actual === check.value; break;
               case 'title': actual = await session.page.title(); pass = (actual as string).includes(check.contains); break;
-              case 'text': { const observed = await frame.evaluate(inspectDOM, { op: 'text', contains: check.contains, textLimit: 2000 }); actual = observed.text; pass = observed.matches; if (observed.scan_truncated && !pass) throw new BrowserError('OBSERVATION_TRUNCATED', 'The DOM scan budget was exhausted before this text was found. Narrow the task or inspect a specific region.'); break; }
+              case 'text': { const observed = await frame.evaluate(inspectDOM, { op: 'text', contains: check.contains, textLimit: 2000, outputPadding: this.secretStore?.padding }); actual = this.secretText(observed.text, 2000); pass = observed.matches; if (observed.scan_truncated && !pass) throw new BrowserError('OBSERVATION_TRUNCATED', 'The DOM scan budget was exhausted before this text was found. Narrow the task or inspect a specific region.'); break; }
               case 'visible': actual = await frame.locator(check.selector).isVisible(); pass = actual === true; break;
               case 'value': {
                 actual = undefined;
                 const observed = check.ref !== undefined
-                  ? await (await guardedReference(check.ref)).evaluate(readValue, check.value)
-                  : await frame.locator(check.selector!).evaluate(readValue, check.value, { timeout: Math.max(1, deadline - performance.now()) });
+                  ? await (await guardedReference(check.ref)).evaluate(readValue, { expected: check.value, outputLimit: 2000 + (this.secretStore?.padding ?? 0) })
+                  : await frame.locator(check.selector!).evaluate(readValue, { expected: check.value, outputLimit: 2000 + (this.secretStore?.padding ?? 0) }, { timeout: Math.max(1, deadline - performance.now()) });
                 if (observed.sensitive) throw new BrowserError('SENSITIVE_VALUE', 'Password and hidden field values are not returned or verified.');
                 if (observed.unsupported) throw new BrowserError('NOT_FORM_CONTROL', 'Value checks require an input, textarea, or select.');
                 if (check.ref !== undefined) await guardedReference(check.ref);
-                actual = observed.value; pass = observed.pass === true; break;
+                actual = typeof observed.value === 'string' ? this.secretText(observed.value, 2000) : undefined; pass = observed.pass === true; break;
               }
               case 'count': actual = await frame.locator(check.selector).count(); pass = actual === check.value; break;
               default: throw new BrowserError('INVALID_ARGUMENT', 'Unsupported check kind.');
             }
             error = undefined;
-          } catch (caught) { error = errorInfo(caught, 'CHECK_FAILED'); if (caught instanceof BrowserError || session.closed || session.page.isClosed() || this.disposed) break; }
+          } catch (caught) { error = this.errorInfo(caught, 'CHECK_FAILED'); if (caught instanceof BrowserError || session.closed || session.page.isClosed() || this.disposed) break; }
           if (!pass && performance.now() < deadline) await new Promise(resolve => setTimeout(resolve, Math.min(75, deadline - performance.now())));
         } while (!pass && performance.now() < deadline);
-        if (typeof actual === 'string') actual = actual.slice(0, 2000);
+        if (typeof actual === 'string') actual = this.secretText(actual, 2000);
         return { index, kind: check.kind, pass, actual, ...(error ? { error } : {}) };
       }));
       // A parallel status check may outlive a value read. Do not return its ref
@@ -1024,16 +1119,16 @@ export class BrowserEngine {
         const check = checks[result.index];
         if (check.kind !== 'value' || check.ref === undefined || result.error) return;
         try {
-          const observed = await (await guardedReference(check.ref)).evaluate(readValue, check.value);
+          const observed = await (await guardedReference(check.ref)).evaluate(readValue, { expected: check.value, outputLimit: 2000 + (this.secretStore?.padding ?? 0) });
           if (observed.sensitive) throw new BrowserError('SENSITIVE_VALUE', 'Password and hidden field values are not returned or verified.');
           if (observed.unsupported) throw new BrowserError('NOT_FORM_CONTROL', 'Value checks require an input, textarea, or select.');
           await guardedReference(check.ref);
-          result.actual = observed.value;
+          result.actual = typeof observed.value === 'string' ? this.secretText(observed.value, 2000) : undefined;
           // This final read can revoke earlier evidence, never turn a timed-out
           // assertion into a success outside its polling budget.
           result.pass &&= observed.pass === true;
         }
-        catch (caught) { result.pass = false; result.actual = undefined; result.error = errorInfo(caught, 'CHECK_FAILED'); }
+        catch (caught) { result.pass = false; result.actual = undefined; result.error = this.errorInfo(caught, 'CHECK_FAILED'); }
       }));
       if (usesRefs && !referenceContextUnchanged()) for (const result of results) {
         const check = checks[result.index];
@@ -1048,6 +1143,7 @@ export class BrowserEngine {
   }
   screenshot(sessionId: string, fullPage = false): Promise<{ buffer: Buffer; mimeType: string; url: string; tabId: string; viewport: { width: number; height: number; scrollX: number; scrollY: number }; coordinateSpace: string }> {
     return this.exclusive(sessionId, async session => {
+      this.assertArtifactAllowed(session);
       const page = session.page;
       const tabId = session.activeTabId;
       const generation = session.generations.get(page.mainFrame()) ?? 0;
@@ -1059,10 +1155,10 @@ export class BrowserEngine {
       const buffer = await page.screenshot({ type: 'jpeg', quality: 70, fullPage, scale: 'css', timeout: this.timeout });
       if (session.page !== page || page.isClosed() || generation !== (session.generations.get(page.mainFrame()) ?? 0)) throw new BrowserError('CAPTURE_CHANGED', 'The observed tab changed during capture. Capture the active tab again.');
       if (buffer.length > 4 * 1024 * 1024) throw new BrowserError('CAPTURE_TOO_LARGE', 'Screenshot exceeds 4 MiB; use a viewport screenshot.');
-      return { buffer, mimeType: 'image/jpeg', url: page.url(), tabId, viewport, coordinateSpace: fullPage ? 'document-css' : 'viewport-css' };
+      return { buffer, mimeType: 'image/jpeg', url: this.secretText(page.url(), 4000), tabId, viewport, coordinateSpace: fullPage ? 'document-css' : 'viewport-css' };
     });
   }
-  list(): Record<string, unknown>[] { return [...this.sessions.values()].filter(session => !session.closed && !session.page.isClosed()).map(session => ({ session_id: session.id, url: session.page.url(), snapshot_id: session.snapshot?.id ?? null, tab_id: session.activeTabId, tab_count: session.tabs.size, session_mode: session.ownsContext ? 'isolated' : 'attached_profile' })); }
+  list(): Record<string, unknown>[] { return [...this.sessions.values()].filter(session => !session.closed && !session.page.isClosed()).map(session => ({ session_id: session.id, url: this.secretText(session.page.url(), 4000), snapshot_id: session.snapshot?.id ?? null, tab_id: session.activeTabId, tab_count: session.tabs.size, session_mode: session.ownsContext ? 'isolated' : 'attached_profile' })); }
   private cleanup(session: Session): Promise<void> {
     for (const lease of this.bindings) if (lease.sessionId === session.id) lease.invalidate(this.disposed ? 'ENGINE_CLOSED' : 'BINDING_STALE');
     if (!session.cleanup) {

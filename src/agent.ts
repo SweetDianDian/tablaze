@@ -25,6 +25,7 @@ export interface AgentToolCatalog {
 }
 export interface AgentToolClient {
   listTools(options: { signal: AbortSignal }): Promise<AgentTool[]>;
+  /** A dispatched write with structuredContent.outcome_unknown === true requires trusted reconciliation. */
   callTool(call: { name: string; arguments: Record<string, unknown> }, options: { signal: AbortSignal }): Promise<CallToolResult>;
   /** Optional trusted execution protocol. These methods must be supplied together. */
   getExecutionIdentity?(options: { signal: AbortSignal }): Promise<AgentToolExecutionIdentity>;
@@ -510,6 +511,7 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
           catch (error) { pendingTool = undefined; throw error; }
           inFlightToolCall = call;
           try {
+            let notStarted = false;
             if (activeCatalog) {
               const dispatched = dispatchResultSchema.parse(await abortable(() => activeCatalog!.dispatch(call, { signal: controller.signal }), controller.signal));
               result = CallToolResultSchema.parse(dispatched.result);
@@ -519,9 +521,17 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
                 if (sideEffectsPossible) ambiguous.set(call.id, call);
                 result = { ...result, isError: true, content: [...result.content, { type: "text", text: "Executor diagnostic: the tool outcome is unknown. A possible mutation requires trusted reconciliation." }] };
               } else if (dispatched.outcome === "not_started") {
+                notStarted = true;
                 if (!toolFailed(result)) result = errorResult("TOOL_NOT_STARTED", "The execution runtime rejected this call before the handler started. Replan from the current context.");
               } else if (sideEffectsPossible && toolFailed(result)) ambiguous.set(call.id, call);
             } else result = CallToolResultSchema.parse(await abortable(() => options.tools.callTool({ name: call.name, arguments: call.arguments }, { signal: controller.signal }), controller.signal));
+            // The executor's explicit structured marker can report a write whose
+            // acknowledgement was lost. Page text/nested payloads are not this
+            // protocol, and a trusted not_started dispatch cannot have written.
+            if (sideEffectsPossible && !notStarted && result.structuredContent?.outcome_unknown === true) {
+              ambiguous.set(call.id, call);
+              result = { ...result, isError: true };
+            }
           }
           catch (error) {
             if (controller.signal.aborted) throw error;

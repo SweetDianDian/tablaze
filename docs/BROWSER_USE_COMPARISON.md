@@ -57,13 +57,16 @@ partial area remains open until its public entry point and outcome tests pass.
 | Evaluation and distribution | Official task benchmark and packaged agent/CLI [E] | Unit/browser tests and local engine microbenchmark | Reproducible installs and full-task benchmark adapters, independent outcome judges, paired results and reported uncertainty. |
 
 Current development adds [exact-origin navigation policy](NAVIGATION_POLICY.md)
-through trusted CLI/SDK configuration. It covers HTTP(S) document requests,
-including redirect hops, frames and popups, only in owned isolated browsers;
-external CDP is excluded. Non-document requests remain unrestricted, and loss
-of the interception connection can release a paused request before the browser
-closes. This is not a network firewall. Broader network/file limits and scoped
-secret handling remain open, so this increment does not complete the permissions
-row or alter any historical comparison result.
+and [scoped credential filling](SECRETS.md) through trusted CLI/SDK configuration.
+The former covers HTTP(S) document requests, including redirects, frames and
+popups, only in owned isolated browsers. The latter limits credential resolution
+to a current observed input with permitted frame and top-level origins; a local
+login and cross-origin iframe fixture exercise it through the browser and MCP.
+External CDP is excluded from both. Non-document requests remain unrestricted,
+and loss of navigation interception can release a paused request before browser
+closure. This is not a network firewall or complete data-loss prevention. Broader
+network/file limits and a representative authenticated task suite remain open,
+so the permissions row and historical comparison results remain incomplete.
 
 Sources:
 

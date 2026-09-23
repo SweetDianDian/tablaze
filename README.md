@@ -110,7 +110,7 @@ The new production Codex path also has a [separate live smoke](docs/CODEX_PROVID
 | **Guarded actions** | Check snapshot revisions and DOM targets before input. Re-observe when a target changes. |
 | **Ordered batches** | Send up to 20 actions in one call, with completed, failed and skipped steps. Stops on error; earlier effects remain. |
 | **Explicit verification** | Check the resulting URL, title, text, field values, visibility and element counts. |
-| **Visible action pointer** | A brief, non-intercepting cursor marks validated click and input targets in owned tabs. Disable with `--no-visual-pointer` or `visualPointer: false` in the library. |
+| **Visible action pointer** | In headed sessions, a brief, non-intercepting cursor marks validated click and input targets. Headless sessions omit it by default. Use `--visual-pointer` to include it in captures or `--no-visual-pointer` to disable it. Library callers can set `visualPointer: true` or `false`. |
 | **Optional navigation policy** | [Exact-origin allow/deny rules](docs/NAVIGATION_POLICY.md) for HTTP(S) document requests, including redirects, frames and popups, in owned isolated browsers. No external CDP; not a network firewall. |
 
 ### Fifteen tools
@@ -142,6 +142,7 @@ The new production Codex path also has a [separate live smoke](docs/CODEX_PROVID
 | [Typed custom tools](docs/CUSTOM_TOOLS.md) | SDK schemas, trusted application context, browser bindings and recovery contracts. |
 | [Model providers](docs/PROVIDERS.md) | Codex CLI, native Anthropic/Ollama and compatible HTTP contracts, authentication and usage. |
 | [Navigation policy](docs/NAVIGATION_POLICY.md) | Trusted CLI/SDK configuration, document-only scope, transport-loss limits and checkpoint identity. |
+| [Scoped credentials](docs/SECRETS.md) | Trusted aliases, exact-origin login fills, redaction limits and recovery. |
 | [Browser Use variants audit](docs/BROWSER_USE_VARIANTS.md) | Distinguish Agent, MCP, Harness, Pi and cloud comparison targets; source audit, not a benchmark. |
 | [Benchmark](bench/README.md) | Reproduce the local workload and inspect every raw sample. |
 | [Validation evidence](docs/VALIDATION.md) | Real browser, SDK and Codex results, with their measured scope. |

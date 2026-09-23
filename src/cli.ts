@@ -15,6 +15,7 @@ import { createCodexPlanner, type CodexReasoningEffort } from "./codex.js";
 import { createAnthropicPlanner, createOllamaPlanner } from "./providers.js";
 import { normalizeStartUrl, parseAgentCheckpoint, type AgentCheckpoint } from "./checkpoint.js";
 import { compileNavigationPolicy, type NavigationPolicy } from "./navigation-policy.js";
+import { loadSecretConfig } from "./secret-config.js";
 
 const require = createRequire(import.meta.url);
 const HELP = `Tablaze / 闪页 — compact browser MCP
@@ -28,13 +29,15 @@ Usage / 用法:
 Options / 选项:
   --headless                Run headless (default) / 无头模式
   --headed                  Show the isolated browser / 显示独立浏览器
-  --no-visual-pointer       Hide the brief action pointer / 关闭操作指针
+  --visual-pointer          Show action targets, including headless captures / 显示操作位置
+  --no-visual-pointer       Hide the action pointer / 关闭操作指针
   --channel <name>          Use installed Chrome/Edge / 浏览器渠道
   --executable-path <path>  Use a browser executable / 浏览器程序路径
   --cdp-url <url>           Explicitly attach over CDP / 主动连接 CDP
   --timeout-ms <100-60000>  Action timeout (default 10000) / 操作超时
   --popup-policy <policy>   stay (default) or follow-single / 弹窗跟随策略
   --navigation-policy <file>  Trusted exact-origin JSON policy; isolated browsers only
+  --secret-config <file>    Trusted secret aliases and env variable names in JSON; isolated browsers only
   --help                    Print this help / 帮助
   --version                 Print the version / 版本
 
@@ -98,16 +101,20 @@ function loadNavigationPolicy(path: string): NavigationPolicy {
 
 function parseOptions(): { command: string; options: BrowserOptions; run?: RunOptions } {
   const { values, positionals } = parseArgs({
-    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, "no-visual-pointer": { type: "boolean" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
+    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, "visual-pointer": { type: "boolean" }, "no-visual-pointer": { type: "boolean" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, "secret-config": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
     allowPositionals: true, strict: true,
   });
   if (values.help) return { command: "help", options: {} };
   if (values.version) return { command: "version", options: {} };
   if (positionals.length > 1 || (positionals[0] && !["doctor", "setup", "run"].includes(positionals[0]))) throw new Error("Expected no command, doctor, setup, or run. Run tablaze --help.");
   if (values.headless && values.headed) throw new Error("Choose either --headless or --headed.");
+  if (values["visual-pointer"] && values["no-visual-pointer"]) throw new Error("Choose either --visual-pointer or --no-visual-pointer.");
   const cdpUrl = values["cdp-url"];
   if (values["navigation-policy"] !== undefined && cdpUrl) throw new Error("--navigation-policy cannot be combined with --cdp-url; it requires isolated browser contexts.");
   if (values["navigation-policy"] !== undefined && positionals[0] === "setup") throw new Error("--navigation-policy applies to MCP, run, or doctor, not setup.");
+  if (values["secret-config"] !== undefined && cdpUrl) throw new Error("--secret-config cannot be combined with --cdp-url; it requires isolated browser contexts.");
+  if (values["secret-config"] !== undefined && positionals[0] === "setup") throw new Error("--secret-config applies to MCP, run, or doctor, not setup.");
+  const secrets = values["secret-config"] === undefined ? undefined : loadSecretConfig(values["secret-config"]);
   const navigationPolicy = values["navigation-policy"] === undefined ? undefined : loadNavigationPolicy(values["navigation-policy"]);
   const channel = values.channel ?? (cdpUrl ? undefined : process.env.TABLAZE_BROWSER_CHANNEL);
   if (channel && !CHANNELS.has(channel)) throw new Error("Unsupported browser channel. Use chromium, chrome, or a documented Chrome/Edge channel.");
@@ -152,7 +159,7 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
     };
     run = { task: values.task, startUrl: values["start-url"] === undefined ? undefined : normalizeStartUrl(values["start-url"]), provider, model: values.model, endpoint: values.endpoint, apiKey: provider === "codex" ? undefined : process.env[envName] || undefined, codexCommand: values["codex-command"], reasoningEffort, maxOutputTokens, maxSteps: limit("max-steps", 30, 1000), maxToolCalls: limit("max-calls", 100, 10000), timeoutMs: limit("run-timeout-ms", 300000, 86400000), checkpointPath: values.checkpoint ? resolve(values.checkpoint) : undefined, resumePath: values.resume ? resolve(values.resume) : undefined, reconciled: values.reconciled };
   } else if (runKeys.some(key => values[key] !== undefined)) throw new Error("Agent options require the run command.");
-  return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, timeoutMs, popupPolicy, navigationPolicy, visualPointer: !values["no-visual-pointer"] }, run };
+  return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, timeoutMs, popupPolicy, navigationPolicy, secrets, visualPointer: values["visual-pointer"] ? true : values["no-visual-pointer"] ? false : undefined }, run };
 }
 
 function channelExecutable(channel: string): string | undefined {
@@ -204,6 +211,7 @@ function doctor(options: BrowserOptions): void {
     browser: { source: options.cdpUrl ? "external-cdp" : options.executablePath ? "executable" : options.channel ?? "managed-chromium", executable: executable ?? null, installed, detected_version: detectedBrowserVersion(executable), expected_managed_version: bundled ? managed?.browserVersion ?? null : null, expected_managed_revision: bundled ? managed?.revision ?? null : null },
     headless: options.cdpUrl ? null : options.headless, timeout_ms: options.timeoutMs, popup_policy: options.popupPolicy ?? "stay",
     navigation_policy: { enabled: options.navigationPolicy !== undefined, allowed_origin_count: options.navigationPolicy?.allowedOrigins?.length ?? null, blocked_origin_count: options.navigationPolicy?.blockedOrigins?.length ?? 0 },
+    secrets: { enabled: options.secrets !== undefined, alias_count: options.secrets?.secrets.length ?? 0, allow_sensitive_artifacts: options.secrets?.allowSensitiveArtifacts ?? false },
     ready: options.cdpUrl ? null : installed,
     next_step: options.cdpUrl ? "CDP configuration supplied. No connection was attempted; endpoint details are omitted." : installed ? "The browser executable exists. Run an MCP smoke test to verify launch permissions." : "Run tablaze setup, or select an installed browser with --channel chrome.",
   };
@@ -309,7 +317,7 @@ async function main(): Promise<void> {
       const checkpointPath = run.checkpointPath ?? run.resumePath;
       const result = await runAgent({ task: run.task ?? saved!.agent.task, startUrl: run.startUrl, planner, tools: connection.tools, maxSteps: run.maxSteps, maxToolCalls: run.maxToolCalls, timeoutMs: run.timeoutMs, signal: controller.signal,
         resume: saved?.agent, resumeSessionMap: restored?.sessionMap,
-        resumeFeedback: restored ? `Browser contexts were recreated from cookies/localStorage/IndexedDB and URLs. DOM, form drafts and sessionStorage were not restored. Old refs are invalid. Observe every needed tab before acting. Restored sessions: ${JSON.stringify(restored.snapshots.map(snapshot => ({ session_id: snapshot.session_id, tab_id: snapshot.tab_id, tabs: snapshot.tabs, url: snapshot.url })))}` : undefined,
+        resumeFeedback: restored ? `Browser contexts were recreated from the saved workspace. A session marked requires_reauthentication did not restore its login state or original URLs: use an address authorized by the user task and log in again with the available secret aliases before continuing. Other sessions restored their saved cookies/localStorage/IndexedDB and URLs. DOM, form drafts and sessionStorage were not restored. Old refs are invalid. Observe every needed tab before acting. Reauthentication does not reconcile unknown earlier writes. Restored sessions: ${JSON.stringify(restored.snapshots.map(snapshot => ({ session_id: snapshot.session_id, tab_id: snapshot.tab_id, tabs: snapshot.tabs, url: snapshot.url, requires_reauthentication: snapshot.requires_reauthentication === true })))}` : undefined,
         reconciliation: run.reconciled ? { resolvedCallIds: uncertain, note: run.reconciled } : undefined,
         onCheckpoint: checkpointPath ? async checkpoint => {
           const persistenceStart = performance.now();

@@ -110,7 +110,7 @@ node dist/cli.js run --provider codex --model "<你的Codex模型>" \
 | **引用检查** | 输入前检查快照版本和 DOM 目标；目标变化后重新观察。 |
 | **顺序批次** | 一次最多提交 20 个操作，分别报告完成、失败和跳过状态。遇错停止，先前操作仍然生效。 |
 | **明确验收** | 核对实际 URL、标题、文字、字段值、可见性与元素数量。 |
-| **可视操作指针** | 在自有标签页中短暂标示验证过的点击、输入目标，不拦截网页操作。可用 `--no-visual-pointer` 或库选项 `visualPointer: false` 关闭。 |
+| **可视操作指针** | 有界面运行时，在自有标签页中短暂标示验证过的点击、输入目标，不拦截网页操作；无界面运行默认不显示。可用 `--visual-pointer` 在录屏中开启，或用 `--no-visual-pointer` 关闭。库选项为 `visualPointer: true/false`。 |
 | **可选导航策略** | 通过[精确来源允许/拒绝规则](docs/NAVIGATION_POLICY.md)限制自有独立浏览器中的 HTTP(S) 文档请求，覆盖重定向、frame 和弹窗。不支持外部 CDP，也不是网络防火墙。 |
 
 ### 十五个工具
@@ -144,6 +144,7 @@ node dist/cli.js run --provider codex --model "<你的Codex模型>" \
 | [类型化自定义工具](docs/CUSTOM_TOOLS.md) | SDK Schema、可信应用上下文、浏览器绑定与恢复约定。 |
 | [模型提供方](docs/PROVIDERS.md) | Codex CLI、原生 Anthropic/Ollama 与兼容 HTTP 的协议、认证及用量。 |
 | [导航策略](docs/NAVIGATION_POLICY.md) | 可信 CLI/SDK 配置、仅文档请求的范围、连接中断边界与恢复策略身份。 |
+| [定向凭据](docs/SECRETS.md) | 可信别名、精确来源登录填写、遮盖边界与恢复。 |
 | [Browser Use 多入口审计](docs/BROWSER_USE_VARIANTS.md) | 区分 Agent、MCP、Harness、Pi 和云服务；源码审计不等于性能测量。 |
 | [基准测试](bench/README.md) | 复现本地场景，检查每个原始样本。 |
 | [验证记录](docs/VALIDATION.md) | 真实浏览器、SDK 与 Codex 的结果和验证范围。 |

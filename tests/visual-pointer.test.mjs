@@ -12,7 +12,7 @@ const ref = (snapshot, name) => {
 
 test('real actions show a non-intercepting pointer on owned pages and rejected refs do not fake a click', { timeout: 30_000 }, async t => {
   const fixture = await startFixture();
-  const engine = new BrowserEngine({ headless: true, channel: process.env.TABLAZE_BROWSER_CHANNEL || undefined });
+  const engine = new BrowserEngine({ headless: true, channel: process.env.TABLAZE_BROWSER_CHANNEL || undefined, visualPointer: true });
   t.after(async () => { await engine.dispose(); await fixture.close(); });
 
   const stale = await engine.open(`${fixture.url}/lab?token=pointer-stale`);
@@ -55,6 +55,18 @@ test('real actions show a non-intercepting pointer on owned pages and rejected r
 test('operators can disable the visual pointer', { timeout: 15_000 }, async t => {
   const fixture = await startFixture();
   const engine = new BrowserEngine({ headless: true, channel: process.env.TABLAZE_BROWSER_CHANNEL || undefined, visualPointer: false });
+  t.after(async () => { await engine.dispose(); await fixture.close(); });
+  const opened = await engine.open(fixture.url);
+  const page = engine.sessions.get(opened.session_id).page;
+  assert.equal(await page.locator(pointer).count(), 0);
+  const result = await engine.act(opened.session_id, opened.snapshot_id, [{ type: 'fill', ref: ref(opened, 'Destination'), value: 'Lisbon' }], { snapshot: false });
+  assert.equal(result.ok, true);
+  assert.equal(await page.locator(pointer).count(), 0);
+});
+
+test('headless sessions do not add a pointer by default', { timeout: 15_000 }, async t => {
+  const fixture = await startFixture();
+  const engine = new BrowserEngine({ headless: true, channel: process.env.TABLAZE_BROWSER_CHANNEL || undefined });
   t.after(async () => { await engine.dispose(); await fixture.close(); });
   const opened = await engine.open(fixture.url);
   const page = engine.sessions.get(opened.session_id).page;

@@ -3,6 +3,8 @@ export function inspectDOM(input: any): any {
   const tidy = (value: string | null | undefined) => (value ?? '').replace(/\s+/g, ' ').trim();
   const scanLimit = 30000;
   const characterLimit = 20000;
+  const outputPadding = input.outputPadding ?? 0;
+  if (!Number.isInteger(outputPadding) || outputPadding < 0 || outputPadding > 24576) throw new Error('outputPadding must be an integer from 0 to 24576.');
   const forbidden = new Set(['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'HEAD', 'INPUT', 'TEXTAREA', 'SELECT']);
   let scanned = 0;
   let scanTruncated = false;
@@ -128,13 +130,16 @@ export function inspectDOM(input: any): any {
     }
   };
   const readText = (limit: number, contains?: string) => {
-    let text = '', tail = '', hasText = false, clipped = false;
+    let text = '', tail = '', hasText = false, clipped = false, charged = 0;
     let matches = contains === '';
     for (const value of textPieces()) {
       const piece = (hasText ? ' ' : '') + value;
       hasText = true;
-      if (piece.length > Math.max(0, limit - text.length)) clipped = true;
-      if (text.length < limit) text += piece.slice(0, limit - text.length);
+      if (piece.length > Math.max(0, limit - charged)) clipped = true;
+      charged = Math.min(limit, charged + piece.length);
+      // Lookahead is host-only redaction evidence. It neither changes the logical
+      // budget nor stops at a text-node boundary when a secret spans pieces.
+      if (text.length < limit + outputPadding) text += piece.slice(0, limit + outputPadding - text.length);
       if (contains !== undefined && !matches) {
         const searchable = tail + piece;
         matches = searchable.includes(contains);
@@ -157,17 +162,17 @@ export function inspectDOM(input: any): any {
     const description = referencedText('aria-describedby');
     const options = tag === 'select' ? [...(element as HTMLSelectElement).options] : [];
     const fingerprint = JSON.stringify([tag, type, role, name, description, element.getAttribute('title'), (element as HTMLAnchorElement).href, element.getAttribute('target'), element.getAttribute('download'), (element as HTMLButtonElement).formAction, element.getAttribute('formmethod'), element.getAttribute('id'), element.getAttribute('name'), (element as HTMLButtonElement).form?.action ?? '', (element as HTMLButtonElement).form?.method ?? '', options.map(option => [option.value, option.label, option.disabled])]);
-    const entry: Record<string, unknown> = { role, name: name.slice(0, 400) };
+    const entry: Record<string, unknown> = { role, name: name.slice(0, 400 + outputPadding) };
     let fieldsTruncated = name.length > 400;
     if (tag === 'input' || tag === 'textarea' || tag === 'select') {
       if (type === 'password') entry.value_redacted = true;
-      else if (type !== 'hidden') { const value = control.value ?? ''; entry.value = value.slice(0, 1000); fieldsTruncated ||= value.length > 1000; }
+      else if (type !== 'hidden') { const value = control.value ?? ''; entry.value = value.slice(0, 1000 + outputPadding); fieldsTruncated ||= value.length > 1000; }
       if (type === 'checkbox' || type === 'radio') entry.checked = control.checked;
       if (control.disabled) entry.disabled = true;
       if (control.readOnly) entry.readonly = true;
     }
     if (tag === 'select') {
-      entry.options = options.slice(0, 20).map(option => ({ value: option.value.slice(0, 100), label: option.label.slice(0, 100), selected: option.selected, disabled: option.disabled }));
+      entry.options = options.slice(0, 20).map(option => ({ value: option.value.slice(0, 100 + outputPadding), label: option.label.slice(0, 100 + outputPadding), selected: option.selected, disabled: option.disabled }));
       const optionsTruncated = options.length > 20 || options.slice(0, 20).some(option => option.value.length > 100 || option.label.length > 100);
       if (optionsTruncated) entry.options_truncated = true;
       fieldsTruncated ||= optionsTruncated;
@@ -177,7 +182,7 @@ export function inspectDOM(input: any): any {
     const scrollX = /^(auto|scroll)$/.test(style.overflowX) && element.scrollWidth > element.clientWidth;
     const scrollY = /^(auto|scroll)$/.test(style.overflowY) && element.scrollHeight > element.clientHeight;
     if (scrollX || scrollY) entry.scrollable = { x: scrollX, y: scrollY, left: element.scrollLeft, top: element.scrollTop, max_left: element.scrollWidth - element.clientWidth, max_top: element.scrollHeight - element.clientHeight };
-    if (element.hasAttribute('href')) { const href = (element as HTMLAnchorElement).href || element.getAttribute('href') || ''; entry.href = href.slice(0, 2000); fieldsTruncated ||= href.length > 2000; }
+    if (element.hasAttribute('href')) { const href = (element as HTMLAnchorElement).href || element.getAttribute('href') || ''; entry.href = href.slice(0, 2000 + outputPadding); fieldsTruncated ||= href.length > 2000; }
     return { entry, fingerprint, fieldsTruncated, visible: visible(element) };
   };
   if (input.op === 'inspect') return describe(input.node);
@@ -188,10 +193,11 @@ export function inspectDOM(input: any): any {
     let remaining = characterLimit;
     let clipped = scanTruncated;
     const limited = (raw: string, limit: number) => {
-      const value = raw.slice(0, Math.min(limit, remaining));
-      remaining -= value.length;
-      clipped ||= value.length < raw.length;
-      return value;
+      const allocation = Math.min(limit, remaining);
+      const charged = Math.min(raw.length, allocation);
+      remaining -= charged;
+      clipped ||= charged < raw.length;
+      return raw.slice(0, allocation + outputPadding);
     };
     if (input.kind === 'links') {
       const candidates = tree.elements.filter(element => element.matches('a[href]') && visible(element));

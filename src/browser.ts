@@ -21,8 +21,9 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; viewport?: { width: number; height: number }; screen?: { width: number; height: number }; deviceScaleFactor?: number; userAgent?: string; locale?: string; timezoneId?: string; isMobile?: boolean; hasTouch?: boolean; permissions?: string[]; proxy?: { server: string; bypass?: string; username?: string; password?: string }; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; captureNetwork?: boolean; recordVideo?: boolean; allowPageScript?: boolean }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; viewport?: { width: number; height: number }; screen?: { width: number; height: number }; deviceScaleFactor?: number; userAgent?: string; locale?: string; timezoneId?: string; isMobile?: boolean; hasTouch?: boolean; permissions?: string[]; proxy?: { server: string; bypass?: string; username?: string; password?: string }; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; captureNetwork?: boolean; recordVideo?: boolean; recordHar?: boolean; recordTrace?: boolean; allowPageScript?: boolean }
 export interface BrowserRecording { session_id: string; tab_id: string; path: string; bytes: number; mime_type: 'video/webm'; sha256: string }
+export interface BrowserDiagnosticArtifact { session_id: string; kind: 'har' | 'trace'; path: string; bytes: number; mime_type: 'application/json' | 'application/zip'; sha256: string }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
 export interface FindTextOptions { text: string; frameId?: string; containerRef?: string; snapshotId?: string; maxScrolls?: number; timeoutMs?: number; signal?: AbortSignal }
 type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
@@ -67,6 +68,7 @@ interface Session {
   secretTainted?: boolean;
   network?: NetworkJournal;
   videos: Map<string, Video>; recordings: BrowserRecording[];
+  diagnosticPaths: { har?: string; trace?: string }; diagnostics: BrowserDiagnosticArtifact[];
 }
 const errorInfo = (error: unknown, fallback = 'BROWSER_ERROR') => ({ code: error instanceof BrowserError || error instanceof SecretError || error instanceof NetworkJournalError ? error.code : fallback, message: (error instanceof Error ? error.message : String(error)).split('\nCall log:')[0].slice(0, 2000) });
 const integer = (value: number | undefined, fallback: number, min: number, max: number, name: string) => { const result = value ?? fallback; if (!Number.isInteger(result) || result < min || result > max) throw new BrowserError('INVALID_ARGUMENT', `${name} must be an integer between ${min} and ${max}.`); return result; };
@@ -98,6 +100,7 @@ export class BrowserEngine {
   private readonly secretOperations = new Set<AbortController>();
   private artifactDirectory?: Promise<string>;
   private readonly completedRecordings: BrowserRecording[] = [];
+  private readonly completedDiagnostics: BrowserDiagnosticArtifact[] = [];
   constructor(private options: BrowserOptions = {}) {
     this.timeout = integer(options.timeoutMs, 10000, 100, 60000, 'timeoutMs');
     if (options.viewport && (typeof options.viewport !== 'object' || options.viewport === null || Array.isArray(options.viewport) || !Number.isInteger(options.viewport.width) || !Number.isInteger(options.viewport.height) || options.viewport.width < 320 || options.viewport.width > 3840 || options.viewport.height < 240 || options.viewport.height > 2160)) throw new BrowserError('INVALID_ARGUMENT', 'viewport width must be 320–3840 and height 240–2160.');
@@ -118,6 +121,7 @@ export class BrowserEngine {
       if (options.cdpUrl) throw new BrowserError('PROXY_CDP_UNSUPPORTED', 'An external CDP browser cannot be reconfigured with a proxy.');
     }
     if (options.recordVideo !== undefined && typeof options.recordVideo !== 'boolean') throw new BrowserError('INVALID_ARGUMENT', 'recordVideo must be a boolean.');
+    if (options.recordHar !== undefined && typeof options.recordHar !== 'boolean' || options.recordTrace !== undefined && typeof options.recordTrace !== 'boolean') throw new BrowserError('INVALID_ARGUMENT', 'recordHar and recordTrace must be booleans.');
     if (options.profileDir !== undefined && (typeof options.profileDir !== 'string' || !isAbsolute(options.profileDir) || options.profileDir === '/')) throw new BrowserError('PROFILE_PATH_INVALID', 'profileDir must be a dedicated absolute directory.');
     if (options.expectedProfileId !== undefined && (typeof options.expectedProfileId !== 'string' || !options.expectedProfileId)) throw new BrowserError('PROFILE_ID_MISMATCH', 'expectedProfileId must be a nonempty profile identifier.');
     if (options.popupPolicy !== undefined && !['stay', 'follow-single'].includes(options.popupPolicy)) throw new BrowserError('INVALID_ARGUMENT', 'popupPolicy must be stay or follow-single.');
@@ -133,6 +137,8 @@ export class BrowserEngine {
     if (this.secretStore && options.cdpUrl) throw new BrowserError('SECRET_CDP_UNSUPPORTED', 'Browser secrets require an isolated browser owned by this engine.');
     if (options.recordVideo && (options.cdpUrl || options.profileDir)) throw new BrowserError('RECORDING_CONTEXT_UNSUPPORTED', 'Video recording requires isolated browser contexts owned by this engine.');
     if (options.recordVideo && this.secretStore && !this.secretStore.allowSensitiveArtifacts) throw new BrowserError('SECRET_ARTIFACT_BLOCKED', 'Video recording with configured secrets requires allowSensitiveArtifacts in the trusted secret configuration.');
+    if ((options.recordHar || options.recordTrace) && (options.cdpUrl || options.profileDir)) throw new BrowserError('DIAGNOSTIC_CONTEXT_UNSUPPORTED', 'HAR and trace recording require isolated browser contexts owned by this engine.');
+    if ((options.recordHar || options.recordTrace) && this.secretStore && !this.secretStore.allowSensitiveArtifacts) throw new BrowserError('SECRET_ARTIFACT_BLOCKED', 'HAR and trace recording with configured secrets requires allowSensitiveArtifacts in the trusted secret configuration.');
     if (options.allowPageScript && (this.secretStore || options.cdpUrl || this.navigationPolicy)) throw new BrowserError('PAGE_SCRIPT_CONFLICT', 'Page scripts cannot be combined with configured secrets, external CDP, or a navigation policy.');
   }
 
@@ -322,6 +328,7 @@ export class BrowserEngine {
   private async openInternal(url: string, options: { storageState?: string | StorageState; signal?: AbortSignal }): Promise<Record<string, unknown>> {
     const ownsContext = !this.options.cdpUrl && !this.options.profileDir;
     let context: BrowserContext | undefined, page: Page | undefined, session: Session | undefined;
+    let harPath: string | undefined, tracePath: string | undefined;
     let navigationGuard: NavigationGuard | undefined;
     let attemptCleanup: Promise<void> | undefined;
     let interruption: BrowserError | undefined, rejectCancellation: (error: BrowserError) => void = () => {};
@@ -387,13 +394,16 @@ export class BrowserEngine {
       navigationGuard = this.navigationGuards.get(browser);
       this.assertNavigationGuard(navigationGuard);
       check();
+      if (this.options.recordHar) harPath = join(await phase(this.artifacts()), `${randomUUID()}.har`);
+      if (this.options.recordTrace) tracePath = join(await phase(this.artifacts()), `${randomUUID()}.trace.zip`);
       context = this.options.profileDir
         ? this.profileContext
         : ownsContext
-        ? await phase(browser.newContext({ viewport: this.options.viewport ?? { width: 1280, height: 800 }, screen: this.options.screen, deviceScaleFactor: this.options.deviceScaleFactor, userAgent: this.options.userAgent, locale: this.options.locale, timezoneId: this.options.timezoneId, isMobile: this.options.isMobile, hasTouch: this.options.hasTouch, permissions: this.options.permissions, proxy: this.options.proxy, acceptDownloads: true, storageState: options.storageState, ...(this.navigationPolicy ? { serviceWorkers: 'block' as const } : {}), ...(this.options.recordVideo ? { recordVideo: { dir: await this.artifacts(), size: this.options.viewport ?? { width: 1280, height: 800 } } } : {}) }), value => { context = value; }, value => value.close())
+        ? await phase(browser.newContext({ viewport: this.options.viewport ?? { width: 1280, height: 800 }, screen: this.options.screen, deviceScaleFactor: this.options.deviceScaleFactor, userAgent: this.options.userAgent, locale: this.options.locale, timezoneId: this.options.timezoneId, isMobile: this.options.isMobile, hasTouch: this.options.hasTouch, permissions: this.options.permissions, proxy: this.options.proxy, acceptDownloads: true, storageState: options.storageState, ...(this.navigationPolicy ? { serviceWorkers: 'block' as const } : {}), ...(this.options.recordVideo ? { recordVideo: { dir: await this.artifacts(), size: this.options.viewport ?? { width: 1280, height: 800 } } } : {}), ...(harPath ? { recordHar: { path: harPath, content: 'omit' as const, mode: 'full' as const } } : {}) }), value => { context = value; }, value => value.close())
         : browser.contexts()[0];
       if (!context) throw new BrowserError('CDP_CONTEXT_MISSING', 'The attached browser has no default context.');
       check();
+      if (tracePath) await phase(context.tracing.start({ screenshots: true, snapshots: true, sources: false }));
       if (this.secretStore) await phase(context.addInitScript(installSecretBridge, { key: this.secretBridgeKey }));
       page = await phase(context.newPage(), value => { page = value; }, value => value.close());
       check();
@@ -401,7 +411,7 @@ export class BrowserEngine {
       session = {
         id: randomUUID(), context, ownsContext, page, tail: Promise.resolve(), closed: false,
         revision: 0, nextRef: 1, nextFrame: 1, activationEpoch: 0, scriptEpoch: 0, frames: new Map([[page.mainFrame(), 'f0']]), generations: new Map(),
-        tabs: new Map(), activeTabId: '', nextTab: 1, downloads: new Map(), videos: new Map(), recordings: [], dialogs: [], unexpected: [],
+        tabs: new Map(), activeTabId: '', nextTab: 1, downloads: new Map(), videos: new Map(), recordings: [], diagnosticPaths: { har: harPath, trace: tracePath }, diagnostics: [], dialogs: [], unexpected: [],
         navigationGuard, navigationContextId,
         ...(this.options.captureNetwork ? { network: new NetworkJournal((text, limit) => this.secretText(text, limit)) } : {}),
       };
@@ -1406,6 +1416,7 @@ export class BrowserEngine {
   }
   list(): Record<string, unknown>[] { return [...this.sessions.values()].filter(session => !session.closed && !session.page.isClosed()).map(session => ({ session_id: session.id, url: this.secretText(session.page.url(), 4000), snapshot_id: session.snapshot?.id ?? null, tab_id: session.activeTabId, tab_count: session.tabs.size, session_mode: this.options.profileDir ? 'persistent_profile' : session.ownsContext ? 'isolated' : 'attached_profile', ...(this.profileLease ? { profile_id: this.profileLease.id } : {}) })); }
   recordings(): BrowserRecording[] { return this.completedRecordings.map(recording => ({ ...recording })); }
+  diagnostics(): BrowserDiagnosticArtifact[] { return this.completedDiagnostics.map(artifact => ({ ...artifact })); }
   private async collectRecordings(session: Session): Promise<void> {
     if (!this.options.recordVideo) return;
     const directory = await realpath(await this.artifacts());
@@ -1424,6 +1435,25 @@ export class BrowserEngine {
       this.completedRecordings.push(recording);
     }
   }
+  private async collectDiagnostics(session: Session): Promise<void> {
+    if (!session.diagnosticPaths.har && !session.diagnosticPaths.trace) return;
+    const directory = await realpath(await this.artifacts());
+    for (const [kind, declared] of Object.entries(session.diagnosticPaths) as ['har' | 'trace', string | undefined][]) {
+      if (!declared) continue;
+      let path: string;
+      try { path = await realpath(declared); }
+      catch { throw new BrowserError('DIAGNOSTIC_FAILED', `The ${kind} artifact could not be finalized.`); }
+      if (!path.startsWith(`${directory}/`)) throw new BrowserError('DIAGNOSTIC_FAILED', `The ${kind} artifact escaped its private directory.`);
+      const metadata = await stat(path);
+      if (!metadata.isFile() || metadata.size === 0) throw new BrowserError('DIAGNOSTIC_FAILED', `The ${kind} artifact is missing or empty.`);
+      await chmod(path, 0o600);
+      const digest = createHash('sha256');
+      for await (const chunk of createReadStream(path)) digest.update(chunk);
+      const artifact: BrowserDiagnosticArtifact = { session_id: session.id, kind, path, bytes: metadata.size, mime_type: kind === 'har' ? 'application/json' : 'application/zip', sha256: digest.digest('hex') };
+      session.diagnostics.push(artifact);
+      this.completedDiagnostics.push(artifact);
+    }
+  }
   private cleanup(session: Session): Promise<void> {
     for (const lease of this.bindings) if (lease.sessionId === session.id) lease.invalidate(this.disposed ? 'ENGINE_CLOSED' : 'BINDING_STALE');
     if (!session.cleanup) {
@@ -1432,11 +1462,18 @@ export class BrowserEngine {
         // initiated by our pages before disconnecting, otherwise saveAs may never finish.
         const pending = [...session.downloads.values()].filter(item => item.status === 'pending');
         await Promise.all(pending.map(item => item.download.cancel().catch(() => {})));
-        if (this.disposed && session.ownsContext && !this.options.recordVideo) await this.ownedBrowserClosing;
+        if (this.disposed && session.ownsContext && !this.options.recordVideo && !this.options.recordHar && !this.options.recordTrace) await this.ownedBrowserClosing;
+        let traceFailure = false;
+        if (session.diagnosticPaths.trace) {
+          try { await session.context.tracing.stop({ path: session.diagnosticPaths.trace }); }
+          catch { traceFailure = true; }
+        }
         if (session.ownsContext) await session.context.close();
         else await Promise.all([...session.tabs.values()].map(page => page.close()));
         await Promise.all([...session.downloads.values()].map(item => item.done));
         await this.collectRecordings(session);
+        if (traceFailure) throw new BrowserError('DIAGNOSTIC_FAILED', 'The browser trace could not be finalized.');
+        await this.collectDiagnostics(session);
         await this.releaseRefs(session.snapshot);
       })().catch(error => { this.cleanupFailed = true; throw error; });
       this.resourceCleanup.add(session.cleanup);
@@ -1444,7 +1481,7 @@ export class BrowserEngine {
     }
     return session.cleanup;
   }
-  close(sessionId: string): Promise<Record<string, unknown>> { return this.exclusive(sessionId, async session => { session.closed = true; this.sessions.delete(sessionId); await this.cleanup(session); return { ok: true, session_id: sessionId, closed: true, ...(this.options.recordVideo ? { recordings: session.recordings.map(recording => ({ ...recording })) } : {}) }; }, true); }
+  close(sessionId: string): Promise<Record<string, unknown>> { return this.exclusive(sessionId, async session => { session.closed = true; this.sessions.delete(sessionId); await this.cleanup(session); return { ok: true, session_id: sessionId, closed: true, ...(this.options.recordVideo ? { recordings: session.recordings.map(recording => ({ ...recording })) } : {}), ...(this.options.recordHar || this.options.recordTrace ? { diagnostics: session.diagnostics.map(artifact => ({ ...artifact })) } : {}) }; }, true); }
   dispose(): Promise<void> {
     if (!this.disposal) {
       this.disposed = true;
@@ -1458,7 +1495,7 @@ export class BrowserEngine {
       if (!this.options.cdpUrl) this.ownedBrowserClosing = (async () => {
         // Playwright finalizes video only when its owned context closes. Preserve
         // that ordering for explicit recording before closing the shared browser.
-        if (this.options.recordVideo && (await Promise.allSettled(sessions.map(session => this.cleanup(session)))).some(result => result.status === 'rejected')) this.cleanupFailed = true;
+        if ((this.options.recordVideo || this.options.recordHar || this.options.recordTrace) && (await Promise.allSettled(sessions.map(session => this.cleanup(session)))).some(result => result.status === 'rejected')) this.cleanupFailed = true;
         // Let close RPCs started by an earlier cancellation settle briefly.
         // Chrome can stall when context.close and browser.close run together.
         // Acquisition promises never gate this grace; it counts in the 2s cap.
@@ -1492,7 +1529,7 @@ export class BrowserEngine {
         if (this.cleanupFailed) throw new BrowserError('CLEANUP_INCOMPLETE', 'Some owned browser resources could not be confirmed closed.');
       })();
       this.disposal = new Promise<void>((resolve, reject) => {
-        const graceMs = this.options.recordVideo ? 15000 : 2000;
+        const graceMs = this.options.recordVideo || this.options.recordHar || this.options.recordTrace ? 15000 : 2000;
         const timer = setTimeout(() => reject(new BrowserError('CLEANUP_INCOMPLETE', `Browser cleanup exceeded ${graceMs} ms. Pending cleanup remains tracked; an attached browser connection stays open until late owned pages can be closed.`)), graceMs);
         void this.disposalWork!.then(() => { clearTimeout(timer); resolve(); }, error => { clearTimeout(timer); reject(error); });
       });

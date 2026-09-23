@@ -124,6 +124,8 @@ The separate [cross-origin authorization-return task](docs/CODEX_AUTH_RETURN_SMO
 
 For debugging an actual run, `--record-video` optionally records each owned isolated tab as a private WebM. `tab_close` returns finalized paths and SHA-256 digests; the standalone `run` report includes them after cleanup. It is off by default and adds no simulated cursor or audio. See [real browser recording and privacy limits](docs/RECORDING.md).
 
+`--record-har` and `--record-trace` optionally save an owned session's network HAR and Playwright trace ZIP. Finalized private paths, sizes and SHA-256 digests appear after session cleanup; response bodies are omitted from the HAR, while URLs and headers may still contain private data. See [diagnostic artifacts](docs/DIAGNOSTICS.md).
+
 Trusted operators can set viewport, screen, pixel ratio, user agent, locale, time zone, mobile behavior, touch and page permissions on owned browser contexts. `doctor` reports these settings without echoing the user-agent string; external CDP browsers cannot be reconfigured. This is not a cohesive device preset. See [browser configuration and limits](docs/BROWSER_CONFIGURATION.md).
 Owned contexts also accept `--proxy-server` with optional bypass rules and credentials read from an environment variable; the [configuration guide](docs/BROWSER_CONFIGURATION.md) records the tested HTTP routing path and remaining proxy validation.
 

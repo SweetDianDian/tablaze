@@ -1,5 +1,5 @@
 export { BrowserEngine, BrowserError } from "./browser.js";
-export type { BrowserOptions, BrowserWorkspace, PopupPolicy, SnapshotOptions, FindTextOptions, BrowserAction, BrowserCheck, BrowserBinding, BrowserBindingGuard } from "./browser.js";
+export type { BrowserOptions, BrowserWorkspace, BrowserRecording, BrowserDiagnosticArtifact, PopupPolicy, SnapshotOptions, FindTextOptions, BrowserAction, BrowserCheck, BrowserBinding, BrowserBindingGuard } from "./browser.js";
 export type { NavigationPolicy } from "./navigation-policy.js";
 export type { BrowserSecretDefinition, BrowserSecretOptions } from "./secret-store.js";
 export { createServer, SERVER_VERSION } from "./server.js";

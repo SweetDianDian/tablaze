@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
+import { createServer as createNetServer } from 'node:net';
+import { networkInterfaces } from 'node:os';
 import { test } from 'node:test';
 import { BrowserEngine } from '../dist/browser.js';
 import { startFixture } from './fixture.mjs';
@@ -61,6 +63,101 @@ test('owned Chrome traffic reaches a configured HTTP proxy', { timeout: 30_000 }
   const opened = await engine.open('http://tablaze-proxy.example.test/through-proxy');
   assert.match(opened.text, /Routed through owned proxy/);
   assert.ok(requests.some(url => url.includes('tablaze-proxy.example.test/through-proxy')), JSON.stringify(requests));
+});
+
+test('owned Chrome answers an HTTP proxy challenge without exposing the credential in page output', { timeout: 30_000 }, async t => {
+  const password = 'proxy-private-sentinel';
+  const expected = `Basic ${Buffer.from(`operator:${password}`).toString('base64')}`;
+  let challenges = 0; let accepted = 0;
+  const proxy = createServer((request, response) => {
+    if (request.headers['proxy-authorization'] !== expected) {
+      challenges++;
+      response.writeHead(407, { 'proxy-authenticate': 'Basic realm="Tablaze fixture"' });
+      response.end();
+      return;
+    }
+    accepted++;
+    response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    response.end('<!doctype html><title>Authenticated proxy target</title><p>Authenticated route</p>');
+  });
+  await new Promise(resolve => proxy.listen(0, '127.0.0.1', resolve));
+  const engine = new BrowserEngine({ channel: chrome, headless: true, proxy: { server: `http://127.0.0.1:${proxy.address().port}`, username: 'operator', password } });
+  t.after(async () => { await engine.dispose(); await new Promise(resolve => proxy.close(resolve)); });
+  const opened = await engine.open('http://tablaze-auth-proxy.example.test/protected');
+  assert.match(opened.text, /Authenticated route/);
+  assert.ok(accepted >= 1);
+  assert.doesNotMatch(opened.text + JSON.stringify(opened), /proxy-private-sentinel|operator/);
+  assert.ok(challenges >= 1, 'The server issued a 407 challenge before accepting the authenticated request.');
+});
+
+test('owned Chrome proxy bypass sends a non-loopback local destination directly', { timeout: 30_000 }, async t => {
+  const address = Object.values(networkInterfaces()).flat().find(value => value?.family === 'IPv4' && !value.internal)?.address;
+  if (!address) return t.skip('No non-loopback IPv4 address is available for a direct-route witness.');
+  let proxyHits = 0; let directHits = 0;
+  const direct = createServer((_request, response) => {
+    directHits++;
+    response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    response.end('<!doctype html><title>Direct target</title><p>Direct route</p>');
+  });
+  const proxy = createServer((_request, response) => {
+    proxyHits++;
+    response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    response.end('<!doctype html><title>Proxy target</title><p>Proxy route</p>');
+  });
+  await new Promise(resolve => direct.listen(0, '0.0.0.0', resolve));
+  await new Promise(resolve => proxy.listen(0, '127.0.0.1', resolve));
+  const destination = `http://${address}:${direct.address().port}/bypass`;
+  const proxyServer = `http://127.0.0.1:${proxy.address().port}`;
+  const throughProxy = new BrowserEngine({ channel: chrome, headless: true, proxy: { server: proxyServer } });
+  const bypassed = new BrowserEngine({ channel: chrome, headless: true, proxy: { server: proxyServer, bypass: address } });
+  t.after(async () => { await throughProxy.dispose(); await bypassed.dispose(); await new Promise(resolve => proxy.close(resolve)); await new Promise(resolve => direct.close(resolve)); });
+  assert.match((await throughProxy.open(destination)).text, /Proxy route/);
+  assert.match((await bypassed.open(destination)).text, /Direct route/);
+  assert.ok(proxyHits >= 1);
+  assert.ok(directHits >= 1);
+});
+
+test('owned Chrome reaches an HTTP page through a SOCKS5 proxy', { timeout: 30_000 }, async t => {
+  const destinations = []; let pageRequests = 0;
+  const proxy = createNetServer(socket => {
+    let buffer = Buffer.alloc(0); let phase = 'greeting';
+    socket.on('data', chunk => {
+      buffer = Buffer.concat([buffer, chunk]);
+      for (;;) {
+        if (phase === 'greeting') {
+          if (buffer.length < 2 || buffer.length < 2 + buffer[1]) return;
+          assert.equal(buffer[0], 5);
+          buffer = buffer.subarray(2 + buffer[1]);
+          socket.write(Buffer.from([5, 0]));
+          phase = 'connect';
+        } else if (phase === 'connect') {
+          if (buffer.length < 5) return;
+          assert.equal(buffer[0], 5);
+          assert.equal(buffer[1], 1);
+          assert.equal(buffer[3], 3, 'The proxy receives a hostname, not a locally resolved address.');
+          const length = buffer[4];
+          if (buffer.length < 5 + length + 2) return;
+          destinations.push(buffer.subarray(5, 5 + length).toString());
+          buffer = buffer.subarray(5 + length + 2);
+          socket.write(Buffer.from([5, 0, 0, 1, 127, 0, 0, 1, 0, 0]));
+          phase = 'http';
+        } else if (phase === 'http') {
+          if (!buffer.includes('\r\n\r\n')) return;
+          pageRequests++;
+          socket.end('HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 60\r\nConnection: close\r\n\r\n<!doctype html><title>SOCKS target</title><p>SOCKS route</p>');
+          phase = 'done';
+          return;
+        } else return;
+      }
+    });
+  });
+  await new Promise(resolve => proxy.listen(0, '127.0.0.1', resolve));
+  const engine = new BrowserEngine({ channel: chrome, headless: true, proxy: { server: `socks5://127.0.0.1:${proxy.address().port}` } });
+  t.after(async () => { await engine.dispose(); await new Promise(resolve => proxy.close(resolve)); });
+  const opened = await engine.open('http://tablaze-socks.example.test/through-socks');
+  assert.match(opened.text, /SOCKS route/);
+  assert.ok(destinations.includes('tablaze-socks.example.test'), JSON.stringify(destinations));
+  assert.ok(pageRequests >= 1);
 });
 
 test('CLI doctor reports explicit browser configuration and rejects malformed flags', () => {

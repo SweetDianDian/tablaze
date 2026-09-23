@@ -51,6 +51,7 @@ A [separate order follow-up after the bridge fix](docs/CODEX_TERMINAL_FOLLOWUP.m
 Browser Use's default judge is included in its totals. Agent and end-to-end clocks have different starting boundaries. This single follow-up does not replace the original 4/5 result, and these small, visible samples do not establish overall superiority. Both reports retain raw results, source hashes, settings, and limitations.
 
 A [new four-task matched development smoke](docs/CODEX_CURRENT_FOUR_SMOKE.md) tested iframe input, interrupted-response order recovery, a virtual list and a visual canvas. Both engines completed all four with independent business acceptance; Tablaze's iframe sample was slower (83.799 s versus 52.515 s), while its other three whole-run samples were shorter. Each task ran once per engine, so this does not prove stable efficiency or overall superiority.
+The initial iframe observation now gives newly attached child frames a bounded readiness wait; a real-Chrome regression confirms the first `tab_open` can expose a delayed child form. This post-comparison fix has not yet been measured in a new paired model run.
 
 The [current Browser Use capability and public-issue audit](docs/BROWSER_USE_2026_AUDIT.md) tracks what is implemented, what remains missing across Agent/MCP/Harness/Pi/cloud, and which reported defects have a local reproduction or regression. Password fields now reveal only whether a value is present, while keeping its bytes redacted.
 

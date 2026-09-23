@@ -35,4 +35,6 @@ An open issue is a **report**, not proof that every current Browser Use release 
 
 The current iframe sample is **83.799 / 52.515 = 1.60×** as long for Tablaze, even with Browser Use's default judge included in its denominator. That single run does not estimate a median or p95, but it is a concrete failure candidate against the provisional 1.25× target. The trace points first to child-frame readiness and an unnecessary text check for an input value. Optimize these mechanisms, then rerun paired tasks with frozen source and more seeds; do not hide this slower case in a pooled average.
 
+The first mechanism fix now waits at most 800 ms for up to five child frames whose URL is initially empty or `about:blank` to navigate before the initial snapshot. A real-Chrome regression proves a delayed frame's controls are available immediately after `tab_open`; the full suite passed 482/482. It does not prove faster end-to-end model behavior; the later model's erroneous text check is a separate planning issue. A fresh matched Codex run and repeated held-out timings are still required.
+
 Potential Tablaze-specific conveniences include checked partial extraction, explicit write receipts/reconciliation, private run videos and pause/steer controls. Each must be validated in actual use; feature presence alone is not user benefit or superiority.

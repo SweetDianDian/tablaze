@@ -403,6 +403,13 @@ export class BrowserEngine {
       this.openingSessions.add(session);
       session.activeTabId = this.registerPage(session, page);
       await phase(page.goto(url, { waitUntil: 'domcontentloaded' }));
+      const openedPage = page;
+      if (!openedPage) throw new BrowserError('BROWSER_ERROR', 'The opened page disappeared before initial observation.');
+      // Main-document DOMContentLoaded can precede a newly attached iframe's
+      // navigation. A short, bounded wait makes its first observation useful
+      // without making every page wait for network-idle or third-party frames.
+      const pendingFrames = openedPage.frames().filter(frame => frame !== openedPage.mainFrame() && (!frame.url() || frame.url() === 'about:blank')).slice(0, 5);
+      if (pendingFrames.length) await phase(Promise.allSettled(pendingFrames.map(frame => frame.waitForURL(target => !!target.toString() && target.toString() !== 'about:blank', { timeout: 800 }).catch(() => {}))));
       const snapshot = await phase(this.snapshotInternal(session, {}));
       check();
       this.assertNavigationGuard(navigationGuard);

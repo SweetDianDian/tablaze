@@ -1,0 +1,159 @@
+{
+  "kind": "production-codex-partial-output-live-smoke",
+  "schema_version": 1,
+  "started_at": "2026-09-23T14:38:35.095Z",
+  "comparison": false,
+  "purpose": "One real Codex task with a checked partial on an incomplete run and independent server-side acceptance.",
+  "base_commit": "061a78e2db76d1d324066a959283856ca2bc75c7",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "ultra",
+  "codex_version": "codex-cli 0.155.0-alpha.9.2",
+  "partial_schema": {
+    "type": "object",
+    "properties": {
+      "total": {
+        "type": "number",
+        "minimum": 0
+      }
+    },
+    "required": [
+      "total"
+    ],
+    "additionalProperties": false
+  },
+  "source_sha256": "0380a0621a04763e9d8302e87de61785409fe1286685f0d68d274af3d73d9e9a",
+  "policy": {
+    "seed": 23,
+    "task_timeout_ms": 180000,
+    "max_steps": 12,
+    "max_tool_calls": 30,
+    "automatic_retries": false,
+    "browser_channel": "chrome"
+  },
+  "attempt": {
+    "task_id": "extraction",
+    "task_sha256": "53891aa9c3f3987bf38985a1582b35bb54c8154e1679a6d9b95a1af158091c58",
+    "prompt_sha256": "f6d0394f54219ede5e9dc65784114a263136f278af635671a2b33fa1b6784432",
+    "exit_code": 1,
+    "signal": null,
+    "whole_run_ms": 77644.343375,
+    "deadline_exceeded": false,
+    "output_within_limit": true,
+    "stdout_bytes": 2175,
+    "stderr_bytes": 100,
+    "cli": {
+      "status": "failed",
+      "reason": "Planner, tool catalog, or application hook failed. No tool was automatically retried.",
+      "failure": {
+        "phase": "planner",
+        "code": "PLANNER_INVALID_RESPONSE",
+        "retryable": false
+      },
+      "partials": [],
+      "steps": 4,
+      "tool_calls": 4,
+      "planner_calls": 4,
+      "model_usage": [
+        {
+          "step": 1,
+          "model": "gpt-6-astra",
+          "latencyMs": 15311.193,
+          "promptTokens": 14476,
+          "completionTokens": 190,
+          "cachedPromptTokens": 0,
+          "cacheCreationPromptTokens": 0,
+          "reasoningTokens": 69
+        },
+        {
+          "step": 2,
+          "model": "gpt-6-astra",
+          "latencyMs": 15027.635,
+          "promptTokens": 15198,
+          "completionTokens": 216,
+          "cachedPromptTokens": 0,
+          "cacheCreationPromptTokens": 0,
+          "reasoningTokens": 155
+        },
+        {
+          "step": 3,
+          "model": "gpt-6-astra",
+          "latencyMs": 21336.433,
+          "promptTokens": 15731,
+          "completionTokens": 198,
+          "cachedPromptTokens": 0,
+          "cacheCreationPromptTokens": 0,
+          "reasoningTokens": 82
+        },
+        {
+          "step": 4,
+          "model": "gpt-6-astra",
+          "latencyMs": 24788.718,
+          "promptTokens": 16081,
+          "completionTokens": 240,
+          "cachedPromptTokens": 0,
+          "cacheCreationPromptTokens": 0,
+          "reasoningTokens": 129
+        }
+      ],
+      "provider_diagnostics": [
+        {
+          "step": 1,
+          "status": "completed",
+          "exitCode": 0,
+          "terminalEvent": "turn.completed",
+          "errorNotifications": 0,
+          "latencyMs": 15311.193
+        },
+        {
+          "step": 2,
+          "status": "completed",
+          "exitCode": 0,
+          "terminalEvent": "turn.completed",
+          "errorNotifications": 0,
+          "latencyMs": 15027.635
+        },
+        {
+          "step": 3,
+          "status": "completed",
+          "exitCode": 0,
+          "terminalEvent": "turn.completed",
+          "errorNotifications": 0,
+          "latencyMs": 21336.433
+        },
+        {
+          "step": 4,
+          "status": "failed",
+          "code": "CODEX_RESPONSE_INVALID",
+          "responseStage": "arguments_json",
+          "exitCode": 0,
+          "terminalEvent": "turn.completed",
+          "errorNotifications": 0,
+          "latencyMs": 24788.718
+        }
+      ],
+      "verification": []
+    },
+    "independent_judge": {
+      "passed": true,
+      "evidence": {
+        "records": [
+          {
+            "total": 29
+          }
+        ],
+        "writeCount": 1,
+        "duplicateWrites": 0,
+        "downloadRequests": 0,
+        "authorizations": 0,
+        "receiptRequests": 0,
+        "artifactHashes": []
+      },
+      "judge": "fixture-server-state-and-artifact-sha256-v1"
+    },
+    "partial_matches_server": false,
+    "partial_evidence_present": false,
+    "complete_success": false
+  },
+  "finished_at": "2026-09-23T14:39:52.764Z",
+  "source_unchanged": true
+}

@@ -11,10 +11,15 @@ import { applicationHook, createOpenAICompatiblePlanner, plannerError, type Agen
 
 export type CodexReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max' | 'ultra';
 export type CodexFailureCode = 'CODEX_CANCELLED' | 'CODEX_TIMEOUT' | 'CODEX_PROCESS_FAILED' | 'CODEX_TURN_FAILED' | 'CODEX_INCOMPLETE_TURN' | 'CODEX_EXTERNAL_TOOL' | 'CODEX_EVENT_INVALID' | 'CODEX_OUTPUT_LIMIT' | 'CODEX_REQUEST_INVALID' | 'CODEX_IMAGE_INVALID' | 'CODEX_RESPONSE_INVALID' | 'CODEX_CLEANUP_FAILED';
+export type CodexResponseStage = 'response_json' | 'envelope' | 'call_shape' | 'arguments_json' | 'tool_name' | 'arguments_shape' | 'arguments_schema' | 'adapter';
 export interface CodexPlannerDiagnostic {
   step: number;
   status: 'completed' | 'failed';
   code?: CodexFailureCode;
+  /** Fixed validation stage only; never includes model text or arguments. */
+  responseStage?: CodexResponseStage;
+  /** Extra inference calls made only to repair malformed JSON arguments. */
+  formatRetries?: number;
   exitCode: number | null;
   terminalEvent: 'turn.completed' | 'turn.failed' | null;
   /** Generic error notifications are not necessarily terminal or retryable. */
@@ -226,7 +231,7 @@ export function createCodexPlanner(options: CodexPlannerOptions): CodexPlanner {
     const signal = AbortSignal.any([request.signal, deadline.signal, shutdown.signal]);
     const cancelledCode = (): CodexFailureCode => request.signal.aborted || shutdown.signal.aborted ? 'CODEX_CANCELLED' : 'CODEX_TIMEOUT';
     const result: ProcessResult = { exitCode: null, terminalEvent: null, errorNotifications: 0, usages: [] };
-    let directory: string | undefined, transportError: CodexError | undefined, requested = false, accepted = false;
+    let directory: string | undefined, transportError: CodexError | undefined, responseStage: CodexResponseStage | undefined, formatRetries = 0, requested = false, accepted = false;
     const adapter = createOpenAICompatiblePlanner({
       endpoint: 'https://tablaze.invalid/internal-codex', model: options.model, supportsImages: options.supportsImages, maxResponseBytes: maxBytes,
       fetch: async (_url, init) => {
@@ -236,37 +241,65 @@ export function createCodexPlanner(options: CodexPlannerOptions): CodexPlanner {
           directory = await mkdtemp(join(tmpdir(), 'tablaze-codex-planner-'));
           const body = JSON.parse(String(init?.body)) as CompletionBody;
           const prepared = await prepare(body, directory, signal);
-          const schemaPath = join(directory, 'response-schema.json'), outputPath = join(directory, 'response.json');
+          const schemaPath = join(directory, 'response-schema.json');
           await writeFile(schemaPath, JSON.stringify(prepared.schema), { mode: 0o600, flag: 'wx', signal });
-          const args = [...prefix, 'exec', '--ignore-user-config', '--ephemeral', '--skip-git-repo-check', '--sandbox', 'read-only', '--json', '--color', 'never', '--model', options.model, '--output-schema', schemaPath, '--output-last-message', outputPath,
-            ...(options.reasoningEffort ? ['-c', `model_reasoning_effort=${JSON.stringify(options.reasoningEffort)}`] : []),
-            '-c', 'model_provider="tablaze-runtime"', '-c', providerConfig, '-c', 'web_search="disabled"',
-            ...disabledFeatures.flatMap(feature => ['--disable', feature]), ...prepared.images.flatMap(path => ['--image', path]), '-'];
-          await runProcess(command, args, directory, prepared.prompt, signal, result, cancelledCode);
-          signal.throwIfAborted();
-          const data = await readResponse(outputPath, maxBytes);
-          if (!ajv.validate(prepared.schema, data) || !record(data) || !Array.isArray(data.tool_calls)) throw new CodexError('CODEX_RESPONSE_INVALID');
-          const calls = data.tool_calls.map((raw: unknown) => {
-            if (!record(raw) || typeof raw.name !== 'string' || typeof raw.arguments_json !== 'string') throw new CodexError('CODEX_RESPONSE_INVALID');
-            const tool = body.tools.find(tool => tool.function.name === raw.name);
-            const parameters: unknown = JSON.parse(raw.arguments_json);
-            const finishShape = raw.name === 'agent_finish' && record(parameters)
-              && Object.keys(parameters).every(key => ['summary', 'evidence', 'data'].includes(key))
-              && typeof parameters.summary === 'string' && parameters.summary.length > 0
-              && Array.isArray(parameters.evidence) && parameters.evidence.length >= 1 && parameters.evidence.length <= 100
-              && parameters.evidence.every(value => typeof value === 'string' && value.length > 0);
-            const publishShape = raw.name === 'agent_publish' && record(parameters)
-              && Object.keys(parameters).every(key => ['key', 'evidence', 'data'].includes(key))
-              && typeof parameters.key === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/.test(parameters.key)
-              && Array.isArray(parameters.evidence) && parameters.evidence.length >= 1 && parameters.evidence.length <= 100
-              && parameters.evidence.every(value => typeof value === 'string' && value.length > 0);
-            // Shape-correct final or partial data reaches Agent feedback, so the
-            // model can correct schema errors without replaying browser mutations.
-            if (!tool || !record(parameters) || !(finishShape || publishShape || ajv.validate(tool.function.parameters, parameters))) throw new CodexError('CODEX_RESPONSE_INVALID');
-            return { id: `codex_${randomUUID()}`, type: 'function', function: { name: raw.name, arguments: JSON.stringify(parameters) } };
-          });
-          signal.throwIfAborted();
-          return new Response(JSON.stringify({ choices: [{ message: { role: 'assistant', content: null, tool_calls: calls } }] }), { status: 200, headers: { 'content-type': 'application/json' } });
+          for (let formatAttempt = 0; formatAttempt <= 1; formatAttempt++) {
+            const outputPath = join(directory, `response-${formatAttempt}.json`);
+            const args = [...prefix, 'exec', '--ignore-user-config', '--ephemeral', '--skip-git-repo-check', '--sandbox', 'read-only', '--json', '--color', 'never', '--model', options.model, '--output-schema', schemaPath, '--output-last-message', outputPath,
+              ...(options.reasoningEffort ? ['-c', `model_reasoning_effort=${JSON.stringify(options.reasoningEffort)}`] : []),
+              '-c', 'model_provider="tablaze-runtime"', '-c', providerConfig, '-c', 'web_search="disabled"',
+              ...disabledFeatures.flatMap(feature => ['--disable', feature]), ...prepared.images.flatMap(path => ['--image', path]), '-'];
+            const attemptResult: ProcessResult = { exitCode: null, terminalEvent: null, errorNotifications: 0, usages: [] };
+            try { await runProcess(command, args, directory, prepared.prompt + (formatAttempt ? '\n\nFORMAT_CORRECTION\nThe previous arguments_json string was not valid JSON. Regenerate exactly one function decision with arguments_json containing a valid JSON object string. No browser action from that malformed decision ran.' : ''), signal, attemptResult, cancelledCode); }
+            finally {
+              result.exitCode = attemptResult.exitCode;
+              result.terminalEvent = attemptResult.terminalEvent;
+              result.errorNotifications += attemptResult.errorNotifications;
+              result.usages.push(...attemptResult.usages);
+            }
+            signal.throwIfAborted();
+            responseStage = 'response_json';
+            const data = await readResponse(outputPath, maxBytes);
+            responseStage = 'envelope';
+            if (!ajv.validate(prepared.schema, data) || !record(data) || !Array.isArray(data.tool_calls)) throw new CodexError('CODEX_RESPONSE_INVALID');
+            let calls: Array<{ id: string; type: 'function'; function: { name: string; arguments: string } }>;
+            try {
+              calls = data.tool_calls.map((raw: unknown) => {
+                responseStage = 'call_shape';
+                if (!record(raw) || typeof raw.name !== 'string' || typeof raw.arguments_json !== 'string') throw new CodexError('CODEX_RESPONSE_INVALID');
+                const tool = body.tools.find(tool => tool.function.name === raw.name);
+                responseStage = 'arguments_json';
+                let parameters: unknown;
+                try { parameters = JSON.parse(raw.arguments_json); } catch { throw new CodexError('CODEX_RESPONSE_INVALID'); }
+                responseStage = 'tool_name';
+                if (!tool) throw new CodexError('CODEX_RESPONSE_INVALID');
+                responseStage = 'arguments_shape';
+                if (!record(parameters)) throw new CodexError('CODEX_RESPONSE_INVALID');
+                const finishShape = raw.name === 'agent_finish' && record(parameters)
+                  && Object.keys(parameters).every(key => ['summary', 'evidence', 'data'].includes(key))
+                  && typeof parameters.summary === 'string' && parameters.summary.length > 0
+                  && Array.isArray(parameters.evidence) && parameters.evidence.length >= 1 && parameters.evidence.length <= 100
+                  && parameters.evidence.every(value => typeof value === 'string' && value.length > 0);
+                const publishShape = raw.name === 'agent_publish' && record(parameters)
+                  && Object.keys(parameters).every(key => ['key', 'evidence', 'data'].includes(key))
+                  && typeof parameters.key === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,99}$/.test(parameters.key)
+                  && Array.isArray(parameters.evidence) && parameters.evidence.length >= 1 && parameters.evidence.length <= 100
+                  && parameters.evidence.every(value => typeof value === 'string' && value.length > 0);
+                // Shape-correct final or partial data reaches Agent feedback, so the
+                // model can correct schema errors without replaying browser mutations.
+                responseStage = 'arguments_schema';
+                if (!(finishShape || publishShape || ajv.validate(tool.function.parameters, parameters))) throw new CodexError('CODEX_RESPONSE_INVALID');
+                return { id: `codex_${randomUUID()}`, type: 'function', function: { name: raw.name, arguments: JSON.stringify(parameters) } };
+              });
+            }
+            catch (error) {
+              if (formatAttempt === 0 && error instanceof CodexError && error.code === 'CODEX_RESPONSE_INVALID' && (responseStage as CodexResponseStage) === 'arguments_json') { formatRetries++; continue; }
+              throw error;
+            }
+            signal.throwIfAborted();
+            return new Response(JSON.stringify({ choices: [{ message: { role: 'assistant', content: null, tool_calls: calls } }] }), { status: 200, headers: { 'content-type': 'application/json' } });
+          }
+          throw new CodexError('CODEX_RESPONSE_INVALID');
         } catch (error) {
           transportError = error instanceof CodexError && error.code === 'CODEX_CLEANUP_FAILED' ? error
             : signal.aborted ? new CodexError(cancelledCode()) : error instanceof CodexError ? error : new CodexError('CODEX_RESPONSE_INVALID');
@@ -276,7 +309,7 @@ export function createCodexPlanner(options: CodexPlannerOptions): CodexPlanner {
     });
     try { const decision = await adapter({ ...request, signal }); accepted = true; return decision; }
     catch (error) {
-      if (!transportError) throw error;
+      if (!transportError) { responseStage = 'adapter'; throw error; }
       if (transportError.code === 'CODEX_CLEANUP_FAILED') cleanupFailed = true;
       const code = transportError.code === 'CODEX_OUTPUT_LIMIT' ? 'PLANNER_RESPONSE_TOO_LARGE'
         : ['CODEX_REQUEST_INVALID', 'CODEX_IMAGE_INVALID', 'CODEX_RESPONSE_INVALID', 'CODEX_EVENT_INVALID', 'CODEX_INCOMPLETE_TURN'].includes(transportError.code) ? 'PLANNER_INVALID_RESPONSE' : 'PLANNER_PROCESS_FAILED';
@@ -291,7 +324,7 @@ export function createCodexPlanner(options: CodexPlannerOptions): CodexPlanner {
           const latencyMs = Math.round((performance.now() - started) * 1000) / 1000;
           const usage = reportedUsage(result, request.step, options.model, latencyMs);
           try { if (usage) applicationHook('USAGE_HOOK_FAILED', () => options.onUsage?.(usage)); }
-          finally { applicationHook('EVENT_HOOK_FAILED', () => options.onDiagnostic?.({ step: request.step, status: accepted ? 'completed' : 'failed', ...(!accepted ? { code: transportError?.code ?? 'CODEX_RESPONSE_INVALID' } : {}), exitCode: result.exitCode, terminalEvent: result.terminalEvent, errorNotifications: result.errorNotifications, latencyMs })); }
+          finally { applicationHook('EVENT_HOOK_FAILED', () => options.onDiagnostic?.({ step: request.step, status: accepted ? 'completed' : 'failed', ...(!accepted ? { code: transportError?.code ?? 'CODEX_RESPONSE_INVALID', ...(responseStage && (!transportError || transportError.code === 'CODEX_RESPONSE_INVALID') ? { responseStage } : {}) } : {}), ...(formatRetries ? { formatRetries } : {}), exitCode: result.exitCode, terminalEvent: result.terminalEvent, errorNotifications: result.errorNotifications, latencyMs })); }
         }
       } finally {
         if (fileCleanupFailed) throw plannerError('PLANNER_PROCESS_FAILED', 'Codex planner: CODEX_CLEANUP_FAILED.');

@@ -37,3 +37,6 @@ JSON 包含全部样本、环境及浏览器版本、原始耗时和输出体积
 There is no cross-product speed claim. Any future comparison must pin both versions, use the same environment, goals, browser state and independent outcome checks, retain all failures and disclose cold/warm boundaries.
 
 本基准不宣称跨产品速度优势。后续对照实验应固定双方版本、环境、目标、浏览器状态和独立验收条件，保留失败样本，并注明冷启动与热调用边界。
+## Real-model mechanism check
+
+`bench/codex-partial-output-smoke.mjs` runs a checked-partial task with real Codex inference, local Chrome and an independent server judge. It requires an explicit model, Codex executable and new output path. See [the three visible attempts](../docs/CODEX_PARTIAL_OUTPUT_SMOKE.md); this is not a Browser Use comparison.

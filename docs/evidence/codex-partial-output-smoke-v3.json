@@ -1,0 +1,199 @@
+{
+  "kind": "production-codex-partial-output-live-smoke",
+  "schema_version": 1,
+  "started_at": "2026-09-23T14:45:17.884Z",
+  "comparison": false,
+  "purpose": "One real Codex task with a checked partial on an incomplete run and independent server-side acceptance.",
+  "base_commit": "061a78e2db76d1d324066a959283856ca2bc75c7",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "ultra",
+  "codex_version": "codex-cli 0.155.0-alpha.9.2",
+  "partial_schema": {
+    "type": "object",
+    "properties": {
+      "total": {
+        "type": "number",
+        "minimum": 0
+      }
+    },
+    "required": [
+      "total"
+    ],
+    "additionalProperties": false
+  },
+  "source_sha256": "87481d87b43afe0ec8013f01089d044e9520bdc0ed3f058b2916a3d971d7c34d",
+  "policy": {
+    "seed": 23,
+    "task_timeout_ms": 180000,
+    "max_steps": 12,
+    "max_tool_calls": 30,
+    "automatic_retries": false,
+    "browser_channel": "chrome"
+  },
+  "attempt": {
+    "task_id": "extraction",
+    "task_sha256": "53891aa9c3f3987bf38985a1582b35bb54c8154e1679a6d9b95a1af158091c58",
+    "prompt_sha256": "265f1ac2e1307589af175f2a7e1059e06f6ed31a13840d388602b10dc78a0de8",
+    "exit_code": 2,
+    "signal": null,
+    "whole_run_ms": 110448.98354100001,
+    "deadline_exceeded": false,
+    "output_within_limit": true,
+    "stdout_bytes": 3186,
+    "stderr_bytes": 125,
+    "cli": {
+      "status": "needs_input",
+      "reason": "Human input is required.",
+      "partials": [
+        {
+          "key": "receipt-total",
+          "data": {
+            "total": 29
+          },
+          "evidence": [
+            {
+              "toolCallId": "09a7564c-73b0-465f-aae6-37ae67986f3c_call_4",
+              "sessionId": "48c08688-defa-4d33-bade-4c507f23a857",
+              "checks": [
+                {
+                  "index": 0,
+                  "kind": "value",
+                  "pass": true,
+                  "actual": "29"
+                },
+                {
+                  "index": 1,
+                  "kind": "text",
+                  "pass": true,
+                  "actual": "Item Quantity Unit price Pencils 3 5 Pads 2 7 Total Submit total Saved successfully"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "question": "The accepted total is 29, and the checked partial is published. Which separate record should I process next?",
+      "steps": 5,
+      "tool_calls": 4,
+      "planner_calls": 5,
+      "model_usage": [
+        {
+          "step": 1,
+          "model": "gpt-6-astra",
+          "latencyMs": 21026.439,
+          "promptTokens": 14494,
+          "completionTokens": 198,
+          "cachedPromptTokens": 0,
+          "cacheCreationPromptTokens": 0,
+          "reasoningTokens": 85
+        },
+        {
+          "step": 2,
+          "model": "gpt-6-astra",
+          "latencyMs": 22807.308,
+          "promptTokens": 15210,
+          "completionTokens": 234,
+          "cachedPromptTokens": 6912,
+          "cacheCreationPromptTokens": 0,
+          "reasoningTokens": 177
+        },
+        {
+          "step": 3,
+          "model": "gpt-6-astra",
+          "latencyMs": 13297.347,
+          "promptTokens": 15749,
+          "completionTokens": 177,
+          "cachedPromptTokens": 0,
+          "cacheCreationPromptTokens": 0,
+          "reasoningTokens": 69
+        },
+        {
+          "step": 4,
+          "model": "gpt-6-astra",
+          "latencyMs": 32183.872,
+          "promptTokens": 32216,
+          "completionTokens": 335,
+          "cachedPromptTokens": 0,
+          "cacheCreationPromptTokens": 0,
+          "reasoningTokens": 186
+        },
+        {
+          "step": 5,
+          "model": "gpt-6-astra",
+          "latencyMs": 19966.36,
+          "promptTokens": 16231,
+          "completionTokens": 141,
+          "cachedPromptTokens": 0,
+          "cacheCreationPromptTokens": 0,
+          "reasoningTokens": 86
+        }
+      ],
+      "provider_diagnostics": [
+        {
+          "step": 1,
+          "status": "completed",
+          "exitCode": 0,
+          "terminalEvent": "turn.completed",
+          "errorNotifications": 0,
+          "latencyMs": 21026.439
+        },
+        {
+          "step": 2,
+          "status": "completed",
+          "exitCode": 0,
+          "terminalEvent": "turn.completed",
+          "errorNotifications": 0,
+          "latencyMs": 22807.308
+        },
+        {
+          "step": 3,
+          "status": "completed",
+          "exitCode": 0,
+          "terminalEvent": "turn.completed",
+          "errorNotifications": 0,
+          "latencyMs": 13297.347
+        },
+        {
+          "step": 4,
+          "status": "completed",
+          "formatRetries": 1,
+          "exitCode": 0,
+          "terminalEvent": "turn.completed",
+          "errorNotifications": 0,
+          "latencyMs": 32183.872
+        },
+        {
+          "step": 5,
+          "status": "completed",
+          "exitCode": 0,
+          "terminalEvent": "turn.completed",
+          "errorNotifications": 0,
+          "latencyMs": 19966.36
+        }
+      ],
+      "verification": []
+    },
+    "independent_judge": {
+      "passed": true,
+      "evidence": {
+        "records": [
+          {
+            "total": 29
+          }
+        ],
+        "writeCount": 1,
+        "duplicateWrites": 0,
+        "downloadRequests": 0,
+        "authorizations": 0,
+        "receiptRequests": 0,
+        "artifactHashes": []
+      },
+      "judge": "fixture-server-state-and-artifact-sha256-v1"
+    },
+    "partial_matches_server": true,
+    "partial_evidence_present": true,
+    "complete_success": true
+  },
+  "finished_at": "2026-09-23T14:47:08.356Z",
+  "source_unchanged": true
+}

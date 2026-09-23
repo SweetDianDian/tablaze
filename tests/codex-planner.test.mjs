@@ -48,7 +48,11 @@ process.stdin.on('end', () => {
     else if (previous.length === 1) call = { name: 'tab_verify', arguments_json: JSON.stringify({ session_id: 's1', checks: [{ kind: 'text', contains: 'Saved' }] }) };
     else call = { name: 'agent_finish', arguments_json: JSON.stringify({ summary: 'Saved once and verified.', evidence: [previous.at(-1).toolCallId] }) };
   }
-  const outputBody = config.response ?? { tool_calls: [call] };
+  const invocation = fs.readFileSync(path.join(folder, 'report.jsonl'), 'utf8').trim().split('\\n').length;
+  const outputBody = mode === 'repair' || mode === 'repair-fail' ? { tool_calls: [invocation === 1 || mode === 'repair-fail'
+    ? { name: 'agent_request_input', arguments_json: '{' }
+    : { name: 'agent_request_input', arguments_json: JSON.stringify({ question: 'Recovered from malformed JSON.' }) }] }
+    : config.response ?? { tool_calls: [call] };
   if (mode === 'symlink') { fs.writeFileSync(path.join(folder, 'external.json'), JSON.stringify(outputBody)); fs.symlinkSync(path.join(folder, 'external.json'), output); }
   else fs.writeFileSync(output, mode === 'large' ? 'x'.repeat(2048) : mode === 'bad-json' ? '{PRIVATE' : JSON.stringify(outputBody));
   if (mode === 'generic-error') {
@@ -147,16 +151,18 @@ for (const [mode, failure, code] of [
 });
 
 test('Codex validates original tool arguments and the final schema before dispatch', async t => {
-  for (const response of [
-    { tool_calls: [{ name: 'not-a-tool', arguments_json: '{}' }] },
-    { tool_calls: [{ name: 'read', arguments_json: '{"value":"wrong"}' }] },
-    { tool_calls: [{ name: 'read', arguments_json: '{"value":1,"extra":true}' }] },
-    { tool_calls: [{ name: 'agent_finish', arguments_json: '{"summary":"unverified","evidence":[]}' }] },
-    { tool_calls: [{ name: 'agent_fail', arguments_json: '{"reason":"stop"}' }], extra: privateValue },
+  for (const [response, stage] of [
+    [{ tool_calls: [{ name: 'not-a-tool', arguments_json: '{}' }] }, 'envelope'],
+    [{ tool_calls: [{ name: 'read', arguments_json: '{"value":"wrong"}' }] }, 'arguments_schema'],
+    [{ tool_calls: [{ name: 'read', arguments_json: '{"value":1,"extra":true}' }] }, 'arguments_schema'],
+    [{ tool_calls: [{ name: 'agent_finish', arguments_json: '{"summary":"unverified","evidence":[]}' }] }, 'arguments_schema'],
+    [{ tool_calls: [{ name: 'agent_fail', arguments_json: '{"reason":"stop"}' }], extra: privateValue }, 'envelope'],
   ]) {
     const fake = await fixture(t, 'normal', { response });
-    const result = await runAgent({ task: 'Validate decisions.', tools: rejectingTools, planner: fake.planner() });
+    const diagnostics = [];
+    const result = await runAgent({ task: 'Validate decisions.', tools: rejectingTools, planner: fake.planner({ onDiagnostic: value => diagnostics.push(value) }) });
     assert.equal(result.status, 'failed'); assert.equal(result.failure.code, 'PLANNER_INVALID_RESPONSE'); assert.equal(result.toolCalls, 0);
+    assert.equal(diagnostics[0].responseStage, stage);
   }
 });
 
@@ -179,6 +185,33 @@ test('Codex forwards a shape-correct but schema-invalid checked partial for Agen
   assert.deepEqual(decision, { type: 'publish', key: 'first', evidence: ['verification-1'], data: { receiptId: 7 } });
   const [report] = await fake.reports();
   assert.ok(report.schema.properties.tool_calls.items.properties.name.enum.includes('agent_publish'));
+});
+
+test('Codex repairs one malformed arguments string without dispatching a browser tool', async t => {
+  const fake = await fixture(t, 'repair'); const diagnostics = [], usage = [];
+  const planner = fake.planner({ onDiagnostic: value => diagnostics.push(value), onUsage: value => usage.push(value) });
+  const result = await runAgent({ task: 'Request input after a format correction.', tools: rejectingTools, planner });
+  assert.equal(result.status, 'needs_input');
+  assert.equal(result.question, 'Recovered from malformed JSON.');
+  assert.equal(result.toolCalls, 0);
+  assert.equal(diagnostics[0].status, 'completed');
+  assert.equal(diagnostics[0].formatRetries, 1);
+  assert.equal(usage[0].promptTokens, 22);
+  assert.equal(usage[0].completionTokens, 6);
+  const reports = await fake.reports();
+  assert.equal(reports.length, 2);
+  assert.ok(reports[1].prompt.includes('FORMAT_CORRECTION'));
+});
+
+test('Codex stops after one failed format repair and never dispatches the malformed call', async t => {
+  const fake = await fixture(t, 'repair-fail'); const diagnostics = [];
+  const result = await runAgent({ task: 'Reject repeatedly malformed decisions.', tools: rejectingTools, planner: fake.planner({ onDiagnostic: value => diagnostics.push(value) }) });
+  assert.equal(result.status, 'failed');
+  assert.equal(result.failure.code, 'PLANNER_INVALID_RESPONSE');
+  assert.equal(result.toolCalls, 0);
+  assert.equal((await fake.reports()).length, 2);
+  assert.equal(diagnostics[0].formatRetries, 1);
+  assert.equal(diagnostics[0].responseStage, 'arguments_json');
 });
 
 test('Codex timeout drains final reported usage, deletes files and keeps fixed failure diagnostics', async t => {

@@ -68,6 +68,13 @@ closure. This is not a network firewall or complete data-loss prevention. Broade
 network/file limits and a representative authenticated task suite remain open,
 so the permissions row and historical comparison results remain incomplete.
 
+A bounded `tab_find` now searches one selected frame and can scroll an observed
+virtual-list container. Its real-browser fixture returns a fresh actionable ref
+for a row absent from the initial DOM. A [single real Codex pair](CODEX_VIRTUAL_LIST_SMOKE.md)
+also completed this visible task on both engines under a shared 120,000-token
+budget. This closes one development smoke gap, not the requirement for
+representative virtualized applications or repeated matched model outcomes.
+
 Sources:
 
 - **A:** [Agent parameters](https://docs.browser-use.com/open-source/customize/agent/all-parameters).
@@ -231,7 +238,7 @@ All gates must have direct evidence before this objective can be marked complete
 
 ## Executable development smoke and machine-readable record
 
-The [smoke runner](../bench/comparison/README.md) executes 13 diverse local tasks
+The [smoke runner](../bench/comparison/README.md) executes 14 diverse local tasks
 through the actual Tablaze agent/MCP/browser path with an explicitly scripted
 planner. It also provides real-model Tablaze and pinned Browser Use Agent
 adapters, a shared model-settings gateway, prerequisite checks and per-attempt

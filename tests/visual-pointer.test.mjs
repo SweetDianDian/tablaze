@@ -64,9 +64,9 @@ test('operators can disable the visual pointer', { timeout: 15_000 }, async t =>
   assert.equal(await page.locator(pointer).count(), 0);
 });
 
-test('headless sessions do not add a pointer by default', { timeout: 15_000 }, async t => {
+test('sessions do not add a pointer by default, even when headed', { timeout: 15_000 }, async t => {
   const fixture = await startFixture();
-  const engine = new BrowserEngine({ headless: true, channel: process.env.TABLAZE_BROWSER_CHANNEL || undefined });
+  const engine = new BrowserEngine({ headless: false, channel: process.env.TABLAZE_BROWSER_CHANNEL || undefined });
   t.after(async () => { await engine.dispose(); await fixture.close(); });
   const opened = await engine.open(fixture.url);
   const page = engine.sessions.get(opened.session_id).page;

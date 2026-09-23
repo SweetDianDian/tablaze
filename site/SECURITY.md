@@ -1,8 +1,8 @@
 # Security boundaries / 安全边界
 
-Tablaze is a local browser runtime, not a security sandbox. This document covers the current development branch with 15 MCP tools and an optional Agent runner; the historical 0.1.0 release has an earlier capability set. Its browser can read pages, submit forms, and make network requests with the identity available to its selected browser context. MCP tool annotations describe behavior; they do not themselves enforce user authorization.
+Tablaze is a local browser runtime, not a security sandbox. This document covers the current development branch with 16 MCP tools and an optional Agent runner; the historical 0.1.0 release has an earlier capability set. Its browser can read pages, submit forms, and make network requests with the identity available to its selected browser context. MCP tool annotations describe behavior; they do not themselves enforce user authorization.
 
-Tablaze 是本地浏览器运行时，不是安全沙箱。本页描述当前开发分支的 15 个 MCP 工具与可选 Agent 运行器，历史 0.1.0 发布包覆盖较早的能力范围。浏览器可以读取页面、提交表单，并使用所选上下文的身份发起网络请求。MCP 工具注解只描述行为，本身不执行用户授权控制。
+Tablaze 是本地浏览器运行时，不是安全沙箱。本页描述当前开发分支的 16 个 MCP 工具与可选 Agent 运行器，历史 0.1.0 发布包覆盖较早的能力范围。浏览器可以读取页面、提交表单，并使用所选上下文的身份发起网络请求。MCP 工具注解只描述行为，本身不执行用户授权控制。
 
 ## Isolation and ownership / 隔离与资源归属
 
@@ -16,9 +16,9 @@ Explicit `--cdp-url` mode creates owned pages in an external browser's default c
 
 Snapshot metadata omits password/hidden input values; explicit value verification rejects those inputs. Errors remove Playwright call logs and redact selected input values and endpoint URLs. CDP connection errors omit the configured endpoint. These are specific protections, not general data-loss prevention.
 
-Other input values, page text, accessible names, URLs (including their query parameters), extracted records, assertion evidence, screenshots and PDF artifacts can contain personal data or credentials rendered by the website. Tool responses are sent to the MCP client, whose model and retention settings apply. An explicitly referenced hidden accessibility label may form part of an accessible name. Page scripts may copy a secret into visible text; Tablaze cannot reliably recognize that transformation. The MCP server does not call a model provider or require a model API key; the optional Agent runner has a separate, explicitly configured model connection.
+Other input values, page text, accessible names, URLs (including their query parameters), extracted records, assertion evidence, screenshots and PDF artifacts can contain personal data or credentials rendered by the website. Tool responses are sent to the MCP client, whose model and retention settings apply. An explicitly referenced hidden accessibility label may form part of an accessible name. For [configured scoped credentials](https://github.com/SweetDianDian/tablaze/blob/main/docs/SECRETS.md), known textual forms are redacted and binary artifacts are blocked after a fill by default. Page scripts can transform or send a received secret in ways Tablaze cannot recognize. The MCP server does not call a model provider or require a model API key; the optional Agent runner has a separate, explicitly configured model connection.
 
-快照省略 password/hidden input 的值，值验收拒绝这些输入；错误会移除 Playwright 调用日志并处理部分输入值和端点，CDP 连接错误省略配置地址。这些是具体防护，不是全面的数据防泄漏系统。其他字段值、文字、无障碍名称、带查询参数的 URL、验收证据、截图和 PDF 仍可能含私人信息；工具响应会进入 MCP 客户端。显式引用的隐藏无障碍标签可能构成名称；页面若把秘密复制到可见文字中，服务无法可靠识别。MCP 服务不调用模型或要求模型 API key；可选 Agent 运行器使用独立、显式配置的模型连接。
+快照省略 password/hidden input 的值，值验收拒绝这些输入；错误会移除 Playwright 调用日志并处理部分输入值和端点，CDP 连接错误省略配置地址。这些是具体防护，不是全面的数据防泄漏系统。其他字段值、文字、无障碍名称、带查询参数的 URL、验收证据、截图和 PDF 仍可能含私人信息；工具响应会进入 MCP 客户端。显式引用的隐藏无障碍标签可能构成名称。[定向凭据](https://github.com/SweetDianDian/tablaze/blob/main/docs/SECRETS.md)会遮盖已知文字形式，填写后默认阻止二进制产物；但网页脚本仍可用无法识别的方式转换或发送收到的值。MCP 服务不调用模型或要求模型 API key；可选 Agent 运行器使用独立、显式配置的模型连接。
 
 [`tab_extract_structured` and the source extraction API](https://github.com/SweetDianDian/tablaze/blob/main/docs/EXTRACTION.md) validate schema and provenance within their documented limits. DOM evidence records the actual frame URL, selector and raw value; model extraction validates exact quotes in the supplied sources for each populated leaf. These checks do not authenticate a website, establish that its statements are true, or make page instructions trusted application policy.
 

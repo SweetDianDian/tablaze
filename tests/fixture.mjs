@@ -78,6 +78,24 @@ function lab(token) {
     };`);
 }
 
+function virtualList() {
+  return document('Virtual results', '<h1>Virtual results</h1><div id="virtual-list" tabindex="0" aria-label="Virtual results" style="height:180px;overflow-y:auto;position:relative;border:1px solid #888"><div style="height:6400px"></div><div id="virtual-rows" style="position:absolute;left:0;right:0;top:0"></div></div><p id="virtual-status">No reservation</p>', `
+    const list = document.querySelector('#virtual-list'), rows = document.querySelector('#virtual-rows');
+    function render() {
+      const start = Math.min(153, Math.floor(list.scrollTop / 40));
+      rows.style.top = (start * 40) + 'px';
+      rows.replaceChildren();
+      for (let index = start; index < Math.min(160, start + 7); index++) {
+        const button = document.createElement('button');
+        button.textContent = 'Reserve VIRTUAL-' + index;
+        button.style.cssText = 'display:block;height:40px;margin:0';
+        button.onclick = () => document.querySelector('#virtual-status').textContent = 'Reserved VIRTUAL-' + index;
+        rows.append(button);
+      }
+    }
+    list.addEventListener('scroll', render); render();`);
+}
+
 /** A public, local-only fixture. Controls mutate real DOM without engine internals. */
 export async function startFixture() {
   const streams = new Map();
@@ -105,6 +123,7 @@ export async function startFixture() {
     else if (url.pathname === '/lab') html = lab(url.searchParams.get('token') || 'default');
     else if (url.pathname === '/frame') html = document('Nested frame', '<button id="frame-button">Frame action</button><p id="frame-result">Frame idle</p>', "document.querySelector('button').onclick=()=>document.querySelector('p').textContent='Frame complete';");
     else if (url.pathname === '/long') html = document('Long page', '<h1>Long page</h1>' + Array.from({ length: 80 }, (_, index) => `<button>Choice ${index}</button><p>${'Visible fixture prose. '.repeat(10)}</p>`).join(''));
+    else if (url.pathname === '/virtual') html = virtualList();
     else if (url.pathname === '/state') html = document('Isolated state', '<button id="remember">Remember this session</button><p id="state"></p>', "const show=()=>document.querySelector('#state').textContent=localStorage.getItem('remembered')?'Remembered':'Fresh session';show();document.querySelector('button').onclick=()=>{localStorage.setItem('remembered','yes');show()};");
     else { response.writeHead(404).end('Not found'); return; }
     response.writeHead(200, { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' }).end(html);

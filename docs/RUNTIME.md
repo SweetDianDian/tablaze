@@ -4,7 +4,7 @@
 
 ## English
 
-This reference describes the current source, its 15 MCP tools and optional typed custom-tool SDK. The historical 0.1.0 archive and earlier validation reports cover an earlier capability set; identify the build by its commit and tool catalog. All recorded real Codex comparisons predate the custom-tool SDK and its bound recovery/context-key implementation; those reports do not measure the new SDK's model performance. npm publication remains pending.
+This reference describes the current source, its 16 MCP tools and optional typed custom-tool SDK. The historical 0.1.0 archive and earlier validation reports cover an earlier capability set; identify the build by its commit and tool catalog. All recorded real Codex comparisons predate the custom-tool SDK and its bound recovery/context-key implementation; those reports do not measure the new SDK's model performance. npm publication remains pending.
 
 ### Sessions and observations
 
@@ -94,7 +94,7 @@ CLI checkpoint JSON contains full Agent history and browser storage and is writt
 
 ## 简体中文
 
-本页描述当前源码的 15 个 MCP 工具与可选类型化自定义工具 SDK。历史 0.1.0 归档和早期验证报告覆盖较早的能力范围，请结合提交号与工具目录确认所用构建。已记录的真实 Codex 对照全部早于自定义工具 SDK、恢复绑定与 contextKey，不代表这些新能力的模型表现。npm 尚未发布。
+本页描述当前源码的 16 个 MCP 工具与可选类型化自定义工具 SDK。历史 0.1.0 归档和早期验证报告覆盖较早的能力范围，请结合提交号与工具目录确认所用构建。已记录的真实 Codex 对照全部早于自定义工具 SDK、恢复绑定与 contextKey，不代表这些新能力的模型表现。npm 尚未发布。
 
 ### 会话与观察
 

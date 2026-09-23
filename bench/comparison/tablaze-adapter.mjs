@@ -44,6 +44,15 @@ export function scriptedPlanner(attempt, { initialized = false } = {}) {
       case 'large-page':
         page = (yield call('tab_snapshot', { session_id: page.session_id, selector: '#final' })).data;
         yield* click('Final target'); break;
+      case 'virtual-list': {
+        const container = page.elements.find(element => element.scrollable?.y && element.name === 'Virtual results');
+        if (!container) throw new Error('Script fixture virtual container unavailable');
+        const found = (yield call('tab_find', { session_id: page.session_id, snapshot_id: page.snapshot_id, container_ref: container.ref, text: 'VIRTUAL-130', max_scrolls: 80 })).data;
+        if (!found.found) throw new Error('Script fixture virtual target not found');
+        page = found.snapshot;
+        yield* click('Reserve VIRTUAL-130');
+        break;
+      }
       case 'canvas':
         yield call('tab_capture', { session_id: page.session_id });
         // This fixed fixture coordinate is explicitly scripted, not a vision model result.

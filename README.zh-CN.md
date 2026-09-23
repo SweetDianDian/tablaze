@@ -17,7 +17,7 @@
   <a href="package.json"><img src="https://img.shields.io/badge/node-%E2%89%A520-80b7ff?style=flat-square" alt="Node.js 20 及以上"></a>
 </p>
 
-**让 Agent 真正操作浏览器。** Tablaze / 闪页通过十五个 MCP 工具，让 Codex 等客户端连接 Chromium：观察页面、填写表单、提取结果，再检查任务是否完成。
+**让 Agent 真正操作浏览器。** Tablaze / 闪页通过十六个 MCP 工具，让 Codex 等客户端连接 Chromium：观察页面、填写表单、提取结果，再检查任务是否完成。
 
 基于 Playwright，浏览器会话在调用之间持续运行，推理由你的 MCP 客户端完成。MCP 浏览器工具无需额外模型 API Key；可选独立 Agent 循环使用显式配置的规划器。
 
@@ -101,6 +101,8 @@ node dist/cli.js run --provider codex --model "<你的Codex模型>" \
 
 新 Codex 生产入口另有[独立真实验证](docs/CODEX_PROVIDER_SMOKE.md)：两项任务完整成功并通过服务端验收（2/2），重复写入为 0；不与旧对照数据合并。
 
+新增[虚拟列表同条件任务](docs/CODEX_VIRTUAL_LIST_SMOKE.md)：双方各完整成功一次，独立验收通过且没有重复写入。共同 120,000-token 预算下，Tablaze 全程 86.830 秒，Browser Use 全程 141.597 秒（含默认评审）。单个可见开发任务不能证明整体性能或成功率领先。
+
 ## 简单的工作流，明确的控制
 
 | 能力 | 给 Agent 带来什么 |
@@ -110,15 +112,16 @@ node dist/cli.js run --provider codex --model "<你的Codex模型>" \
 | **引用检查** | 输入前检查快照版本和 DOM 目标；目标变化后重新观察。 |
 | **顺序批次** | 一次最多提交 20 个操作，分别报告完成、失败和跳过状态。遇错停止，先前操作仍然生效。 |
 | **明确验收** | 核对实际 URL、标题、文字、字段值、可见性与元素数量。 |
-| **可视操作指针** | 有界面运行时，在自有标签页中短暂标示验证过的点击、输入目标，不拦截网页操作；无界面运行默认不显示。可用 `--visual-pointer` 在录屏中开启，或用 `--no-visual-pointer` 关闭。库选项为 `visualPointer: true/false`。 |
+| **可选操作指针** | 默认关闭。需要讲解或录屏时，可用 `--visual-pointer`（或 `visualPointer: true`）在验证过的操作目标处短暂显示不拦截输入的标记。它标示目标，并非真实鼠标轨迹。 |
 | **可选导航策略** | 通过[精确来源允许/拒绝规则](docs/NAVIGATION_POLICY.md)限制自有独立浏览器中的 HTTP(S) 文档请求，覆盖重定向、frame 和弹窗。不支持外部 CDP，也不是网络防火墙。 |
 
-### 十五个工具
+### 十六个工具
 
 | 工具 | 用途 |
 | --- | --- |
 | `tab_open` | 打开页面并返回首次快照。 |
 | `tab_snapshot` | 观察页面、变化或指定 frame。 |
+| `tab_find` | 在页面或已观察的虚拟列表容器中滚动查找文字，返回可操作的新快照。 |
 | `tab_act` | 受保护的表单操作、拖拽、容器滚动、文件选择与坐标操作。 |
 | `tab_verify` | 执行页面断言，通过受保护的 ref 或 CSS 选择器验收表单值。 |
 | `tab_extract` | 读取文字、链接或表格。 |

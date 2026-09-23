@@ -13,6 +13,7 @@ export const TASKS = Object.freeze([
   { id: 'shadow-form', tags: ['shadow_dom', 'forms'], instruction: 'Save shadow-component note Orion.' },
   { id: 'iframe-form', tags: ['iframe', 'forms'], instruction: 'Save frame-component note Vega.' },
   { id: 'large-page', tags: ['large_dom', 'targeting'], instruction: 'Find and activate Final target after the long list of decoy controls.' },
+  { id: 'virtual-list', tags: ['virtual_list', 'targeting', 'scroll'], instruction: 'Find VIRTUAL-130 in the virtualized results list and reserve that row exactly once. Only nearby rows exist in the DOM.' },
   { id: 'canvas', tags: ['vision', 'coordinates'], instruction: 'Use the canvas to click the blue rectangle once. The canvas displays the target visually.' },
   { id: 'upload', tags: ['files', 'upload'], instruction: 'Upload the supplied document and wait for the received-file receipt.' },
   { id: 'download', tags: ['files', 'download'], instruction: 'Download the quarterly CSV and keep the actual downloaded file as an output artifact.' },
@@ -39,6 +40,10 @@ function page(attempt, route) {
     case 'shadow-form': body = `<section id="component"></section><script>document.querySelector('#component').attachShadow({mode:'open'}).innerHTML='<label>Shadow note<input id="note"></label><button>Save shadow note</button>';const root=document.querySelector('#component').shadowRoot;root.querySelector('button').onclick=()=>save({note:root.querySelector('input').value});</script>`; break;
     case 'iframe-form': body = route === 'frame' ? '<label>Frame note<input id="note"></label><button onclick="save({note:document.querySelector(\'#note\').value})">Save frame note</button>' : `<iframe title="Note editor" src="${prefix}/frame" width="600" height="240"></iframe>`; break;
     case 'large-page': body = Array.from({ length: 520 }, (_, i) => `<button>Decoy ${i + 1}</button>`).join('') + `<section id="final"><button onclick="save({target:'final'})">Final target</button></section>`; break;
+    case 'virtual-list': body = `<h1>Virtual results</h1><div id="virtual-list" tabindex="0" aria-label="Virtual results" style="height:180px;overflow-y:auto;position:relative;border:1px solid #888"><div style="height:6400px"></div><div id="virtual-rows" style="position:absolute;left:0;right:0;top:0"></div></div><script>
+      const list=document.querySelector('#virtual-list'),rows=document.querySelector('#virtual-rows');
+      function render(){const start=Math.min(153,Math.floor(list.scrollTop/40));rows.style.top=(start*40)+'px';rows.replaceChildren();for(let i=start;i<Math.min(160,start+7);i++){const button=document.createElement('button');button.textContent='Reserve VIRTUAL-'+i;button.style.cssText='display:block;height:40px;margin:0';button.onclick=()=>save({record:'VIRTUAL-'+i});rows.append(button)}}
+      list.addEventListener('scroll',render);render();</script>`; break;
     case 'canvas': body = `<canvas id="canvas" width="500" height="260" style="display:block;border:1px solid black"></canvas><script>const canvas=document.querySelector('#canvas'),ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,500,260);ctx.fillStyle='blue';ctx.fillRect(150,80,120,80);canvas.onclick=event=>{const box=canvas.getBoundingClientRect();save({x:event.clientX-box.left-1,y:event.clientY-box.top-1});};</script>`; break;
     case 'upload': body = `<label>Document<input type="file" id="file"></label><script>document.querySelector('#file').onchange=async event=>save({content:await event.target.files[0].text()});</script>`; break;
     case 'download': body = `<a href="${prefix}/report.csv" download>Download quarterly CSV</a><p>The download contains the quarterly report.</p>`; break;
@@ -114,6 +119,7 @@ export async function startTaskService() {
             case 'shadow-form': passed = exactOne && record.note === 'Orion'; break;
             case 'iframe-form': passed = exactOne && record.note === 'Vega'; break;
             case 'large-page': passed = exactOne && record.target === 'final'; break;
+            case 'virtual-list': passed = exactOne && record.record === 'VIRTUAL-130'; break;
             case 'canvas': passed = exactOne && record.x >= 150 && record.x <= 270 && record.y >= 80 && record.y <= 160; break;
             case 'upload': passed = exactOne && record.content === uploadContent; break;
             case 'download': {

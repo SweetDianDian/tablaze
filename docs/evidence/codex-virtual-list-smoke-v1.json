@@ -1,0 +1,406 @@
+{
+  "schema": "tablaze-virtual-list-development-smoke-v1",
+  "date": "2026-09-23",
+  "purpose": "A visible development task, not a superiority experiment",
+  "runs": [
+    {
+      "rawResultSha256": "fda77ec2f2276b76e378ad8de79a42023745ef48656d79520be26b166bfe02c6",
+      "source": {
+        "commit": "a8804f1edef30d9ed7496277d9ad76d2fde6d89d",
+        "patchSha256": "7628b425051314fdf8bc9f270dca14aab5314a9f42f9e401a920184e5bd16c7a",
+        "sourceTreeSha256": "7054e0e72675ab019f342e27f380c280b421831bb1d14c39fa6c0aedb0b04ea9"
+      },
+      "environment": {
+        "browserUse": {
+          "status": "ready",
+          "version": "0.13.10",
+          "commit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+          "source": {
+            "kind": "official_archive",
+            "commit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+            "url": "https://github.com/browser-use/browser-use/archive/d8110c5ff87ccba887aaa726cdb780f2f84bef8d.zip",
+            "sha256": "bd48c9cee82a1bd1980171bd28dbcc04e948c09bee36294db3a55e8302dcb426"
+          }
+        },
+        "codex": {
+          "version": "0.155.0-alpha.9.2",
+          "authentication": "ChatGPT"
+        },
+        "platform": "darwin",
+        "arch": "arm64",
+        "node": "v25.9.0",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "browserVersion": "153.0.8010.53",
+        "model": "gpt-6-astra",
+        "reasoningEffort": "ultra",
+        "transport": "codex-cli",
+        "tokenBudget": 50000,
+        "browserUseJudge": true,
+        "engineOptions": {
+          "tablaze": {
+            "initializeUrl": false,
+            "popupPolicy": "stay"
+          },
+          "browserUse": {
+            "useJudge": true
+          }
+        }
+      },
+      "attempts": [
+        {
+          "engine": "tablaze",
+          "taskId": "virtual-list",
+          "taskHash": "cac604cf0b1be0fc286215d0cbe7447804e2a29deac7e1c1ce7f8a35a8c5563b",
+          "outcome": "passed",
+          "agentStatus": "failed",
+          "businessPassed": true,
+          "agentDoneObserved": false,
+          "agentSuccessObserved": null,
+          "runReturnedBeforeDeadline": true,
+          "wallTimeMs": 68979.333833,
+          "inputTokens": 59405,
+          "outputTokens": 692,
+          "cachedTokens": 6912,
+          "modelCalls": 4,
+          "toolCalls": 4,
+          "steps": 5,
+          "judgeUsage": null,
+          "agentFailure": {
+            "phase": "planner",
+            "code": "PLANNER_HTTP_ERROR",
+            "retryable": true,
+            "httpStatus": 429
+          },
+          "judge": {
+            "passed": true,
+            "evidence": {
+              "records": [
+                {
+                  "record": "VIRTUAL-130"
+                }
+              ],
+              "writeCount": 1,
+              "duplicateWrites": 0,
+              "downloadRequests": 0,
+              "artifactHashes": []
+            },
+            "judge": "fixture-server-state-and-artifact-sha256-v1"
+          },
+          "stepBudget": 40,
+          "toolBudget": 150,
+          "deadlineMs": 180000
+        },
+        {
+          "engine": "browser-use",
+          "taskId": "virtual-list",
+          "taskHash": "cac604cf0b1be0fc286215d0cbe7447804e2a29deac7e1c1ce7f8a35a8c5563b",
+          "outcome": "passed",
+          "agentStatus": "succeeded",
+          "businessPassed": true,
+          "agentDoneObserved": true,
+          "agentSuccessObserved": true,
+          "runReturnedBeforeDeadline": true,
+          "wallTimeMs": 69572.577167,
+          "inputTokens": 56844,
+          "outputTokens": 1299,
+          "cachedTokens": 0,
+          "modelCalls": 3,
+          "toolCalls": 4,
+          "steps": 4,
+          "judgeUsage": {
+            "inputTokens": null,
+            "outputTokens": null,
+            "cachedTokens": null,
+            "totalTokens": null,
+            "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+          },
+          "agentFailure": null,
+          "judge": {
+            "passed": true,
+            "evidence": {
+              "records": [
+                {
+                  "record": "VIRTUAL-130"
+                }
+              ],
+              "writeCount": 1,
+              "duplicateWrites": 0,
+              "downloadRequests": 0,
+              "artifactHashes": []
+            },
+            "judge": "fixture-server-state-and-artifact-sha256-v1"
+          },
+          "stepBudget": 40,
+          "toolBudget": null,
+          "deadlineMs": 180000
+        }
+      ]
+    },
+    {
+      "rawResultSha256": "d7e555a4502d9445804151b0e9a5f8e93bb58e47674f739fccde6c7e62dc296f",
+      "source": {
+        "commit": "a8804f1edef30d9ed7496277d9ad76d2fde6d89d",
+        "patchSha256": "7628b425051314fdf8bc9f270dca14aab5314a9f42f9e401a920184e5bd16c7a",
+        "sourceTreeSha256": "7054e0e72675ab019f342e27f380c280b421831bb1d14c39fa6c0aedb0b04ea9"
+      },
+      "environment": {
+        "browserUse": {
+          "status": "ready",
+          "version": "0.13.10",
+          "commit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+          "source": {
+            "kind": "official_archive",
+            "commit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+            "url": "https://github.com/browser-use/browser-use/archive/d8110c5ff87ccba887aaa726cdb780f2f84bef8d.zip",
+            "sha256": "bd48c9cee82a1bd1980171bd28dbcc04e948c09bee36294db3a55e8302dcb426"
+          }
+        },
+        "codex": {
+          "version": "0.155.0-alpha.9.2",
+          "authentication": "ChatGPT"
+        },
+        "platform": "darwin",
+        "arch": "arm64",
+        "node": "v25.9.0",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "browserVersion": "153.0.8010.53",
+        "model": "gpt-5.6-luna",
+        "reasoningEffort": "high",
+        "transport": "codex-cli",
+        "tokenBudget": 50000,
+        "browserUseJudge": true,
+        "engineOptions": {
+          "tablaze": {
+            "initializeUrl": false,
+            "popupPolicy": "stay"
+          },
+          "browserUse": {
+            "useJudge": true
+          }
+        }
+      },
+      "attempts": [
+        {
+          "engine": "tablaze",
+          "taskId": "virtual-list",
+          "taskHash": "cac604cf0b1be0fc286215d0cbe7447804e2a29deac7e1c1ce7f8a35a8c5563b",
+          "outcome": "passed",
+          "agentStatus": "failed",
+          "businessPassed": true,
+          "agentDoneObserved": false,
+          "agentSuccessObserved": null,
+          "runReturnedBeforeDeadline": true,
+          "wallTimeMs": 79475.213708,
+          "inputTokens": 62306,
+          "outputTokens": 1059,
+          "cachedTokens": 0,
+          "modelCalls": 5,
+          "toolCalls": 5,
+          "steps": 6,
+          "judgeUsage": null,
+          "agentFailure": {
+            "phase": "planner",
+            "code": "PLANNER_HTTP_ERROR",
+            "retryable": true,
+            "httpStatus": 429
+          },
+          "judge": {
+            "passed": true,
+            "evidence": {
+              "records": [
+                {
+                  "record": "VIRTUAL-130"
+                }
+              ],
+              "writeCount": 1,
+              "duplicateWrites": 0,
+              "downloadRequests": 0,
+              "artifactHashes": []
+            },
+            "judge": "fixture-server-state-and-artifact-sha256-v1"
+          },
+          "stepBudget": 40,
+          "toolBudget": 150,
+          "deadlineMs": 180000
+        },
+        {
+          "engine": "browser-use",
+          "taskId": "virtual-list",
+          "taskHash": "cac604cf0b1be0fc286215d0cbe7447804e2a29deac7e1c1ce7f8a35a8c5563b",
+          "outcome": "failed",
+          "agentStatus": "failed",
+          "businessPassed": false,
+          "agentDoneObserved": false,
+          "agentSuccessObserved": null,
+          "runReturnedBeforeDeadline": true,
+          "wallTimeMs": 64080.953750000015,
+          "inputTokens": 48733,
+          "outputTokens": 1804,
+          "cachedTokens": 0,
+          "modelCalls": 3,
+          "toolCalls": 10,
+          "steps": 10,
+          "judgeUsage": {
+            "inputTokens": 0,
+            "outputTokens": 0,
+            "cachedTokens": 0,
+            "totalTokens": 0,
+            "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+          },
+          "agentFailure": null,
+          "judge": {
+            "passed": false,
+            "evidence": {
+              "records": [],
+              "writeCount": 0,
+              "duplicateWrites": 0,
+              "downloadRequests": 0,
+              "artifactHashes": []
+            },
+            "judge": "fixture-server-state-and-artifact-sha256-v1"
+          },
+          "stepBudget": 40,
+          "toolBudget": null,
+          "deadlineMs": 180000
+        }
+      ]
+    },
+    {
+      "rawResultSha256": "c0547ea2c029ef96a2ca5974a1da2b3c6c9bcdba90c715627ea98386fd3dd6f7",
+      "source": {
+        "commit": "a8804f1edef30d9ed7496277d9ad76d2fde6d89d",
+        "patchSha256": "7628b425051314fdf8bc9f270dca14aab5314a9f42f9e401a920184e5bd16c7a",
+        "sourceTreeSha256": "7054e0e72675ab019f342e27f380c280b421831bb1d14c39fa6c0aedb0b04ea9"
+      },
+      "environment": {
+        "browserUse": {
+          "status": "ready",
+          "version": "0.13.10",
+          "commit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+          "source": {
+            "kind": "official_archive",
+            "commit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+            "url": "https://github.com/browser-use/browser-use/archive/d8110c5ff87ccba887aaa726cdb780f2f84bef8d.zip",
+            "sha256": "bd48c9cee82a1bd1980171bd28dbcc04e948c09bee36294db3a55e8302dcb426"
+          }
+        },
+        "codex": {
+          "version": "0.155.0-alpha.9.2",
+          "authentication": "ChatGPT"
+        },
+        "platform": "darwin",
+        "arch": "arm64",
+        "node": "v25.9.0",
+        "viewport": {
+          "width": 1280,
+          "height": 800
+        },
+        "browserVersion": "153.0.8010.53",
+        "model": "gpt-6-astra",
+        "reasoningEffort": "ultra",
+        "transport": "codex-cli",
+        "tokenBudget": 120000,
+        "browserUseJudge": true,
+        "engineOptions": {
+          "tablaze": {
+            "initializeUrl": false,
+            "popupPolicy": "stay"
+          },
+          "browserUse": {
+            "useJudge": true
+          }
+        }
+      },
+      "attempts": [
+        {
+          "engine": "tablaze",
+          "taskId": "virtual-list",
+          "taskHash": "cac604cf0b1be0fc286215d0cbe7447804e2a29deac7e1c1ce7f8a35a8c5563b",
+          "outcome": "passed",
+          "agentStatus": "succeeded",
+          "businessPassed": true,
+          "agentDoneObserved": true,
+          "agentSuccessObserved": true,
+          "runReturnedBeforeDeadline": true,
+          "wallTimeMs": 86830.407292,
+          "inputTokens": 93209,
+          "outputTokens": 944,
+          "cachedTokens": 0,
+          "modelCalls": 6,
+          "toolCalls": 5,
+          "steps": 6,
+          "judgeUsage": null,
+          "agentFailure": null,
+          "judge": {
+            "passed": true,
+            "evidence": {
+              "records": [
+                {
+                  "record": "VIRTUAL-130"
+                }
+              ],
+              "writeCount": 1,
+              "duplicateWrites": 0,
+              "downloadRequests": 0,
+              "artifactHashes": []
+            },
+            "judge": "fixture-server-state-and-artifact-sha256-v1"
+          },
+          "stepBudget": 40,
+          "toolBudget": 150,
+          "deadlineMs": 180000
+        },
+        {
+          "engine": "browser-use",
+          "taskId": "virtual-list",
+          "taskHash": "cac604cf0b1be0fc286215d0cbe7447804e2a29deac7e1c1ce7f8a35a8c5563b",
+          "outcome": "passed",
+          "agentStatus": "succeeded",
+          "businessPassed": true,
+          "agentDoneObserved": true,
+          "agentSuccessObserved": true,
+          "runReturnedBeforeDeadline": true,
+          "wallTimeMs": 141597.18825,
+          "inputTokens": 91929,
+          "outputTokens": 2746,
+          "cachedTokens": 0,
+          "modelCalls": 5,
+          "toolCalls": 5,
+          "steps": 5,
+          "judgeUsage": {
+            "inputTokens": 16056,
+            "outputTokens": 241,
+            "cachedTokens": 0,
+            "totalTokens": 16297,
+            "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+          },
+          "agentFailure": null,
+          "judge": {
+            "passed": true,
+            "evidence": {
+              "records": [
+                {
+                  "record": "VIRTUAL-130"
+                }
+              ],
+              "writeCount": 1,
+              "duplicateWrites": 0,
+              "downloadRequests": 0,
+              "artifactHashes": []
+            },
+            "judge": "fixture-server-state-and-artifact-sha256-v1"
+          },
+          "stepBudget": 40,
+          "toolBudget": null,
+          "deadlineMs": 180000
+        }
+      ]
+    }
+  ]
+}

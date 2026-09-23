@@ -17,7 +17,7 @@
   <a href="package.json"><img src="https://img.shields.io/badge/node-%E2%89%A520-80b7ff?style=flat-square" alt="Node.js 20 or later"></a>
 </p>
 
-**Give your agent a browser it can work with.** Tablaze connects Codex and other MCP clients to Chromium through fifteen focused tools. Inspect a page, fill a form, extract a result, and check that the task actually succeeded.
+**Give your agent a browser it can work with.** Tablaze connects Codex and other MCP clients to Chromium through sixteen focused tools. Inspect a page, fill a form, extract a result, and check that the task actually succeeded.
 
 Built with Playwright. Browser sessions stay running between calls; your MCP client supplies the reasoning. The MCP browser tools require no additional model API key. The optional standalone Agent loop uses an explicitly configured planner.
 
@@ -101,6 +101,8 @@ The default compatible provider still requires `--endpoint`. Native Anthropic an
 
 The new production Codex path also has a [separate live smoke](docs/CODEX_PROVIDER_SMOKE.md): two visible tasks passed independent business checks and completed successfully (2/2), with zero duplicate writes. This is not a new matched Browser Use comparison.
 
+A [new matched virtual-list task](docs/CODEX_VIRTUAL_LIST_SMOKE.md) completed once on each engine with independent acceptance and zero duplicate writes. Under a shared 120,000-token budget, whole-run time was 86.830 s for Tablaze and 141.597 s for Browser Use, including its default judge. This one visible development task does not establish a general performance or success-rate advantage.
+
 ## A small loop, with useful controls
 
 | Capability | What it gives your agent |
@@ -110,15 +112,16 @@ The new production Codex path also has a [separate live smoke](docs/CODEX_PROVID
 | **Guarded actions** | Check snapshot revisions and DOM targets before input. Re-observe when a target changes. |
 | **Ordered batches** | Send up to 20 actions in one call, with completed, failed and skipped steps. Stops on error; earlier effects remain. |
 | **Explicit verification** | Check the resulting URL, title, text, field values, visibility and element counts. |
-| **Visible action pointer** | In headed sessions, a brief, non-intercepting cursor marks validated click and input targets. Headless sessions omit it by default. Use `--visual-pointer` to include it in captures or `--no-visual-pointer` to disable it. Library callers can set `visualPointer: true` or `false`. |
+| **Optional action pointer** | Off by default. Use `--visual-pointer` (or `visualPointer: true`) when a headed walkthrough or recording benefits from a brief, non-intercepting marker at validated action targets. It marks targets, not the physical mouse path. |
 | **Optional navigation policy** | [Exact-origin allow/deny rules](docs/NAVIGATION_POLICY.md) for HTTP(S) document requests, including redirects, frames and popups, in owned isolated browsers. No external CDP; not a network firewall. |
 
-### Fifteen tools
+### Sixteen tools
 
 | Tool | Use it to |
 | --- | --- |
 | `tab_open` | Open a page and receive its first snapshot. |
 | `tab_snapshot` | Observe the page, changes or a selected frame. |
+| `tab_find` | Search visible text while scrolling a page or observed virtual-list container; return a fresh actionable snapshot. |
 | `tab_act` | Guarded form input, drag/drop, container scrolling, file selection and coordinate actions. |
 | `tab_verify` | Test explicit page assertions and guarded form values by ref or CSS selector. |
 | `tab_extract` | Read text, links or tables. |

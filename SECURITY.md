@@ -1,8 +1,8 @@
 # Security boundaries / 安全边界
 
-Tablaze is a local browser runtime, not a security sandbox. This document covers the current development branch with 15 MCP tools and an optional Agent runner; the historical 0.1.0 release has an earlier capability set. Its browser can read pages, submit forms, and make network requests with the identity available to its selected browser context. MCP tool annotations describe behavior; they do not themselves enforce user authorization.
+Tablaze is a local browser runtime, not a security sandbox. This document covers the current development branch with 16 MCP tools and an optional Agent runner; the historical 0.1.0 release has an earlier capability set. Its browser can read pages, submit forms, and make network requests with the identity available to its selected browser context. MCP tool annotations describe behavior; they do not themselves enforce user authorization.
 
-Tablaze 是本地浏览器运行时，不是安全沙箱。本页描述当前开发分支的 15 个 MCP 工具与可选 Agent 运行器，历史 0.1.0 发布包覆盖较早的能力范围。浏览器可以读取页面、提交表单，并使用所选上下文的身份发起网络请求。MCP 工具注解只描述行为，本身不执行用户授权控制。
+Tablaze 是本地浏览器运行时，不是安全沙箱。本页描述当前开发分支的 16 个 MCP 工具与可选 Agent 运行器，历史 0.1.0 发布包覆盖较早的能力范围。浏览器可以读取页面、提交表单，并使用所选上下文的身份发起网络请求。MCP 工具注解只描述行为，本身不执行用户授权控制。
 
 ## Isolation and ownership / 隔离与资源归属
 

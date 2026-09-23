@@ -4,7 +4,7 @@
 
 This guide connects the locally built Tablaze stdio server to Codex. It uses the current Tablaze source contract, local `codex-cli 0.154.0` help, and official OpenAI documentation checked on 2026-09-22. Registering a command is separate from proving that its browser tools work; finish with the smoke task below.
 
-The current development branch exposes 15 MCP tools. The recorded 0.1.0 release and Codex acceptance evidence describe an earlier build; they do not validate every capability now present in source. Use the checkout's tool catalog and commit when identifying a build.
+The current development branch exposes 16 MCP tools. The recorded 0.1.0 release and Codex acceptance evidence describe an earlier build; they do not validate every capability now present in source. Use the checkout's tool catalog and commit when identifying a build.
 
 ## 1. Build and choose a browser
 
@@ -255,9 +255,11 @@ A subsequent actual model-driven acceptance run passed `tab_list â†’ tab_open â†
 
 ## Development branch: extended workflows
 
-These additions are not covered by the historical 0.1.0 release evidence. The server now exposes 15 tools: `tab_open`, `tab_snapshot`, `tab_act`, `tab_extract`, `tab_verify`, `tab_capture`, `tab_list`, `tab_close`, `tab_navigate`, `tab_tabs`, `tab_downloads`, `tab_dialog`, `tab_state`, `tab_pdf`, and `tab_extract_structured`.
+These additions are not covered by the historical 0.1.0 release evidence. The server now exposes 16 tools: `tab_open`, `tab_snapshot`, `tab_find`, `tab_act`, `tab_extract`, `tab_verify`, `tab_capture`, `tab_list`, `tab_close`, `tab_navigate`, `tab_tabs`, `tab_downloads`, `tab_dialog`, `tab_state`, `tab_pdf`, and `tab_extract_structured`.
 
 For truncated pages, scope `tab_snapshot` to exactly one CSS root, or scroll and observe only the viewport. Changing scope resets the diff baseline. A new snapshot invalidates earlier revisions.
+
+For a virtual list, call `tab_find` with visible target text and an observed vertical `container_ref` plus its current `snapshot_id`. It searches one selected frame, scrolls at most 40 times by default (100 maximum), and returns a fresh viewport snapshot when found. Use its new refs for actions. `found:false` with `limit_reached:true` means the configured range ended, not that the application lacks the item. Finding changes scroll position and never clicks or submits.
 
 ```json
 {"session_id":"<session_id>","selector":"#results","viewport_only":true,"max_elements":150}

@@ -20,6 +20,7 @@ export interface BrowserBinding { readonly sessionId: string; readonly tabId: st
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
 export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; visualPointer?: boolean }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
+export interface FindTextOptions { text: string; frameId?: string; containerRef?: string; snapshotId?: string; maxScrolls?: number; timeoutMs?: number; signal?: AbortSignal }
 type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
 export interface BrowserWorkspace {
   version: 1;
@@ -87,7 +88,7 @@ export class BrowserEngine {
   private readonly secretBridgeKey = `__tablaze_${randomUUID().replaceAll('-', '')}`;
   private readonly secretOperations = new Set<AbortController>();
   private artifactDirectory?: Promise<string>;
-  private get visualPointerEnabled(): boolean { return this.options.visualPointer ?? (this.options.headless === false); }
+  private get visualPointerEnabled(): boolean { return this.options.visualPointer === true; }
   private async pointAt(page: Page, action: string, target: ElementHandle<Element>, revalidate?: () => Promise<unknown>): Promise<void> {
     if (!this.visualPointerEnabled) return;
     const point = await pointForElement(target);
@@ -627,6 +628,91 @@ export class BrowserEngine {
     }));
   }
   snapshot(sessionId: string, options: SnapshotOptions = {}): Promise<Record<string, unknown>> { return this.exclusive(sessionId, session => this.snapshotInternal(session, options)); }
+  /** Bounded, read-and-scroll search. Every returned ref comes from a fresh snapshot. */
+  findText(sessionId: string, options: FindTextOptions): Promise<Record<string, unknown>> {
+    return this.exclusive(sessionId, async session => {
+      const text = options.text;
+      if (typeof text !== 'string' || !text.trim() || text.length > 200) throw new BrowserError('INVALID_ARGUMENT', 'Find text must contain 1–200 characters.');
+      const maxScrolls = integer(options.maxScrolls, 40, 0, 100, 'maxScrolls');
+      const budget = integer(options.timeoutMs, 30000, 100, 60000, 'find timeoutMs');
+      const deadline = performance.now() + budget;
+      this.frameList(session);
+      const frameId = options.frameId ?? 'f0';
+      const frame = [...session.frames].find(([item, id]) => id === frameId && !item.isDetached())?.[0];
+      if (!frame) throw new BrowserError('FRAME_NOT_FOUND', 'Find requires a live frame from the current frames list.');
+      const page = session.page, generation = session.generations.get(frame) ?? 0;
+      let container: ElementHandle<Element> | undefined;
+      if (options.containerRef !== undefined) {
+        const current = session.snapshot;
+        if (!options.snapshotId || !current || current.id !== options.snapshotId || current.frame !== frame) throw new BrowserError('STALE_SNAPSHOT', 'A scroll container requires the current snapshot_id and frame.');
+        container = await this.reference(session, current, options.containerRef);
+        const scrollable = await container.evaluate(node => {
+          const style = getComputedStyle(node);
+          return /^(auto|scroll)$/.test(style.overflowY) && node.scrollHeight > node.clientHeight;
+        });
+        if (!scrollable) throw new BrowserError('INVALID_ARGUMENT', 'The observed container is not vertically scrollable.');
+      }
+      const check = () => {
+        if (options.signal?.aborted) throw new BrowserError('CANCELLED', 'Text finding was cancelled.');
+        if (performance.now() >= deadline) throw new BrowserError('FIND_TIMEOUT', 'Text finding exceeded its time budget. The page may have been scrolled.');
+        if (session.closed || page.isClosed() || session.page !== page || frame.isDetached() || generation !== (session.generations.get(frame) ?? 0)) throw new BrowserError('FIND_CONTEXT_CHANGED', 'The page or frame changed during text finding. Observe again.');
+      };
+      let scrolls = 0, reachedEnd = false, found = false;
+      for (;;) {
+        check();
+        const matches = frame.getByText(text, { exact: false });
+        const count = Math.min(await matches.count(), 100);
+        for (let index = 0; index < count; index++) {
+          check();
+          const target = await matches.nth(index).elementHandle();
+          if (!target) continue;
+          try {
+            if (!await target.isVisible()) continue;
+            if (container && !await target.evaluate((node, root) => {
+              for (let current: Node | null = node; current; current = current.parentNode ?? (current instanceof ShadowRoot ? current.host : null)) if (current === root) return true;
+              return false;
+            }, container)) continue;
+            if (container) {
+              // A virtual list may render rows just outside its clipped viewport.
+              // Calling scrollIntoViewIfNeeded here can synchronously return before
+              // its scroll handler replaces the row, producing an immediately stale ref.
+              const inViewport = await target.evaluate((node, root) => {
+                const item = node.getBoundingClientRect(), list = root.getBoundingClientRect();
+                return item.width > 0 && item.height > 0 && item.top >= list.top + 4 && item.bottom <= list.bottom - 4
+                  && (item.left + item.right) / 2 > list.left && (item.left + item.right) / 2 < list.right
+                  && item.top >= 0 && item.bottom <= innerHeight && item.left >= 0 && item.right <= innerWidth;
+              }, container);
+              if (!inViewport) continue;
+            } else {
+              await target.scrollIntoViewIfNeeded({ timeout: Math.max(100, Math.min(this.timeout, deadline - performance.now())) });
+              await new Promise(resolve => setTimeout(resolve, 80));
+            }
+            check();
+            if (await target.isVisible()) { found = true; break; }
+          } finally { await target.dispose(); }
+        }
+        if (found || scrolls >= maxScrolls) break;
+        const position = container ? await container.evaluate(node => {
+          const before = node.scrollTop, maximum = node.scrollHeight - node.clientHeight;
+          node.scrollTop = Math.min(maximum, before + Math.max(1, Math.floor(node.clientHeight * 0.6)));
+          return { before, after: node.scrollTop, maximum };
+        }) : await frame.evaluate(() => {
+          const node = document.scrollingElement;
+          if (!node) return { before: 0, after: 0, maximum: 0 };
+          const before = node.scrollTop, maximum = node.scrollHeight - node.clientHeight;
+          node.scrollTop = Math.min(maximum, before + Math.max(1, Math.floor(innerHeight * 0.8)));
+          return { before, after: node.scrollTop, maximum };
+        });
+        check();
+        if (position.after <= position.before && position.after >= position.maximum) { reachedEnd = true; break; }
+        scrolls++;
+        await new Promise(resolve => setTimeout(resolve, 80));
+      }
+      check();
+      const snapshot = await this.snapshotInternal(session, { frameId, viewportOnly: true, maxElements: 500 });
+      return { ok: true, found, scrolls, reached_end: !found && reachedEnd, limit_reached: !found && !reachedEnd && scrolls >= maxScrolls, session_id: session.id, frame_id: frameId, snapshot };
+    });
+  }
   private frameList(session: Session) { return session.page.frames().map(frame => { if (!session.frames.has(frame)) session.frames.set(frame, `f${session.nextFrame++}`); return { frame_id: session.frames.get(frame)!, url: frame.url(), name: frame.name(), is_main: frame === session.page.mainFrame() }; }); }
   private async releaseRefs(state?: SnapshotState) { if (state) await Promise.all([...state.refs.values()].map(ref => ref.handle.dispose().catch(() => {}))); }
   private async snapshotInternal(session: Session, options: SnapshotOptions): Promise<Record<string, unknown>> {

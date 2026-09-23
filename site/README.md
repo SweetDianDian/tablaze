@@ -36,6 +36,8 @@ The page separately presents the [five-task third run](CODEX_COMPARISON_RESULTS_
 
 The [four-task, two-seed Codex follow-up](CODEX_MIXED_FOUR_20260924.md) has its own source pin, 16 raw traces and separate whole-run and Agent-done clocks. Both sides passed 8/8, but Tablaze's Agent-done median was slower; the page presents both clocks rather than treating Browser Use's post-Agent judge as task-execution time.
 
+The [fresh four-pair canvas-image follow-up](CODEX_CANVAS_INITIAL_VISION_SMOKE.md) records Tablaze 4/4 versus Browser Use 3/4 independent business passes, including the latter's duplicate write despite Agent-reported success. The page reports latency only across the three jointly successful pairs and links all eight raw traces.
+
 页面分别展示[第三轮五任务记录](CODEX_COMPARISON_RESULTS_V3.md)、[独立订单复测](CODEX_TERMINAL_FOLLOWUP.md)、[虚拟列表开发任务](CODEX_VIRTUAL_LIST_SMOKE.md)、[Shadow DOM 与动态菜单动作后检查](CODEX_POSTCHECKS_SMOKE.md)、[延迟命名目标实测](CODEX_DELAYED_TARGET_SMOKE.md)、[跨来源授权返回任务](CODEX_AUTH_RETURN_SMOKE.md)、[初始原生 Codex/MCP 实测](CODEX_NATIVE_MCP_SMOKE.md)、[扩展的 MCP 入口对比](CODEX_MCP_VARIANTS_V2.md)和[页面脚本对照](CODEX_PAGE_SCRIPT_SMOKE.md)。公开 JSON 记录从 `docs/evidence/` 原样复制。后续任务不替换原来的 Tablaze 4/5、Browser Use 5/5；少量可见样本不能证明整体优越性。
 
 `benchmark.json` remains the historical 0.1.0 direct-engine fixture recorded on Apple M3 Max at 2026-09-22 04:40 UTC. The page labels it as historical; it excludes MCP and model inference. A new benchmark must retain its own complete report, source hashes, sample count, and timing definition. Do not silently relabel old measurements as current-code performance.

@@ -59,6 +59,8 @@ The [current Browser Use capability and public-issue audit](docs/BROWSER_USE_202
 
 A [four-task, two-seed matched Codex comparison](docs/CODEX_MIXED_FOUR_20260924.md) covers forms, a virtual list, visual canvas and interrupted-response order recovery. Both engines passed 8/8 independent business checks with one correct write and no duplicates per attempt. Tablaze's visible median whole-run time was 56.331 versus Browser Use's 61.211 s, but Agent-done time was 56.177 versus 44.063 s; Browser Use's default judge runs after Agent completion. This development sample does not prove stable efficiency or overall parity.
 
+The new first-open canvas image was tested in a [separate four-pair Codex follow-up](docs/CODEX_CANVAS_INITIAL_VISION_SMOKE.md). Tablaze passed 4/4 business checks with no duplicate writes; Browser Use passed 3/4 after one attempt clicked twice despite reporting success. All four Tablaze traces skipped a separate `tab_capture`. On the three jointly successful seeds, median whole-run time was 41.552 versus 61.113 s and Agent-done time was 41.401 versus 42.578 s. This one visible task does not establish overall superiority.
+
 ## Get started
 
 Requires **Node.js 20+**, npm and Git. This is a developer preview; npm publication is pending, so install from source:

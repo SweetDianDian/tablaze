@@ -59,6 +59,8 @@ Browser Use 默认评审已计入总时间和用量。Agent 完成与全程时�
 
 [四类任务、双种子 Codex 同模型对照](docs/CODEX_MIXED_FOUR_20260924.md)覆盖表单、虚拟列表、视觉画布和中断后避免重复下单。双方独立业务验收均为 8/8，每次一次正确写入、零重复。Tablaze 可见样本的全程中位数为 56.331 对 61.211 秒，但 Agent 完成中位数为 56.177 对 44.063 秒；Browser Use 默认评审发生在 Agent 完成之后。少量开发样本不证明稳定效率或全面对等。
 
+[画布首次截图的四组 Codex 对照](docs/CODEX_CANVAS_INITIAL_VISION_SMOKE.md)中，Tablaze 独立业务验收 4/4、零重复写入；Browser Use 为 3/4，其中一次宣告成功后仍重复点击。Tablaze 四份轨迹都省去独立 `tab_capture`。共同成功的三组全程中位数为 41.552 对 61.113 秒，Agent 完成为 41.401 对 42.578 秒。单一可见任务不能证明整体领先。
+
 ## 开始使用
 
 需要 **Node.js 20+**、npm 和 Git。当前为开发者预览版，npm 尚未发布，请从源码安装：

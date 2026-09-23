@@ -4,6 +4,8 @@ Audit date: **2026-09-22**. This supplements [the comparison contract](BROWSER_U
 
 **2026-09-23 execution follow-up:** the [native Codex/MCP development smoke](CODEX_NATIVE_MCP_SMOKE.md) has now run against the fixed Harness source. Two visible tasks passed on each arm; this adds measured evidence for this tool track without changing the original audit date, the other `not_run` variants, or the broader acceptance gates. The installed `0.1.13` wheel differed from the pinned source in five Python files, including `mcp_server.py`; the follow-up executed the pinned source through `PYTHONPATH` and records its archive hash.
 
+The [expanded MCP variants report](CODEX_MCP_VARIANTS_V2.md) adds Browser Use `--cli-mcp` and structured `--mcp`, plus a virtual-list task. The direct structured tools did not complete the nested-scroll task in one attempt; CLI-MCP and Harness did. With the structured server's optional nested Agent routed through the same Codex model and a longer MCP tool timeout, its second full-path attempt also completed. These remain visible development samples, not a frozen superiority evaluation. The JS Harness, Pi, and Cloud tracks are still unmeasured.
+
 The objective remains stronger overall functionality than Browser Use. A result against Python Agent alone cannot establish that objective. Local agents, tools for an existing agent, and managed services need separate measurements, with unresolved tracks retained in the final claim.
 
 ## Sources fixed for this audit

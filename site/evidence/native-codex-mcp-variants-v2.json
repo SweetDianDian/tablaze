@@ -1,0 +1,2542 @@
+{
+  "kind": "native-codex-mcp-variants-v2",
+  "date": "2026-09-23",
+  "historicalFormCanvasBaseline": "native-codex-mcp-smoke-v1.json",
+  "browserUseCheckout": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+  "browserUseInstalledSourceComparison": {
+    "matchedPythonFiles": 163,
+    "missingCheckoutFiles": [
+      "llm/tests/test_anthropic_cache.py",
+      "llm/tests/test_chat_models.py",
+      "llm/tests/test_gemini_image.py",
+      "llm/tests/test_groq_loop.py",
+      "llm/tests/test_mistral_schema.py",
+      "llm/tests/test_single_step.py",
+      "tokens/tests/test_cost.py"
+    ],
+    "mismatchedPythonFiles": 0
+  },
+  "preflights": [
+    "native-mcp-cli-preflight-v2.json",
+    "native-mcp-structured-preflight-v2.json"
+  ],
+  "runs": [
+    {
+      "attempt": 1,
+      "source": {
+        "tablazeHead": "5b1f3454468fef2bd778e846b6c7b960b49ef073",
+        "harnessCommit": "afbcc381b963040c19627d788e40c7e7663171ee",
+        "browserUseCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+        "harnessArchiveSha256": "01b608b17a330b61db69cbb8d8232d2c7dd42c98592f5d837573c51cac71c463"
+      },
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "timeoutMs": 150000,
+      "featureOverrides": [
+        "shell_tool",
+        "unified_exec",
+        "apps",
+        "plugins",
+        "hooks",
+        "memories",
+        "chronicle",
+        "browser_use",
+        "browser_use_external",
+        "computer_use",
+        "in_app_browser",
+        "multi_agent",
+        "multi_agent_v2",
+        "image_generation",
+        "goals",
+        "sleep_tool",
+        "workspace_dependencies",
+        "shell_snapshot"
+      ],
+      "kind": "browser-use-cli-mcp",
+      "taskId": "form",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "d7aa8e11141bd10c5c96381968bcb86f27d46adc68a308df35cf8a5d15a5953b",
+      "flagsHash": "2456883e6e18f081edba6ffd9865bdd470a7da9752130fa1788bc7b9c9d6b2a1",
+      "command": {
+        "executable": "/private/tmp/tablaze-comparison-env/bin/browser-use",
+        "args": [
+          "--cli-mcp"
+        ]
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 93260,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 8,
+          "item.started": 6,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          }
+        ],
+        "final": "Saved Ada with city Lisbon. Verified the page shows “Saved successfully.”",
+        "usage": {
+          "input_tokens": 131743,
+          "cached_input_tokens": 111360,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 589,
+          "reasoning_output_tokens": 0
+        },
+        "errors": [],
+        "stderrTail": "2026-09-23T06:36:25.580230Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:36:38.694713Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:36:48.659221Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:37:01.060132Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:37:15.025562Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:37:27.574822Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "name": "Ada",
+              "city": "Lisbon"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-v2-form-browser-use-cli-mcp.jsonl"
+    },
+    {
+      "attempt": 1,
+      "source": {
+        "tablazeHead": "5b1f3454468fef2bd778e846b6c7b960b49ef073",
+        "harnessCommit": "afbcc381b963040c19627d788e40c7e7663171ee",
+        "browserUseCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+        "harnessArchiveSha256": "01b608b17a330b61db69cbb8d8232d2c7dd42c98592f5d837573c51cac71c463"
+      },
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "timeoutMs": 150000,
+      "featureOverrides": [
+        "shell_tool",
+        "unified_exec",
+        "apps",
+        "plugins",
+        "hooks",
+        "memories",
+        "chronicle",
+        "browser_use",
+        "browser_use_external",
+        "computer_use",
+        "in_app_browser",
+        "multi_agent",
+        "multi_agent_v2",
+        "image_generation",
+        "goals",
+        "sleep_tool",
+        "workspace_dependencies",
+        "shell_snapshot"
+      ],
+      "kind": "browser-use-cli-mcp",
+      "taskId": "canvas",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "c39f56d7e147319c436253452d6bfa5b7ad94ee7f60eee588a00d401670819c5",
+      "flagsHash": "7606cc92b2a50137624767b4acdf297ae6398d35ae7c21d55ab2c0f3f31942f6",
+      "command": {
+        "executable": "/private/tmp/tablaze-comparison-env/bin/browser-use",
+        "args": [
+          "--cli-mcp"
+        ]
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 71074,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 6,
+          "item.started": 4,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          }
+        ],
+        "final": "Clicked the blue rectangle once and verified the page shows “Saved successfully.”",
+        "usage": {
+          "input_tokens": 94814,
+          "cached_input_tokens": 75264,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 306,
+          "reasoning_output_tokens": 0
+        },
+        "errors": [],
+        "stderrTail": "2026-09-23T06:38:30.354833Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:38:42.772291Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:38:56.807040Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:39:07.641235Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "x": 210,
+              "y": 120
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-v2-canvas-browser-use-cli-mcp.jsonl"
+    },
+    {
+      "attempt": 1,
+      "source": {
+        "tablazeHead": "5b1f3454468fef2bd778e846b6c7b960b49ef073",
+        "harnessCommit": "afbcc381b963040c19627d788e40c7e7663171ee",
+        "browserUseCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+        "harnessArchiveSha256": "01b608b17a330b61db69cbb8d8232d2c7dd42c98592f5d837573c51cac71c463"
+      },
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "timeoutMs": 150000,
+      "featureOverrides": [
+        "shell_tool",
+        "unified_exec",
+        "apps",
+        "plugins",
+        "hooks",
+        "memories",
+        "chronicle",
+        "browser_use",
+        "browser_use_external",
+        "computer_use",
+        "in_app_browser",
+        "multi_agent",
+        "multi_agent_v2",
+        "image_generation",
+        "goals",
+        "sleep_tool",
+        "workspace_dependencies",
+        "shell_snapshot"
+      ],
+      "kind": "browser-use-mcp",
+      "taskId": "form",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "fc47d7f61415992af0368c65514afbaee936817ce2a4d07a7bca56559dad1d83",
+      "flagsHash": "15dd7bf596bfee8bf7e4de6bdb9b24e8da703fac364b6e36e5e3b89aa891c31a",
+      "command": {
+        "executable": "/private/tmp/tablaze-comparison-env/bin/browser-use",
+        "args": [
+          "--mcp"
+        ]
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 74824,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 10,
+          "item.started": 8,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_type",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_type",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_type",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_type",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          }
+        ],
+        "final": "Saved Ada with city Lisbon. Verified the page shows “Saved successfully.”",
+        "usage": {
+          "input_tokens": 79071,
+          "cached_input_tokens": 48512,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 364,
+          "reasoning_output_tokens": 0
+        },
+        "errors": [],
+        "stderrTail": "2026-09-23T06:45:58.393435Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:46:14.676714Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:46:17.765478Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:46:21.633910Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "name": "Ada",
+              "city": "Lisbon"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-v2-form-browser-use-mcp.jsonl"
+    },
+    {
+      "attempt": 1,
+      "source": {
+        "tablazeHead": "5b1f3454468fef2bd778e846b6c7b960b49ef073",
+        "harnessCommit": "afbcc381b963040c19627d788e40c7e7663171ee",
+        "browserUseCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+        "harnessArchiveSha256": "01b608b17a330b61db69cbb8d8232d2c7dd42c98592f5d837573c51cac71c463"
+      },
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "timeoutMs": 150000,
+      "featureOverrides": [
+        "shell_tool",
+        "unified_exec",
+        "apps",
+        "plugins",
+        "hooks",
+        "memories",
+        "chronicle",
+        "browser_use",
+        "browser_use_external",
+        "computer_use",
+        "in_app_browser",
+        "multi_agent",
+        "multi_agent_v2",
+        "image_generation",
+        "goals",
+        "sleep_tool",
+        "workspace_dependencies",
+        "shell_snapshot"
+      ],
+      "kind": "browser-use-mcp",
+      "taskId": "canvas",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "b0d4dbd450ecb2f77086e737a90618d4e13c4dc10d3f6b2aaa2efbd910ce55b9",
+      "flagsHash": "856964762e2c6324f544a072fe48da5024201dd7c4182c9aa1d21dbe7e95f473",
+      "command": {
+        "executable": "/private/tmp/tablaze-comparison-env/bin/browser-use",
+        "args": [
+          "--mcp"
+        ]
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 71326,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 6,
+          "item.started": 4,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          }
+        ],
+        "final": "Clicked the blue rectangle once and verified the page shows “Saved successfully.”",
+        "usage": {
+          "input_tokens": 75104,
+          "cached_input_tokens": 59392,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 289,
+          "reasoning_output_tokens": 0
+        },
+        "errors": [],
+        "stderrTail": "2026-09-23T06:47:51.559256Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:48:15.459046Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "x": 210,
+              "y": 120
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-v2-canvas-browser-use-mcp.jsonl"
+    },
+    {
+      "attempt": 1,
+      "source": {
+        "tablazeHead": "5b1f3454468fef2bd778e846b6c7b960b49ef073",
+        "harnessCommit": "afbcc381b963040c19627d788e40c7e7663171ee",
+        "browserUseCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+        "harnessArchiveSha256": "01b608b17a330b61db69cbb8d8232d2c7dd42c98592f5d837573c51cac71c463"
+      },
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "timeoutMs": 210000,
+      "featureOverrides": [
+        "shell_tool",
+        "unified_exec",
+        "apps",
+        "plugins",
+        "hooks",
+        "memories",
+        "chronicle",
+        "browser_use",
+        "browser_use_external",
+        "computer_use",
+        "in_app_browser",
+        "multi_agent",
+        "multi_agent_v2",
+        "image_generation",
+        "goals",
+        "sleep_tool",
+        "workspace_dependencies",
+        "shell_snapshot"
+      ],
+      "kind": "tablaze",
+      "taskId": "virtual-list",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "cacc0f2e1b44e9757ea669bd4cdbcae9502d4f2851e5d600fc6e3970ffb5a6d7",
+      "flagsHash": "728c7c14e557b651c7ba84ed26b2f2f85b2ca8402992421aa3609c71162e3042",
+      "command": {
+        "executable": "/Users/diandian/macenv/nvm/versions/node/v25.9.0/bin/node",
+        "args": [
+          "/Users/diandian/work/agent/tablaze/dist/cli.js",
+          "--cdp-url",
+          "http://127.0.0.1:54010"
+        ]
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 90791,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 9,
+          "item.started": 7,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_open",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_open",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_capture",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_capture",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_act",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_act",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_act",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_act",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_verify",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_verify",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_snapshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_snapshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_verify",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_verify",
+            "status": "completed"
+          }
+        ],
+        "final": "Reserved VIRTUAL-130 exactly once. Verified the page shows “Saved successfully.”",
+        "usage": {
+          "input_tokens": 141172,
+          "cached_input_tokens": 117888,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 714,
+          "reasoning_output_tokens": 128
+        },
+        "errors": [],
+        "stderrTail": "2026-09-23T06:49:38.585972Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:50:02.476776Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:50:15.964439Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "record": "VIRTUAL-130"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-v2-virtual-list-tablaze.jsonl"
+    },
+    {
+      "attempt": 1,
+      "source": {
+        "tablazeHead": "5b1f3454468fef2bd778e846b6c7b960b49ef073",
+        "harnessCommit": "afbcc381b963040c19627d788e40c7e7663171ee",
+        "browserUseCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+        "harnessArchiveSha256": "01b608b17a330b61db69cbb8d8232d2c7dd42c98592f5d837573c51cac71c463"
+      },
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "timeoutMs": 210000,
+      "featureOverrides": [
+        "shell_tool",
+        "unified_exec",
+        "apps",
+        "plugins",
+        "hooks",
+        "memories",
+        "chronicle",
+        "browser_use",
+        "browser_use_external",
+        "computer_use",
+        "in_app_browser",
+        "multi_agent",
+        "multi_agent_v2",
+        "image_generation",
+        "goals",
+        "sleep_tool",
+        "workspace_dependencies",
+        "shell_snapshot"
+      ],
+      "kind": "browser-use-mcp",
+      "taskId": "virtual-list",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "883016de072b6aaaec02d05ce5abefe07ca4daee65f95e6a97e4431bc7e05682",
+      "flagsHash": "d8d9362cde8631cb46acdd5926b4d7a1bc42252a64d4d1dff2f24b63966d9ea0",
+      "command": {
+        "executable": "/private/tmp/tablaze-comparison-env/bin/browser-use",
+        "args": [
+          "--mcp"
+        ]
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 195185,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 25,
+          "item.started": 21,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_scroll",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_scroll",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "retry_with_browser_use_agent",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "retry_with_browser_use_agent",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          }
+        ],
+        "final": "Unable to reserve VIRTUAL-130: the browser controls couldn’t scroll the nested list, and the fallback agent lacks an API key. No Reserve button was clicked; the page shows “Ready.”",
+        "usage": {
+          "input_tokens": 193484,
+          "cached_input_tokens": 149888,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 2153,
+          "reasoning_output_tokens": 913
+        },
+        "errors": [],
+        "stderrTail": "2026-09-23T06:51:07.784906Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:51:23.009631Z ERROR codex_core::tools::router: error=collab spawn failed: no thread with id: 01a0cd07-f915-7f21-ae20-7968f0f5d317\n2026-09-23T06:51:42.987010Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:51:49.267956Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:52:08.975670Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:52:32.148676Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:52:50.465630Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:53:16.694048Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:53:29.198436Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:53:50.939079Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": false,
+        "evidence": {
+          "records": [],
+          "writeCount": 0,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-v2-virtual-list-browser-use-mcp.jsonl"
+    },
+    {
+      "attempt": 1,
+      "source": {
+        "tablazeHead": "5b1f3454468fef2bd778e846b6c7b960b49ef073",
+        "harnessCommit": "afbcc381b963040c19627d788e40c7e7663171ee",
+        "browserUseCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+        "harnessArchiveSha256": "01b608b17a330b61db69cbb8d8232d2c7dd42c98592f5d837573c51cac71c463"
+      },
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "timeoutMs": 210000,
+      "featureOverrides": [
+        "shell_tool",
+        "unified_exec",
+        "apps",
+        "plugins",
+        "hooks",
+        "memories",
+        "chronicle",
+        "browser_use",
+        "browser_use_external",
+        "computer_use",
+        "in_app_browser",
+        "multi_agent",
+        "multi_agent_v2",
+        "image_generation",
+        "goals",
+        "sleep_tool",
+        "workspace_dependencies",
+        "shell_snapshot"
+      ],
+      "kind": "browser-use-cli-mcp",
+      "taskId": "virtual-list",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "029c4e601fdcf789f971ef366f20c42c69a35d30b3b989c9bb621c8935b4013d",
+      "flagsHash": "35a3b7c0ae16cc2415213294e204d1581be0bea5a66c4fab7f2be93c6d4c7da3",
+      "command": {
+        "executable": "/private/tmp/tablaze-comparison-env/bin/browser-use",
+        "args": [
+          "--cli-mcp"
+        ]
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 193335,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 16,
+          "item.started": 13,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_exec",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          }
+        ],
+        "final": "Reserved VIRTUAL-130 exactly once. Verified the page shows “Saved successfully.”",
+        "usage": {
+          "input_tokens": 412501,
+          "cached_input_tokens": 379392,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1601,
+          "reasoning_output_tokens": 51
+        },
+        "errors": [],
+        "stderrTail": "fork.\n2026-09-23T06:55:49.379300Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:55:58.146787Z ERROR codex_core::tools::router: error=collab spawn failed: no thread with id: 01a0cd0b-c134-7852-9aa9-251804aa86e5\n2026-09-23T06:56:11.789600Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:56:30.397756Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:56:53.214906Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:56:56.690596Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:57:10.857125Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:57:24.316335Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:57:41.773025Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:57:53.567237Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:57:58.617653Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "record": "VIRTUAL-130"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-v2-virtual-list-browser-use-cli-mcp.jsonl"
+    },
+    {
+      "attempt": 1,
+      "source": {
+        "tablazeHead": "5b1f3454468fef2bd778e846b6c7b960b49ef073",
+        "harnessCommit": "afbcc381b963040c19627d788e40c7e7663171ee",
+        "browserUseCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+        "harnessArchiveSha256": "01b608b17a330b61db69cbb8d8232d2c7dd42c98592f5d837573c51cac71c463"
+      },
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "timeoutMs": 210000,
+      "featureOverrides": [
+        "shell_tool",
+        "unified_exec",
+        "apps",
+        "plugins",
+        "hooks",
+        "memories",
+        "chronicle",
+        "browser_use",
+        "browser_use_external",
+        "computer_use",
+        "in_app_browser",
+        "multi_agent",
+        "multi_agent_v2",
+        "image_generation",
+        "goals",
+        "sleep_tool",
+        "workspace_dependencies",
+        "shell_snapshot"
+      ],
+      "kind": "harness",
+      "taskId": "virtual-list",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "bc58b61a7c46fe219e894e781c45cc27f704619301502685d8aba86ab7a0960f",
+      "flagsHash": "a410e74a2b1c19fd950f5ac1d34799dedb9806b491efa308134fc0e56895b2a4",
+      "command": {
+        "executable": "/private/tmp/tablaze-comparison-env/bin/browser-harness-mcp",
+        "args": []
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 175487,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 15,
+          "item.started": 12,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_goto",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_goto",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_js",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_js",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_scroll",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_scroll",
+            "status": "failed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_js",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_js",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_js",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_js",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_js",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_js",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_js",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_js",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          }
+        ],
+        "final": "Reserved VIRTUAL-130 exactly once and verified the page showed “Saved successfully.”",
+        "usage": {
+          "input_tokens": 214087,
+          "cached_input_tokens": 173568,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1099,
+          "reasoning_output_tokens": 35
+        },
+        "errors": [],
+        "stderrTail": "fork.\n2026-09-23T06:58:46.141775Z ERROR codex_core::tools::router: error=collab spawn failed: no thread with id: 01a0cd0e-b12b-7ea0-bf82-e845a14760e1\n2026-09-23T06:58:58.558454Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:59:12.395676Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:59:20.990501Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:59:31.401102Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:59:35.906458Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:59:54.367640Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:59:57.789724Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:00:10.077863Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:00:38.903932Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:00:42.753273Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "record": "VIRTUAL-130"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-v2-virtual-list-harness.jsonl"
+    },
+    {
+      "attempt": 1,
+      "source": {
+        "tablazeHead": "5b1f3454468fef2bd778e846b6c7b960b49ef073",
+        "harnessCommit": "afbcc381b963040c19627d788e40c7e7663171ee",
+        "browserUseCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+        "harnessArchiveSha256": "01b608b17a330b61db69cbb8d8232d2c7dd42c98592f5d837573c51cac71c463"
+      },
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "timeoutMs": 360000,
+      "featureOverrides": [
+        "shell_tool",
+        "unified_exec",
+        "apps",
+        "plugins",
+        "hooks",
+        "memories",
+        "chronicle",
+        "browser_use",
+        "browser_use_external",
+        "computer_use",
+        "in_app_browser",
+        "multi_agent",
+        "multi_agent_v2",
+        "image_generation",
+        "goals",
+        "sleep_tool",
+        "workspace_dependencies",
+        "shell_snapshot"
+      ],
+      "kind": "browser-use-mcp-full",
+      "taskId": "virtual-list",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "44424a76a148ae77b4344d7c69cfcd65844dfd9d790793e56bd71beff3953e4d",
+      "flagsHash": "fd7666d0fd8ada4274b232d10d69ca87e9a084b75a24abec562bad23f945434b",
+      "command": {
+        "executable": "/private/tmp/tablaze-comparison-env/bin/browser-use",
+        "args": [
+          "--mcp"
+        ]
+      },
+      "run": {
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "timedOut": true,
+        "elapsedMs": 360009,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 31,
+          "item.started": 27
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_scroll",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_scroll",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "retry_with_browser_use_agent",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "retry_with_browser_use_agent",
+            "status": "failed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "retry_with_browser_use_agent",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "retry_with_browser_use_agent",
+            "status": "failed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_list_sessions",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_list_sessions",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          }
+        ],
+        "final": "The fallback request timed out with the page still showing “Ready.” I’m trying a targeted scroll to bring VIRTUAL-130 into view.\n",
+        "usage": null,
+        "errors": [],
+        "stderrTail": "0\n2026-09-23T07:05:45.772936Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:05:50.725582Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:06:07.339434Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:06:44.711920Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:07:44.716246Z  WARN codex_core::mcp_tool_call: MCP tool call error: \"tool call error: tool call failed for `browser/retry_with_browser_use_agent`\\n\\nCaused by:\\n    timed out awaiting tools/call after 60s\"\n2026-09-23T07:08:33.270321Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:09:33.273398Z  WARN codex_core::mcp_tool_call: MCP tool call error: \"tool call error: tool call failed for `browser/retry_with_browser_use_agent`\\n\\nCaused by:\\n    timed out awaiting tools/call after 60s\"\n2026-09-23T07:09:51.568136Z  WARN rmcp::service: Error sending response id=18\n2026-09-23T07:10:08.707473Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:10:24.146306Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:10:39.363396Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": false,
+        "evidence": {
+          "records": [],
+          "writeCount": 0,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-v2-virtual-list-browser-use-mcp-full-attempt1.jsonl",
+      "nestedModel": {
+        "provider": "Codex CLI via local comparison gateway",
+        "model": "gpt-6-astra",
+        "reasoningEffort": "ultra",
+        "calls": 11,
+        "failedCalls": 0,
+        "inputTokens": 177585,
+        "outputTokens": 5119,
+        "usageComplete": true,
+        "timeMs": 283274.475333,
+        "errors": [
+          {
+            "code": "CODEX_CANCELLED"
+          }
+        ]
+      }
+    },
+    {
+      "attempt": 2,
+      "source": {
+        "tablazeHead": "5b1f3454468fef2bd778e846b6c7b960b49ef073",
+        "harnessCommit": "afbcc381b963040c19627d788e40c7e7663171ee",
+        "browserUseCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+        "harnessArchiveSha256": "01b608b17a330b61db69cbb8d8232d2c7dd42c98592f5d837573c51cac71c463"
+      },
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "timeoutMs": 600000,
+      "featureOverrides": [
+        "shell_tool",
+        "unified_exec",
+        "apps",
+        "plugins",
+        "hooks",
+        "memories",
+        "chronicle",
+        "browser_use",
+        "browser_use_external",
+        "computer_use",
+        "in_app_browser",
+        "multi_agent",
+        "multi_agent_v2",
+        "image_generation",
+        "goals",
+        "sleep_tool",
+        "workspace_dependencies",
+        "shell_snapshot"
+      ],
+      "kind": "browser-use-mcp-full",
+      "taskId": "virtual-list",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "66363da9b98a833785514a41ec0161fbd359c1950c8a19ff75acfb3476861c4e",
+      "flagsHash": "c4b798ba1ce83e30a2ad5bba98585fa7026d55a1f418c2cc62e0ac28c6d64625",
+      "command": {
+        "executable": "/private/tmp/tablaze-comparison-env/bin/browser-use",
+        "args": [
+          "--mcp"
+        ]
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 318247,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 21,
+          "item.started": 15,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "failed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_scroll",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_scroll",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_scroll",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_scroll",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "retry_with_browser_use_agent",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "retry_with_browser_use_agent",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          }
+        ],
+        "final": "Reserved VIRTUAL-130 exactly once. Verified the page confirms “Saved successfully.”",
+        "usage": {
+          "input_tokens": 394118,
+          "cached_input_tokens": 350208,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1959,
+          "reasoning_output_tokens": 370
+        },
+        "errors": [],
+        "stderrTail": "2026-09-23T07:12:54.904247Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:13:09.462194Z ERROR codex_core::tools::router: error=collab spawn failed: no thread with id: 01a0cd1b-ad91-7782-b6c3-e263df8e36f2\n2026-09-23T07:13:21.914926Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:13:25.503631Z  WARN codex_analytics::client: failed to send events request: error sending request for url (https://chatgpt.com/backend-api/codex/analytics-events/events)\n2026-09-23T07:13:26.403715Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:13:56.924119Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:14:06.729205Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T07:14:31.861936Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "record": "VIRTUAL-130"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-v2-virtual-list-browser-use-mcp-full-attempt2.jsonl",
+      "nestedModel": {
+        "provider": "Codex CLI via local comparison gateway",
+        "model": "gpt-6-astra",
+        "reasoningEffort": "ultra",
+        "calls": 6,
+        "failedCalls": 0,
+        "inputTokens": 111548,
+        "outputTokens": 2566,
+        "usageComplete": true,
+        "timeMs": 154863.39779000002,
+        "errors": []
+      }
+    }
+  ],
+  "runnerSha256AtPublication": "93576c6eafaffab7ba0f01d8bd2e876a0d90d7b0ecef18b81b7e786ce378386b",
+  "preflightSha256AtPublication": "9482aeff797207494fa7c1109bfeab52d67ee0acc22f30954566ac4862f52503"
+}

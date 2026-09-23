@@ -30,6 +30,19 @@ for (const [source, target] of publicGuides) {
   });
   await writeFile(join(site, target), text);
 }
-for (const name of ['CODEX_COMPARISON_RESULTS_V3.md', 'CODEX_TERMINAL_FOLLOWUP.md', 'CODEX_PROVIDER_SMOKE.md', 'CODEX_VIRTUAL_LIST_SMOKE.md', 'CODEX_AUTH_RETURN_SMOKE.md', 'CODEX_NATIVE_MCP_SMOKE.md']) await copyFile(join(root, 'docs', name), join(site, name));
-for (const name of ['development-tests.txt', 'development-tests-2026-09-23.txt', 'development-tests-auth-return.txt', 'development-validation.json', 'navigation-policy-probe-v1.json', 'codex-provider-smoke-v1.json', 'codex-e2e.json', 'codex-matched-smoke-v3.json', 'codex-matched-smoke-v3-analysis.json', 'codex-terminal-followup-v1.json', 'codex-terminal-followup-v1-analysis.json', 'codex-virtual-list-smoke-v1.json', 'codex-auth-return-smoke-v1.json', 'native-mcp-preflight-v1.json', 'native-codex-mcp-smoke-v1.json', 'native-mcp-blocked-form-tablaze.jsonl', 'native-mcp-blocked-form-harness.jsonl', 'native-mcp-form-tablaze.jsonl', 'native-mcp-form-harness.jsonl', 'native-mcp-canvas-tablaze.jsonl', 'native-mcp-canvas-harness.jsonl']) await copyFile(join(root, 'docs/evidence', name), join(site, 'evidence', name));
+for (const name of ['CODEX_COMPARISON_RESULTS_V3.md', 'CODEX_TERMINAL_FOLLOWUP.md', 'CODEX_PROVIDER_SMOKE.md', 'CODEX_VIRTUAL_LIST_SMOKE.md', 'CODEX_AUTH_RETURN_SMOKE.md', 'CODEX_NATIVE_MCP_SMOKE.md', 'CODEX_MCP_VARIANTS_V2.md']) await copyFile(join(root, 'docs', name), join(site, name));
+for (const name of [
+  'development-tests.txt', 'development-tests-2026-09-23.txt', 'development-tests-auth-return.txt', 'development-validation.json',
+  'navigation-policy-probe-v1.json', 'codex-provider-smoke-v1.json', 'codex-e2e.json', 'codex-matched-smoke-v3.json',
+  'codex-matched-smoke-v3-analysis.json', 'codex-terminal-followup-v1.json', 'codex-terminal-followup-v1-analysis.json',
+  'codex-virtual-list-smoke-v1.json', 'codex-auth-return-smoke-v1.json', 'native-mcp-preflight-v1.json',
+  'native-codex-mcp-smoke-v1.json', 'native-mcp-blocked-form-tablaze.jsonl', 'native-mcp-blocked-form-harness.jsonl',
+  'native-mcp-form-tablaze.jsonl', 'native-mcp-form-harness.jsonl', 'native-mcp-canvas-tablaze.jsonl', 'native-mcp-canvas-harness.jsonl',
+  'native-codex-mcp-variants-v2.json', 'native-mcp-cli-preflight-v2.json', 'native-mcp-structured-preflight-v2.json',
+  'native-mcp-v2-canvas-browser-use-cli-mcp.jsonl', 'native-mcp-v2-canvas-browser-use-mcp.jsonl',
+  'native-mcp-v2-form-browser-use-cli-mcp.jsonl', 'native-mcp-v2-form-browser-use-mcp.jsonl',
+  'native-mcp-v2-virtual-list-browser-use-cli-mcp.jsonl', 'native-mcp-v2-virtual-list-browser-use-mcp-full-attempt1.jsonl',
+  'native-mcp-v2-virtual-list-browser-use-mcp-full-attempt2.jsonl', 'native-mcp-v2-virtual-list-browser-use-mcp.jsonl',
+  'native-mcp-v2-virtual-list-harness.jsonl', 'native-mcp-v2-virtual-list-tablaze.jsonl',
+]) await copyFile(join(root, 'docs/evidence', name), join(site, 'evidence', name));
 console.log('Synchronized public guides, comparison reports, and their fixed evidence files. Historical benchmark.json is unchanged.');

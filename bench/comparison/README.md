@@ -260,3 +260,40 @@ the local fixture service. They cover completion before judge timeout, missing
 usage, exceptions, bounded cleanup, retained progress after process failure,
 explicit option plumbing and rejection of unaccepted finish proposals. They do
 not launch Chrome or call a model.
+
+## Native Codex with external browser MCP tools
+
+[`mcp-preflight.mjs`](mcp-preflight.mjs) and [`codex-mcp-runner.mjs`](codex-mcp-runner.mjs)
+exercise a **separate tool track**. The latter uses Codex's native multi-round
+agent loop and stdio MCP configuration, rather than the Chat Completions
+inference bridge used by the framework-agent runner above. Set
+`TABLAZE_HARNESS_PIN_SOURCE` to the verified fixed Harness checkout's `src`
+directory before either script. The scripts default to the comparison venv's
+installed `browser-harness-mcp`, `browser-harness` and `browser-use` entry points;
+override those absolute paths through `TABLAZE_HARNESS_MCP`,
+`TABLAZE_HARNESS_CLI` and `TABLAZE_BROWSER_USE_CLI` if necessary. Check that
+the installed Browser Use package matches the fixed checkout before measuring.
+
+```sh
+TABLAZE_HARNESS_PIN_SOURCE=/absolute/pinned/browser-harness/src \
+TABLAZE_PREFLIGHT_ARMS=tablaze,harness,browser-use-cli-mcp,browser-use-mcp \
+TABLAZE_PREFLIGHT_REPORT=/absolute/output/preflight.json \
+node bench/comparison/mcp-preflight.mjs
+
+TABLAZE_HARNESS_PIN_SOURCE=/absolute/pinned/browser-harness/src \
+TABLAZE_MCP_ARMS=tablaze,harness,browser-use-cli-mcp,browser-use-mcp \
+TABLAZE_MCP_TIMEOUT_MS=210000 \
+TABLAZE_MCP_REPORT=/absolute/output/virtual.json \
+node bench/comparison/codex-mcp-runner.mjs virtual-list
+```
+
+Each arm gets a separate local fixture attempt, temporary Chrome profile and
+isolated server directories. Codex uses its existing CLI login; never put a
+real API key in the report. `browser-use-mcp` configures no nested LLM, so it
+measures direct structured tools only. `browser-use-mcp-full` is a separate
+variant: its optional nested Agent uses the local Codex inference gateway and
+reports outer and nested usage separately. The nested tool has a longer timeout
+than a direct call. These development smoke scripts have no held-out task
+freeze, repeated trials or confidence intervals. Their process-time clock
+excludes Chrome startup, final judging and teardown; do not merge their times
+with the main runner's end-to-end results. Preserve all failed attempts.

@@ -1,7 +1,7 @@
 import { spawn, spawnSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { createServer } from 'node:net';
-import { access, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -13,7 +13,9 @@ const chromePath = process.env.TABLAZE_PREFLIGHT_CHROME || '/Applications/Google
 const harnessSource = process.env.TABLAZE_HARNESS_PIN_SOURCE;
 const harnessBinary = process.env.TABLAZE_HARNESS_MCP || '/private/tmp/tablaze-comparison-env/bin/browser-harness-mcp';
 const harnessCli = process.env.TABLAZE_HARNESS_CLI || '/private/tmp/tablaze-comparison-env/bin/browser-harness';
+const browserUseCli = process.env.TABLAZE_BROWSER_USE_CLI || '/private/tmp/tablaze-comparison-env/bin/browser-use';
 const archivePath = process.env.TABLAZE_HARNESS_PIN_ARCHIVE || '/private/tmp/browser-harness-afbcc381.zip';
+const arms = (process.env.TABLAZE_PREFLIGHT_ARMS || 'tablaze,harness').split(',');
 
 const sha256 = content => createHash('sha256').update(content).digest('hex');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -88,37 +90,65 @@ async function preflightArm(kind, directory, service, report) {
     BH_RUNTIME_DIR: join(directory, 'h', 'run'),
     BH_TMP_DIR: join(directory, 'h', 'tmp'),
     BH_AGENT_WORKSPACE: join(directory, 'h', 'work'),
+    BROWSER_USE_CONFIG_DIR: join(directory, 'browser-use-config'),
+    BH_TELEMETRY: 'false', ANONYMIZED_TELEMETRY: 'false', BROWSER_USE_CLOUD_SYNC: 'false',
     ...withoutProxy,
   };
+  if (kind === 'browser-use-mcp') {
+    const configDirectory = join(directory, 'browser-use-config');
+    await mkdir(configDirectory, { recursive: true });
+    const id = randomUUID();
+    const configPath = join(configDirectory, 'config.json');
+    await writeFile(configPath, JSON.stringify({
+      browser_profile: { [id]: { id, default: true, headless: true, cdp_url: chrome.endpoint,
+        user_data_dir: join(directory, 'browser-use-profile'), downloads_path: join(directory, 'downloads'),
+        file_system_path: join(directory, 'files'), keep_alive: true, wait_between_actions: 0.5,
+        viewport: { width: 1280, height: 713 }, screen: { width: 1280, height: 800 },
+        window_size: { width: 1280, height: 800 }, device_scale_factor: 1,
+        allowed_domains: ['127.0.0.1'] } }, llm: {}, agent: {},
+    }, null, 2));
+    harnessEnv.BROWSER_USE_CONFIG_PATH = configPath;
+  }
   try {
     const start = performance.now();
     connection = kind === 'tablaze'
       ? await connect(process.execPath, [join(root, 'dist', 'cli.js'), '--cdp-url', chrome.endpoint], withoutProxy)
-      : await connect(harnessBinary, [], harnessEnv);
+      : kind === 'harness'
+        ? await connect(harnessBinary, [], harnessEnv)
+        : await connect(browserUseCli, [kind === 'browser-use-mcp' ? '--mcp' : '--cli-mcp'], harnessEnv);
     const listed = await connection.client.listTools();
     const call = (name, args) => connection.client.callTool({ name, arguments: args }, undefined, { timeout: 60_000 });
     const toolNames = listed.tools.map(tool => tool.name);
     const observation = kind === 'tablaze'
       ? await call('tab_open', { url: attempt.url })
-      : await call('browser_new_tab', { url: attempt.url });
+      : kind === 'harness'
+        ? await call('browser_new_tab', { url: attempt.url })
+        : kind === 'browser-use-cli-mcp'
+          ? await call('browser_exec', { code: `new_tab(${JSON.stringify(attempt.url)})\nprint(page_info())` })
+          : await call('browser_navigate', { url: attempt.url });
     if (observation.isError) throw new Error(`Open failed: ${JSON.stringify(observation).slice(0, 1000)}`);
-    const opened = parseText(observation);
+    const opened = kind.startsWith('browser-use-') ? observation.content.find(item => item.type === 'text')?.text : parseText(observation);
     const second = kind === 'tablaze'
       ? await call('tab_snapshot', { session_id: opened.session_id })
-      : await call('browser_page_info', {});
+      : kind === 'harness'
+        ? await call('browser_page_info', {})
+        : kind === 'browser-use-cli-mcp'
+          ? await call('browser_exec', { code: 'print(page_info())' })
+          : await call('browser_get_state', {});
     if (second.isError) throw new Error(`Observation failed: ${JSON.stringify(second).slice(0, 1000)}`);
-    const observed = parseText(second);
+    const observed = kind.startsWith('browser-use-') ? second.content.find(item => item.type === 'text')?.text : parseText(second);
     const capture = kind === 'tablaze'
       ? await call('tab_capture', { session_id: opened.session_id })
       : await call('browser_screenshot', {});
     if (capture.isError) throw new Error(`Screenshot failed: ${JSON.stringify(capture).slice(0, 1000)}`);
-    const captureData = parseText(capture);
+    const captureData = kind.startsWith('browser-use-') ? null : parseText(capture);
     let image;
-    if (kind === 'tablaze') {
+    if (kind === 'tablaze' || kind.startsWith('browser-use-')) {
       const block = capture.content.find(item => item.type === 'image');
-      if (!block?.data) throw new Error('Tablaze capture lacked a native MCP image block');
+      if (!block?.data) throw new Error(`${kind} capture lacked a native MCP image block`);
       image = { delivery: 'native_mcp_image', mimeType: block.mimeType, bytes: Buffer.from(block.data, 'base64').byteLength };
-      await call('tab_close', { session_id: opened.session_id });
+      if (kind === 'tablaze') await call('tab_close', { session_id: opened.session_id });
+      if (kind === 'browser-use-mcp') await call('browser_close_all', {});
     } else {
       const path = captureData.path;
       await access(path);
@@ -129,7 +159,11 @@ async function preflightArm(kind, directory, service, report) {
     }
     const invalid = kind === 'tablaze'
       ? await call('tab_snapshot', { session_id: 'missing-preflight-session' })
-      : await call('browser_switch_tab', { target: 'missing-preflight-tab' });
+      : kind === 'harness'
+        ? await call('browser_switch_tab', { target: 'missing-preflight-tab' })
+        : kind === 'browser-use-cli-mcp'
+          ? await call('browser_exec', { code: '' })
+          : await call('browser_click', {});
     report[kind] = {
       status: 'passed', chrome: chrome.version, endpointOwnership: 'temporary Chrome profile and process',
       toolCount: toolNames.length, toolNames,
@@ -147,7 +181,7 @@ async function preflightArm(kind, directory, service, report) {
     };
   } finally {
     if (connection) await connection.client.close().catch(() => {});
-    if (kind === 'harness') {
+    if (kind !== 'tablaze') {
       const stopped = spawnSync(harnessCli, ['--reload'], { env: { ...process.env, ...harnessEnv }, timeout: 15_000, encoding: 'utf8' });
       report.harnessCleanup = { exitCode: stopped.status, output: (stopped.stdout + stopped.stderr).trim().slice(0, 1000) };
     }
@@ -157,7 +191,7 @@ async function preflightArm(kind, directory, service, report) {
 
 async function main() {
   if (!harnessSource) throw new Error('Set TABLAZE_HARNESS_PIN_SOURCE to the verified pinned src directory');
-  for (const path of [chromePath, harnessBinary, harnessCli, join(harnessSource, 'mcp_server.py')]) await access(path);
+  for (const path of [chromePath, harnessBinary, harnessCli, browserUseCli, join(harnessSource, 'mcp_server.py')]) await access(path);
   const report = {
     kind: 'matched-external-mcp-preflight-v1',
     generatedAt: new Date().toISOString(),
@@ -170,8 +204,10 @@ async function main() {
   const base = await mkdtemp(join(tmpdir(), 'tblzpf-'));
   const service = await startTaskService();
   try {
-    for (const kind of ['tablaze', 'harness']) {
-      const directory = await mkdtemp(join(base, `${kind}-`));
+    for (const kind of arms) {
+      if (!['tablaze', 'harness', 'browser-use-cli-mcp', 'browser-use-mcp'].includes(kind)) throw new Error(`Unknown arm: ${kind}`);
+      // macOS AF_UNIX socket paths are short; never include the arm name here.
+      const directory = await mkdtemp(join(base, 'a-'));
       await preflightArm(kind, directory, service, report);
     }
   } finally {

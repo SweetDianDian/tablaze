@@ -1,10 +1,11 @@
 import { spawn, spawnSync } from 'node:child_process';
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { createServer } from 'node:net';
-import { access, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { startTaskService } from './fixture.mjs';
+import { startModelGateway } from './model-gateway.mjs';
 import { CODEX_CLI_VERSION, CODEX_DISABLED_FEATURES, CODEX_PROVIDER_CONFIG } from './codex-transport.mjs';
 
 const root = resolve(import.meta.dirname, '../..');
@@ -13,6 +14,7 @@ const chromePath = process.env.TABLAZE_PREFLIGHT_CHROME || '/Applications/Google
 const harnessSource = process.env.TABLAZE_HARNESS_PIN_SOURCE;
 const harnessBinary = process.env.TABLAZE_HARNESS_MCP || '/private/tmp/tablaze-comparison-env/bin/browser-harness-mcp';
 const harnessCli = process.env.TABLAZE_HARNESS_CLI || '/private/tmp/tablaze-comparison-env/bin/browser-harness';
+const browserUseCli = process.env.TABLAZE_BROWSER_USE_CLI || '/private/tmp/tablaze-comparison-env/bin/browser-use';
 const archivePath = process.env.TABLAZE_HARNESS_PIN_ARCHIVE || '/private/tmp/browser-harness-afbcc381.zip';
 const output = process.env.TABLAZE_MCP_REPORT || join(root, 'bench', 'comparison', 'codex-mcp-smoke.json');
 const taskId = process.argv[2] || 'form';
@@ -110,14 +112,43 @@ function summarize(run) {
 async function runArm(kind, directory, service) {
   const attempt = await service.createAttempt(taskId, 1);
   const chrome = await startChrome(directory);
+  let nestedGateway;
   const harnessEnv = {
     PYTHONPATH: harnessSource, BU_CDP_URL: chrome.endpoint, BU_NAME: 'tblz_codex_mcp',
     BH_HOME: join(directory, 'h', 'home'), BH_RUNTIME_DIR: join(directory, 'h', 'run'),
     BH_TMP_DIR: join(directory, 'h', 'tmp'), BH_AGENT_WORKSPACE: join(directory, 'h', 'work'),
+    BROWSER_USE_CONFIG_DIR: join(directory, 'browser-use-config'),
+    BH_TELEMETRY: 'false', ANONYMIZED_TELEMETRY: 'false', BROWSER_USE_CLOUD_SYNC: 'false',
     ...localEnv,
   };
-  const command = kind === 'tablaze' ? process.execPath : harnessBinary;
-  const commandArgs = kind === 'tablaze' ? [join(root, 'dist', 'cli.js'), '--cdp-url', chrome.endpoint] : [];
+  try {
+  if (kind === 'browser-use-mcp' || kind === 'browser-use-mcp-full') {
+    if (kind === 'browser-use-mcp-full') {
+      nestedGateway = await startModelGateway({ transport: 'codex', codexCommand: codex,
+        model: 'gpt-6-astra', reasoningEffort: 'ultra', maxOutputTokens: 4096,
+        tokenBudget: 500_000, timeoutMs: 180_000 });
+      harnessEnv.OPENAI_BASE_URL = nestedGateway.endpoint.slice(0, -'/chat/completions'.length);
+      harnessEnv.OPENAI_API_KEY = 'local-codex-gateway-no-secret';
+    }
+    const configDirectory = join(directory, 'browser-use-config');
+    await mkdir(configDirectory, { recursive: true });
+    const id = randomUUID();
+    const configPath = join(configDirectory, 'config.json');
+    await writeFile(configPath, JSON.stringify({
+      browser_profile: { [id]: { id, default: true, headless: true, cdp_url: chrome.endpoint,
+        user_data_dir: join(directory, 'browser-use-profile'), downloads_path: join(directory, 'downloads'),
+        file_system_path: join(directory, 'files'), keep_alive: true, wait_between_actions: 0.5,
+        viewport: { width: 1280, height: 713 }, screen: { width: 1280, height: 800 },
+        window_size: { width: 1280, height: 800 }, device_scale_factor: 1,
+        allowed_domains: ['127.0.0.1'] } },
+      llm: nestedGateway ? { [id]: { id, default: true, model: 'gpt-6-astra',
+        api_key: 'local-codex-gateway-no-secret', temperature: 0 } } : {}, agent: {},
+    }, null, 2));
+    harnessEnv.BROWSER_USE_CONFIG_PATH = configPath;
+  }
+  const command = kind === 'tablaze' ? process.execPath : kind === 'harness' ? harnessBinary : browserUseCli;
+  const commandArgs = kind === 'tablaze' ? [join(root, 'dist', 'cli.js'), '--cdp-url', chrome.endpoint]
+    : kind === 'browser-use-cli-mcp' ? ['--cli-mcp'] : kind.startsWith('browser-use-mcp') ? ['--mcp'] : [];
   const flags = [
     'exec', '--ignore-user-config', '--skip-git-repo-check', '--approve-for-me', '--json',
     '--color', 'never', '--ephemeral', '--model', 'gpt-6-astra', '-C', directory,
@@ -126,32 +157,38 @@ async function runArm(kind, directory, service) {
     '-c', `mcp_servers.browser.command=${tomlString(command)}`,
     '-c', `mcp_servers.browser.args=[${commandArgs.map(tomlString).join(', ')}]`,
     '-c', 'mcp_servers.browser.required=true', '-c', 'mcp_servers.browser.startup_timeout_sec=30',
-    '-c', 'mcp_servers.browser.tool_timeout_sec=60',
+    '-c', `mcp_servers.browser.tool_timeout_sec=${kind === 'browser-use-mcp-full' ? 300 : 60}`,
     '-c', `mcp_servers.browser.env=${tomlTable(kind === 'tablaze' ? localEnv : harnessEnv)}`,
     ...CODEX_DISABLED_FEATURES.filter(feature => feature !== 'view_image').flatMap(feature => ['--disable', feature]),
     '-',
   ];
   const prompt = `${attempt.prompt}\n\nUse the configured browser MCP to perform the task. Open the task URL with that MCP. After opening, request a screenshot and inspect the visual result before acting. If the screenshot tool gives a local file path, use the image-viewing tool to inspect that file. Verify the saved result in the page before reporting completion. Do not use shell, web search, or a second browser. This is a resettable local test application. Give a concise final report.\n`;
-  try {
     const run = await runCodex(flags, prompt, directory);
     const judge = await attempt.judge();
     const rawPath = `${output}.${kind}.jsonl`;
     await writeFile(rawPath, run.events.map(event => JSON.stringify(event)).join('\n') + '\n');
     return { kind, taskId, chrome: chrome.version, promptHash: sha256(prompt),
       flagsHash: sha256(JSON.stringify(flags)), command: { executable: command, args: commandArgs },
-      run: summarize(run), judge, rawEventsPath: rawPath };
+      run: summarize(run), judge, rawEventsPath: rawPath,
+      ...(nestedGateway ? { nestedModel: { provider: 'Codex CLI via local comparison gateway',
+        model: 'gpt-6-astra', reasoningEffort: 'ultra',
+        calls: nestedGateway.metrics.calls, failedCalls: nestedGateway.metrics.failedCalls,
+        inputTokens: nestedGateway.metrics.inputTokens, outputTokens: nestedGateway.metrics.outputTokens,
+        usageComplete: nestedGateway.metrics.usageComplete, timeMs: nestedGateway.metrics.timeMs,
+        errors: nestedGateway.metrics.errors.map(error => ({ code: error.code })) } } : {}) };
   } finally {
-    if (kind === 'harness') {
+    if (kind !== 'tablaze') {
       const stopped = spawnSync(harnessCli, ['--reload'], { env: { ...process.env, ...harnessEnv }, timeout: 15_000, encoding: 'utf8' });
       if (stopped.status !== 0) console.error(`Harness daemon cleanup failed: ${(stopped.stderr || '').slice(0, 500)}`);
     }
+    if (nestedGateway) await nestedGateway.close();
     await stopGroup(chrome.child);
   }
 }
 
 async function main() {
   if (!harnessSource) throw new Error('Set TABLAZE_HARNESS_PIN_SOURCE to the verified pinned src directory');
-  for (const path of [codex, chromePath, harnessBinary, harnessCli, join(harnessSource, 'mcp_server.py')]) await access(path);
+  for (const path of [codex, chromePath, harnessBinary, harnessCli, browserUseCli, join(harnessSource, 'mcp_server.py')]) await access(path);
   const version = spawnSync(codex, ['--version'], { encoding: 'utf8' }).stdout.trim();
   if (version !== `codex-cli ${CODEX_CLI_VERSION}`) throw new Error(`Codex version mismatch: ${version}`);
   const base = await mkdtemp(join(tmpdir(), 'tblzcm-'));
@@ -162,11 +199,13 @@ async function main() {
     viewImageEnabled: true, taskId, timeoutMs,
     source: { tablazeHead: spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).stdout.trim(),
       harnessCommit: 'afbcc381b963040c19627d788e40c7e7663171ee',
+      browserUseCommit: 'd8110c5ff87ccba887aaa726cdb780f2f84bef8d',
       harnessArchiveSha256: sha256(await readFile(archivePath)) }, arms: [] };
   try {
     for (const kind of arms) {
-      if (!['tablaze', 'harness'].includes(kind)) throw new Error(`Unknown arm: ${kind}`);
-      const directory = await mkdtemp(join(base, `${kind}-`));
+      if (!['tablaze', 'harness', 'browser-use-cli-mcp', 'browser-use-mcp', 'browser-use-mcp-full'].includes(kind)) throw new Error(`Unknown arm: ${kind}`);
+      // Keep Harness AF_UNIX socket paths below macOS sun_path limit.
+      const directory = await mkdtemp(join(base, 'a-'));
       const result = await runArm(kind, directory, service);
       report.arms.push(result);
       await writeFile(output, JSON.stringify(report, null, 2) + '\n');

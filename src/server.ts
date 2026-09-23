@@ -110,6 +110,11 @@ export function createServer(options: BrowserOptions = {}): { server: McpServer;
     return { ...rest, timeoutMs: timeout_ms };
   }), { snapshot: include_snapshot, signal: extra.signal, timeoutMs: timeout_ms }), steps.flatMap(step => step.type === "fill" ? [step.value] : [])));
 
+  if (options.allowPageScript) server.registerTool("tab_script", {
+    title: "Run page-origin JavaScript", description: "Opt-in programmable operation in the active owned tab's main document. source is an async function body that receives JSON input and must return JSON; for example, return document.title. It has full page-origin authority, including access to account data and network requests. Treat every call as a write. Requires a fresh main-frame snapshot_id; returns a fresh snapshot. A runtime error, output error, timeout, or cancellation may follow partial effects: reconcile externally before retrying. This tool is unavailable with configured secrets, external CDP, or navigation policy.",
+    inputSchema: z.object({ session_id: sessionId, snapshot_id: z.string().min(1).max(160), source: z.string().trim().min(1).max(16_384), input: z.unknown().optional(), timeout_ms: timeout.optional() }).strict(), annotations: writeAnnotations,
+  }, ({ session_id, snapshot_id, source, input, timeout_ms }, extra) => guarded(() => engine.script(session_id, snapshot_id, source, input, { timeoutMs: timeout_ms, signal: extra.signal })));
+
   server.registerTool("tab_extract", {
     title: "Extract page data", description: "Read bounded text, links or table data, optionally within a CSS selector. Returns truncation information when the result is limited.",
     inputSchema: z.object({ session_id: sessionId, kind: z.enum(["text", "links", "table"]), selector: selector.optional(), max_items: z.number().int().min(1).max(500).optional() }).strict(), annotations: readAnnotations,

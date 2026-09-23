@@ -2,7 +2,7 @@
 
 The current website recording is **154.104 seconds at 2880×1800**, with eleven segments of conversational English male neural narration, optional captions (off by default), seven chapter shortcuts and a visible action-guide cursor. The guide points to measured targets over authentic browser captures. Its movement is paced for narration; it is not a recording of the physical mouse. The MCP trace and tool timings are unchanged.
 
-官网当前演示为 **154.104 秒、2880×1800**，包含十一段英语男声旁白、默认关闭的中英字幕、七个章节和可视操作指针。指针按本地页面实测控件位置标注，配合讲解节奏移动；它是讲解辅助，并非真实物理鼠标录屏。原有 MCP 调用记录和工具耗时没有改变。真实使用时，Tablaze 也会在通过引用验证的点击、输入等动作上短暂显示指针，可关闭。
+官网当前演示为 **154.104 秒、2880×1800**，包含十一段英语男声旁白、默认关闭的中英字幕、七个章节和可视操作提示。视频指针按本地页面实测控件位置标注，配合讲解节奏移动；它是讲解辅助，并非真实物理鼠标录屏。原有 MCP 调用记录和工具耗时没有改变。真实使用时，可选的提示会短暂标出通过引用验证的目标；只有点击、悬停、拖拽等鼠标操作才显示鼠标图标，输入和滚动只显示目标光圈。
 
 ## Reproduce / 复现
 
@@ -43,7 +43,7 @@ TABLAZE_DEMO_FFMPEG=/absolute/path/ffmpeg \
 node demo/annotate-cursor.mjs /absolute/path/male-narrated.mp4 /absolute/path/annotated.mp4
 ```
 
-[`cursor-track.json`](cursor-track.json) records native screenshot control centers and narration-paced intervals. `annotate-cursor.mjs` verifies that the AAC stream is copied unchanged and emits an evidence JSON beside the new MP4. These overlays are editorial guides over actual still captures, not new browser actions or a continuous mouse recording. In the live browser, the pointer appears only briefly after an action target passes validation and never receives pointer input. The CLI switch `--no-visual-pointer` turns it off.
+[`cursor-track.json`](cursor-track.json) records native screenshot control centers and narration-paced intervals. `annotate-cursor.mjs` verifies that the AAC stream is copied unchanged and emits an evidence JSON beside the new MP4. These overlays are editorial guides over actual still captures, not new browser actions or a continuous mouse recording. In the live browser, the optional cue appears only briefly after an action target passes validation and never receives pointer input. It shows a mouse icon for pointer actions and a target ring for non-pointer actions; the feature is off by default and `--no-visual-pointer` turns it off explicitly.
 
 The recorder starts the actual compiled stdio server, connects a real MCP SDK client and completes one continuous travel workflow in a localhost fixture. It verifies browser results, server counters and downloaded bytes. An isolated presentation browser renders actual returned JSON and `tab_capture` images. At each display update it saves a lossless 2× PNG; those frames retain the observed timeline. `render-video.mjs` produces 2880×1800 H.264 at CRF 16/12 fps and AAC narration at 48 kHz, targeting −16 LUFS. The embedded browser captures remain the engine's original 1280×800 JPEG screenshots; the larger form typography improves their legibility, not their native resolution. Frame scheduling is quantized to 1/12 second and is not a continuous browser video feed.
 

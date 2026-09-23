@@ -88,6 +88,8 @@ Then ask Codex:
 
 [Complete Codex setup](docs/CODEX.md) covers desktop configuration, browser selection and troubleshooting. Other MCP clients can launch the same `node /absolute/path/to/tablaze/dist/cli.js` command over stdio.
 
+For workflows that need page-origin JavaScript, `--page-script` adds an opt-in `tab_script` tool. It has the page's full authority, including account data and network requests; it is unavailable with configured secrets, external CDP or a navigation policy. Scripts require a current main-frame snapshot and return a fresh one. See [the page-script contract and recovery limits](docs/PAGE_SCRIPT.md). The default catalog remains sixteen tools.
+
 ### Run a standalone task
 
 The optional `run` command supports `codex`, `anthropic`, `ollama`, and `openai-compatible` planners. Always specify a model. Codex reuses the installed CLI and its existing login:
@@ -115,7 +117,7 @@ The separate [cross-origin authorization-return task](docs/CODEX_AUTH_RETURN_SMO
 | **Guarded actions** | Check snapshot revisions and DOM targets before input. Re-observe when a target changes. |
 | **Ordered batches** | Send up to 20 actions in one call, with completed, failed and skipped steps. Stops on error; earlier effects remain. |
 | **Explicit verification** | Check the resulting URL, title, text, field values, visibility and element counts. |
-| **Optional action pointer** | Off by default. Use `--visual-pointer` (or `visualPointer: true`) when a headed walkthrough or recording benefits from a brief, non-intercepting marker at validated action targets. It marks targets, not the physical mouse path. |
+| **Optional action cue** | Off by default. Use `--visual-pointer` (or `visualPointer: true`) for brief, non-intercepting target feedback. Mouse operations show a cursor icon; typing and scrolling show only a target ring. It does not depict the physical mouse path. |
 | **Optional response journal** | Use `--capture-network` to inspect bounded responses from owned pages and popups through a seventeenth MCP tool, [`tab_network`](docs/NETWORK.md). Off by default; not a programmable JS/CDP surface. |
 | **Optional navigation policy** | [Exact-origin allow/deny rules](docs/NAVIGATION_POLICY.md) for HTTP(S) document requests, including redirects, frames and popups, in owned isolated browsers. No external CDP; not a network firewall. |
 

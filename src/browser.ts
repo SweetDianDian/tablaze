@@ -13,6 +13,7 @@ import { projectSecretSnapshot, projectSecretExtraction, projectSecretText, reda
 import { prepareVisualPointer, showVisualPointer, pointForElement } from './visual-pointer.js';
 import { NetworkJournal, NetworkJournalError } from './network-journal.js';
 import { acquireOwnedProfile, type OwnedProfileLease } from './owned-profile.js';
+import { executePageScript } from './page-script.js';
 
 export class BrowserError extends Error {
   constructor(public readonly code: string, message: string) { super(message); this.name = 'BrowserError'; }
@@ -20,7 +21,7 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; visualPointer?: boolean; captureNetwork?: boolean }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; visualPointer?: boolean; captureNetwork?: boolean; allowPageScript?: boolean }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
 export interface FindTextOptions { text: string; frameId?: string; containerRef?: string; snapshotId?: string; maxScrolls?: number; timeoutMs?: number; signal?: AbortSignal }
 type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
@@ -53,7 +54,7 @@ interface SnapshotState { id: string; frame: Frame; generation: number; refs: Ma
 interface DownloadRecord { id: string; filename: string; url: string; status: 'pending' | 'completed' | 'failed'; path?: string; bytes?: number; error?: string; download: Download; done: Promise<void> }
 interface Session {
   id: string; context: BrowserContext; ownsContext: boolean; page: Page; tail: Promise<void>;
-  closed: boolean; revision: number; nextRef: number; nextFrame: number; activationEpoch: number;
+  closed: boolean; revision: number; nextRef: number; nextFrame: number; activationEpoch: number; scriptEpoch: number;
   frames: Map<Frame, string>; generations: Map<Frame, number>; snapshot?: SnapshotState;
   tabs: Map<string, Page>; activeTabId: string; nextTab: number;
   downloads: Map<string, DownloadRecord>;
@@ -115,6 +116,7 @@ export class BrowserEngine {
     try { this.secretStore = compileSecretStore(options.secrets); }
     catch { throw new BrowserError('SECRET_CONFIG_INVALID', 'Invalid browser secret configuration.'); }
     if (this.secretStore && options.cdpUrl) throw new BrowserError('SECRET_CDP_UNSUPPORTED', 'Browser secrets require an isolated browser owned by this engine.');
+    if (options.allowPageScript && (this.secretStore || options.cdpUrl || this.navigationPolicy)) throw new BrowserError('PAGE_SCRIPT_CONFLICT', 'Page scripts cannot be combined with configured secrets, external CDP, or a navigation policy.');
   }
 
   private secretText(value: string, limit: number): string { return this.secretStore ? projectSecretText(value, limit, this.secretStore) : value.slice(0, limit); }
@@ -249,10 +251,10 @@ export class BrowserEngine {
     const capturing = this.exclusive(sessionId, async session => {
       checkOpen();
       const page = session.page, frame = page.mainFrame(), tabId = session.activeTabId;
-      const generation = session.generations.get(frame) ?? 0, activation = session.activationEpoch;
+      const generation = session.generations.get(frame) ?? 0, activation = session.activationEpoch, scriptEpoch = session.scriptEpoch;
       const unchanged = () => {
         checkOpen();
-        if (session.closed || page.isClosed() || frame.isDetached() || this.sessions.get(sessionId) !== session || session.page !== page || session.activeTabId !== tabId || session.activationEpoch !== activation || (session.generations.get(frame) ?? 0) !== generation) throw new BrowserError('BINDING_STALE', 'The bound tab or document changed. Acquire a fresh browser binding.');
+        if (session.closed || page.isClosed() || frame.isDetached() || this.sessions.get(sessionId) !== session || session.page !== page || session.activeTabId !== tabId || session.activationEpoch !== activation || session.scriptEpoch !== scriptEpoch || (session.generations.get(frame) ?? 0) !== generation) throw new BrowserError('BINDING_STALE', 'The bound tab or document changed. Acquire a fresh browser binding.');
       };
       documentHandle = await frame.evaluateHandle(() => document);
       try {
@@ -263,7 +265,7 @@ export class BrowserEngine {
         const binding: BrowserBinding = Object.freeze({ sessionId, tabId, documentEpoch: generation, origin: location.origin });
         // Stable across leases of the same context, including their lifetime
         // between planning decisions. This key contains no page-controlled nonce.
-        const contextKey = createHash('sha256').update(JSON.stringify([sessionId, tabId, generation, activation, location.href])).digest('hex');
+        const contextKey = createHash('sha256').update(JSON.stringify([sessionId, tabId, generation, activation, scriptEpoch, location.href])).digest('hex');
         const assertCurrent = (): Promise<void> => {
           try { checkOpen(); } catch (error) { return Promise.reject(error); }
           const assertion = this.exclusive(sessionId, async () => {
@@ -382,7 +384,7 @@ export class BrowserEngine {
       const navigationContextId = navigationGuard ? await phase(navigationGuard.contextIdFor(page)) : undefined;
       session = {
         id: randomUUID(), context, ownsContext, page, tail: Promise.resolve(), closed: false,
-        revision: 0, nextRef: 1, nextFrame: 1, activationEpoch: 0, frames: new Map([[page.mainFrame(), 'f0']]), generations: new Map(),
+        revision: 0, nextRef: 1, nextFrame: 1, activationEpoch: 0, scriptEpoch: 0, frames: new Map([[page.mainFrame(), 'f0']]), generations: new Map(),
         tabs: new Map(), activeTabId: '', nextTab: 1, downloads: new Map(), dialogs: [], unexpected: [],
         navigationGuard, navigationContextId,
         ...(this.options.captureNetwork ? { network: new NetworkJournal((text, limit) => this.secretText(text, limit)) } : {}),
@@ -670,6 +672,69 @@ export class BrowserEngine {
     }));
   }
   snapshot(sessionId: string, options: SnapshotOptions = {}): Promise<Record<string, unknown>> { return this.exclusive(sessionId, session => this.snapshotInternal(session, options)); }
+  /** Opt-in page-origin JavaScript. It has the page's authority, so all execution is treated as a write. */
+  script(sessionId: string, snapshotId: string, source: string, input?: unknown, options: { timeoutMs?: number; signal?: AbortSignal } = {}): Promise<Record<string, unknown>> {
+    return this.exclusive(sessionId, async session => {
+      if (!this.options.allowPageScript) throw new BrowserError('PAGE_SCRIPT_DISABLED', 'Page scripts require an explicit operator opt-in.');
+      if (typeof source !== 'string' || !source.trim() || Buffer.byteLength(source, 'utf8') > 16 * 1024) throw new BrowserError('INVALID_ARGUMENT', 'source must be nonempty and at most 16 KiB.');
+      const timeoutMs = integer(options.timeoutMs, this.timeout, 100, 60_000, 'timeoutMs');
+      let serialized: string;
+      try { serialized = JSON.stringify(input === undefined ? null : input); }
+      catch { throw new BrowserError('INVALID_ARGUMENT', 'input must be a JSON value.'); }
+      if (typeof serialized !== 'string' || Buffer.byteLength(serialized, 'utf8') > 32 * 1024) throw new BrowserError('INVALID_ARGUMENT', 'input must be JSON of at most 32 KiB.');
+      const state = session.snapshot;
+      const page = session.page;
+      if (!state || state.id !== snapshotId || !state.actionable || state.frame !== page.mainFrame() || state.frame.isDetached() || state.generation !== (session.generations.get(state.frame) ?? 0)) throw new BrowserError('STALE_SNAPSHOT', 'Supply a current main-frame snapshot_id before running a page script.');
+      if (options.signal?.aborted) throw new BrowserError('CANCELLED', 'Page script was cancelled before execution.');
+      // A script can mutate any DOM node, navigate, or open a popup. Old refs and
+      // trusted application bindings must never survive its first instruction.
+      session.scriptEpoch++;
+      for (const lease of this.bindings) if (lease.sessionId === session.id) lease.invalidate('BINDING_STALE');
+      session.snapshot = undefined;
+      await this.releaseRefs(state);
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      let rejectInterrupted: (error: BrowserError) => void = () => {};
+      const interrupted = new Promise<never>((_, reject) => { rejectInterrupted = reject; });
+      void interrupted.catch(() => {});
+      const onAbort = () => rejectInterrupted(new BrowserError('CANCELLED', 'Page script was cancelled after execution may have started.'));
+      options.signal?.addEventListener('abort', onAbort, { once: true });
+      const timed = new Promise<never>((_, reject) => { timer = setTimeout(() => reject(new BrowserError('SCRIPT_TIMEOUT', 'Page script exceeded its time budget.')), timeoutMs); });
+      const pending = executePageScript(page, source, JSON.parse(serialized));
+      void pending.catch(() => {});
+      let outcome: Awaited<typeof pending>;
+      try { outcome = await Promise.race([pending, interrupted, timed]); }
+      catch (error) {
+        session.closed = true;
+        this.sessions.delete(session.id);
+        void this.cleanup(session).catch(() => {});
+        const code = error instanceof BrowserError ? error.code : 'SCRIPT_INTERRUPTED';
+        return { ok: false, session_id: session.id, outcome_unknown: true, session_closed: true, error: { code, message: 'Page script may have changed the browser or server state. The session was closed; inspect the external outcome before retrying.' } };
+      } finally {
+        if (timer) clearTimeout(timer);
+        options.signal?.removeEventListener('abort', onAbort);
+      }
+      let snapshot: Record<string, unknown>;
+      try { snapshot = await this.snapshotInternal(session, {}); }
+      catch {
+        session.closed = true;
+        this.sessions.delete(session.id);
+        void this.cleanup(session).catch(() => {});
+        return { ok: false, session_id: session.id, outcome_unknown: outcome.kind !== 'syntax', session_closed: true, error: { code: 'SCRIPT_OBSERVATION_FAILED', message: 'The page could not be observed after the script; the session was closed.' } };
+      }
+      if (outcome.kind === 'ok') {
+        if (Buffer.byteLength(outcome.json, 'utf8') > 64 * 1024) return { ok: false, session_id: session.id, outcome_unknown: true, snapshot, error: { code: 'SCRIPT_OUTPUT_TOO_LARGE', message: 'Page script output exceeded 64 KiB.' } };
+        return { ok: true, session_id: session.id, result: JSON.parse(outcome.json), result_bytes: outcome.bytes, snapshot };
+      }
+      const errors = {
+        syntax: ['SCRIPT_SYNTAX', 'Page script could not be compiled.'],
+        runtime: ['SCRIPT_RUNTIME', 'Page script threw after execution began; inspect the page before retrying.'],
+        output_too_large: ['SCRIPT_OUTPUT_TOO_LARGE', 'Page script output exceeded 64 KiB; page effects may have occurred.'],
+        output_unsupported: ['SCRIPT_OUTPUT_UNSUPPORTED', 'Page script output was not serializable JSON; page effects may have occurred.'],
+      } as const;
+      const [code, message] = errors[outcome.kind];
+      return { ok: false, session_id: session.id, outcome_unknown: outcome.kind !== 'syntax', snapshot, error: { code, message } };
+    });
+  }
   /** Bounded, read-and-scroll search. Every returned ref comes from a fresh snapshot. */
   findText(sessionId: string, options: FindTextOptions): Promise<Record<string, unknown>> {
     return this.exclusive(sessionId, async session => {

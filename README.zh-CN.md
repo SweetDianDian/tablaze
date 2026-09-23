@@ -88,6 +88,8 @@ codex mcp get tablaze
 
 [完整接入指南](docs/CODEX.zh-CN.md)包含桌面配置、浏览器选择和排错。其他 MCP 客户端也可以通过 stdio 启动同一个 `node /绝对路径/tablaze/dist/cli.js` 命令。
 
+需要页面内 JavaScript 时，可显式加 `--page-script`，启用 `tab_script`。它拥有页面同源权限，包括读取登录后的数据和发起网络请求；不能与密钥配置、外部 CDP 或导航策略同时使用。每次执行需要当前主框架快照，并返回新快照。详见[页面脚本权限与恢复边界](docs/PAGE_SCRIPT.md)。默认仍为十六个工具。
+
 ### 独立执行任务
 
 可选 `run` 命令支持 `codex`、`anthropic`、`ollama`、`openai-compatible` 四类规划器，始终要求明确指定模型。Codex 复用本机 CLI 和已有登录：
@@ -115,7 +117,7 @@ node dist/cli.js run --provider codex --model "<你的Codex模型>" \
 | **引用检查** | 输入前检查快照版本和 DOM 目标；目标变化后重新观察。 |
 | **顺序批次** | 一次最多提交 20 个操作，分别报告完成、失败和跳过状态。遇错停止，先前操作仍然生效。 |
 | **明确验收** | 核对实际 URL、标题、文字、字段值、可见性与元素数量。 |
-| **可选操作指针** | 默认关闭。需要讲解或录屏时，可用 `--visual-pointer`（或 `visualPointer: true`）在验证过的操作目标处短暂显示不拦截输入的标记。它标示目标，并非真实鼠标轨迹。 |
+| **可选操作提示** | 默认关闭。可用 `--visual-pointer`（或 `visualPointer: true`）在验证过的目标处短暂提示，且不会拦截输入。点击、悬停、拖拽显示鼠标图标；输入和滚动只显示目标光圈，不模拟真实鼠标轨迹。 |
 | **可选响应日志** | 使用 `--capture-network`，通过第十七个 MCP 工具 [`tab_network`](docs/NETWORK.md) 观察自有页面与弹窗的有界响应；默认关闭，尚非通用 JS/CDP 编程入口。 |
 | **可选导航策略** | 通过[精确来源允许/拒绝规则](docs/NAVIGATION_POLICY.md)限制自有独立浏览器中的 HTTP(S) 文档请求，覆盖重定向、frame 和弹窗。不支持外部 CDP，也不是网络防火墙。 |
 

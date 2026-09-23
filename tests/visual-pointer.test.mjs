@@ -23,6 +23,10 @@ test('real actions show a non-intercepting pointer on owned pages and rejected r
   const rejected = await engine.act(stale.session_id, stale.snapshot_id, [{ type: 'click', ref: ref(stale, 'Target action') }]);
   assert.equal(rejected.failed.error.code, 'STALE_REFERENCE');
   assert.equal(await stalePage.locator(pointer).evaluate(host => host.hidden), true);
+  const refreshed = await engine.snapshot(stale.session_id);
+  const clicked = await engine.act(stale.session_id, refreshed.snapshot_id, [{ type: 'click', ref: ref(refreshed, 'Target action') }], { snapshot: false });
+  assert.equal(clicked.ok, true);
+  assert.equal(await stalePage.locator(pointer).evaluate(host => host.hasAttribute('data-mouse')), true);
 
   const opened = await engine.open(fixture.url);
   const page = engine.sessions.get(opened.session_id).page;
@@ -34,10 +38,10 @@ test('real actions show a non-intercepting pointer on owned pages and rejected r
     const transform = getComputedStyle(host).transform;
     const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
     return { hidden: host.hidden, action: host.dataset.action, events: getComputedStyle(host).pointerEvents,
-      hasCursor: Boolean(host.shadowRoot.querySelector('svg .cursor')), transform, hit: hit?.id };
+      cursorVisible: getComputedStyle(host.shadowRoot.querySelector('svg .cursor')).display !== 'none', transform, hit: hit?.id };
   }, pointer);
-  assert.deepEqual({ hidden: state.hidden, action: state.action, events: state.events, hasCursor: state.hasCursor, hit: state.hit },
-    { hidden: false, action: 'fill', events: 'none', hasCursor: true, hit: 'destination' });
+  assert.deepEqual({ hidden: state.hidden, action: state.action, events: state.events, cursorVisible: state.cursorVisible, hit: state.hit },
+    { hidden: false, action: 'fill', events: 'none', cursorVisible: false, hit: 'destination' });
   assert.notEqual(state.transform, 'none');
   const observed = await engine.snapshot(opened.session_id);
   assert.doesNotMatch(JSON.stringify(observed), /tablaze-visual-pointer|data-action="fill"/);

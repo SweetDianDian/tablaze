@@ -7,6 +7,7 @@ import { inspectDOM } from './snapshot.js';
 import { assembleDOMExtraction, inspectDOMField, validateDOMFieldPlan, type DOMFieldPlan, type DOMFieldObservation, type ExtractionSchema } from './extraction.js';
 import { compileNavigationPolicy, NavigationPolicyError, type NavigationPolicy, type CompiledNavigationPolicy } from './navigation-policy.js';
 import { startNavigationGuard, type NavigationGuard } from './navigation-guard.js';
+import { prepareVisualPointer, showVisualPointer, pointForElement } from './visual-pointer.js';
 
 export class BrowserError extends Error {
   constructor(public readonly code: string, message: string) { super(message); this.name = 'BrowserError'; }
@@ -14,7 +15,7 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; visualPointer?: boolean }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
 type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
 export interface BrowserWorkspace {
@@ -77,6 +78,12 @@ export class BrowserEngine {
   private readonly navigationPolicy?: CompiledNavigationPolicy;
   private navigationGuards = new Map<Browser, NavigationGuard>();
   private artifactDirectory?: Promise<string>;
+  private async pointAt(page: Page, action: string, target: ElementHandle<Element>, revalidate?: () => Promise<unknown>): Promise<void> {
+    if (this.options.visualPointer === false) return;
+    const point = await pointForElement(target);
+    await revalidate?.();
+    if (point) await showVisualPointer(page, point, action);
+  }
   constructor(private options: BrowserOptions = {}) {
     this.timeout = integer(options.timeoutMs, 10000, 100, 60000, 'timeoutMs');
     if (options.popupPolicy !== undefined && !['stay', 'follow-single'].includes(options.popupPolicy)) throw new BrowserError('INVALID_ARGUMENT', 'popupPolicy must be stay or follow-single.');
@@ -309,6 +316,7 @@ export class BrowserEngine {
       check();
       page = await phase(context.newPage(), value => { page = value; }, value => value.close());
       check();
+      if (this.options.visualPointer !== false) await phase(prepareVisualPointer(page));
       const navigationContextId = navigationGuard ? await phase(navigationGuard.contextIdFor(page)) : undefined;
       session = {
         id: randomUUID(), context, ownsContext, page, tail: Promise.resolve(), closed: false,
@@ -339,6 +347,7 @@ export class BrowserEngine {
     if (existing) return existing[0];
     const id = `t${session.nextTab++}`;
     session.tabs.set(id, page);
+    if (this.options.visualPointer !== false && page !== session.page) void prepareVisualPointer(page).catch(() => {});
     page.setDefaultTimeout(this.timeout);
     page.setDefaultNavigationTimeout(this.timeout);
     page.once('close', () => {
@@ -409,6 +418,7 @@ export class BrowserEngine {
           await page.close().catch(() => {});
           throw new BrowserError('SESSION_CLOSED', 'The session closed while creating this tab.');
         }
+        if (this.options.visualPointer !== false) await prepareVisualPointer(page);
         const id = this.registerPage(session, page);
         const blockedBefore = this.blockedNavigations(session);
         try { if (url !== 'about:blank') await page.goto(url, { waitUntil: 'domcontentloaded' }); }
@@ -711,6 +721,7 @@ export class BrowserEngine {
             const viewport = await observedPage.evaluate(() => ({ width: innerWidth, height: innerHeight }));
             if (!Number.isFinite(action.x) || !Number.isFinite(action.y) || action.x < 0 || action.y < 0 || action.x >= viewport.width || action.y >= viewport.height) throw new BrowserError('INVALID_ARGUMENT', 'Coordinates must be inside the current viewport in CSS pixels.');
             checkInterruption();
+            if (this.options.visualPointer !== false) await showVisualPointer(observedPage, { x: action.x, y: action.y }, action.type);
             actionStarted = true;
             popupWindow = armPopupWindow();
             await observedPage.mouse.click(action.x, action.y);
@@ -720,10 +731,12 @@ export class BrowserEngine {
             if (!['up', 'down', 'left', 'right'].includes(action.direction)) throw new BrowserError('INVALID_ARGUMENT', 'Invalid scroll direction.');
             const delta = { x: action.direction === 'left' ? -pixels : action.direction === 'right' ? pixels : 0, y: action.direction === 'up' ? -pixels : action.direction === 'down' ? pixels : 0 };
             if (action.ref) {
-              const target = await this.reference(session, state, action.ref);
+              const ref = action.ref;
+              const target = await this.reference(session, state, ref);
+              await this.pointAt(observedPage, action.type, target, () => this.reference(session, state, ref));
               checkInterruption(); actionStarted = true;
               await target.evaluate((element, { x, y }) => element.scrollBy(x, y), delta);
-            } else { actionStarted = true; await state.frame.evaluate(({ x, y }) => window.scrollBy(x, y), delta); }
+            } else { if (this.options.visualPointer !== false) await showVisualPointer(observedPage, { x: 80, y: 80 }, action.type); actionStarted = true; await state.frame.evaluate(({ x, y }) => window.scrollBy(x, y), delta); }
           }
           else if (action.type === 'wait') { if (!action.text) throw new BrowserError('INVALID_ARGUMENT', 'Wait text must be nonempty.'); await state.frame.getByText(action.text).first().waitFor({ state: 'visible', timeout: remaining(integer(action.timeoutMs, this.timeout, 100, 60000, 'timeoutMs')) }); }
           else {
@@ -738,6 +751,7 @@ export class BrowserEngine {
             checkInterruption();
             await this.reference(session, state, action.ref);
             const timeout = remaining(Math.max(1, actionDeadline - performance.now()));
+            await this.pointAt(observedPage, action.type, target, () => this.reference(session, state, action.ref));
             switch (action.type) {
               case 'click': popupWindow = armPopupWindow(); await target.click({ timeout }); break;
               case 'double_click': popupWindow = armPopupWindow(); await target.dblclick({ timeout }); break;
@@ -827,6 +841,7 @@ export class BrowserEngine {
                 await ensureHit(destination, destinationPoint);
                 await ensureHit(target, source);
                 checkInterruption();
+                if (this.options.visualPointer !== false) await showVisualPointer(observedPage, source, 'drag');
                 await observedPage.mouse.move(source.x, source.y);
                 await this.reference(session, state, action.ref);
                 await this.reference(session, state, action.targetRef);
@@ -840,6 +855,7 @@ export class BrowserEngine {
                   await observedPage.mouse.down();
                   checkInterruption();
                   await observedPage.mouse.move(destinationPoint.x, destinationPoint.y, { steps: 12 });
+                  if (this.options.visualPointer !== false) await showVisualPointer(observedPage, destinationPoint, 'drag');
                   await observedPage.mouse.move(destinationPoint.x, destinationPoint.y);
                   await this.reference(session, state, action.targetRef);
                   await ensureHit(destination, destinationPoint, target);

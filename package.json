@@ -43,6 +43,8 @@
     "demo/narrate-neural.py",
     "demo/requirements-narration.txt",
     "demo/revoice.mjs",
+    "demo/annotate-cursor.mjs",
+    "demo/cursor-track.json",
     "demo/narration.zh-CN-v3.json"
   ],
   "scripts": {

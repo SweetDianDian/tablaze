@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "source_video_sha256": "ba2e6cc03a59a20eb16120a83b2c26bd6d43de4a1108f3159951dc5dd3fb5122",
+  "output_video_sha256": "34223f1e6a7fc0eeef0638e8f49643c8a87757256851c7c33549955be23cded9",
+  "output_size_bytes": 6786311,
+  "audio_streamhash": "0,a,SHA256=75901c8a9ea79394e0756bf4664cb77ec607bb1f4faa993babb42b00b66e5e55",
+  "source_track": "demo/cursor-track.json",
+  "track_sha256": "a2ca8d3897132021c3ecb1fa261627806d4c0202e6eece4f9a292b05e2034c8b",
+  "pointer_kind": "presentation_action_guide",
+  "note": "Illustrative pointer path over authentic tab_capture stills. Target centers were measured in the 1280x800 demo fixture. The pointer is paced for narration; it is not a capture of the physical mouse and does not change MCP timing or results.",
+  "phases": [
+    {
+      "id": "six_action_batch",
+      "start": 15.5,
+      "end": 28.2,
+      "targets": [
+        "destination",
+        "nights",
+        "travelers",
+        "budget",
+        "free_cancellation",
+        "search"
+      ],
+      "no_click": false
+    },
+    {
+      "id": "stale_target_stop",
+      "start": 56.5,
+      "end": 68.3,
+      "targets": [
+        "approval_button_old_ref"
+      ],
+      "no_click": true
+    },
+    {
+      "id": "fresh_reference_popup",
+      "start": 83.3,
+      "end": 95.3,
+      "targets": [
+        "approval_button_fresh_ref"
+      ],
+      "no_click": false
+    },
+    {
+      "id": "four_action_approval",
+      "start": 96.4,
+      "end": 108.5,
+      "targets": [
+        "requester",
+        "cost_center",
+        "confirm",
+        "approve"
+      ],
+      "no_click": false
+    },
+    {
+      "id": "download",
+      "start": 113,
+      "end": 124.2,
+      "targets": [
+        "csv_download"
+      ],
+      "no_click": false
+    }
+  ]
+}

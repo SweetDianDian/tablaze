@@ -110,6 +110,7 @@ The new production Codex path also has a [separate live smoke](docs/CODEX_PROVID
 | **Guarded actions** | Check snapshot revisions and DOM targets before input. Re-observe when a target changes. |
 | **Ordered batches** | Send up to 20 actions in one call, with completed, failed and skipped steps. Stops on error; earlier effects remain. |
 | **Explicit verification** | Check the resulting URL, title, text, field values, visibility and element counts. |
+| **Visible action pointer** | A brief, non-intercepting cursor marks validated click and input targets in owned tabs. Disable with `--no-visual-pointer` or `visualPointer: false` in the library. |
 | **Optional navigation policy** | [Exact-origin allow/deny rules](docs/NAVIGATION_POLICY.md) for HTTP(S) document requests, including redirects, frames and popups, in owned isolated browsers. No external CDP; not a network firewall. |
 
 ### Fifteen tools

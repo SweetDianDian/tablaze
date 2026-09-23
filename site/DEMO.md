@@ -1,12 +1,12 @@
 # Real MCP demonstration / 真实 MCP 演示
 
-The current website recording is **154.104 seconds at 2880×1800**, with eleven segments of conversational English male neural narration, optional captions (off by default) and seven chapter shortcuts. Larger form text and a wider browser surface make the actual controls readable. Lossless presentation PNG frames are encoded directly to H.264/AAC MP4 once; the video is not made by enlarging or recompressing the previous WebM.
+The current website recording is **154.104 seconds at 2880×1800**, with eleven segments of conversational English male neural narration, optional captions (off by default), seven chapter shortcuts and a visible action-guide cursor. The guide points to measured targets over authentic browser captures. Its movement is paced for narration; it is not a recording of the physical mouse. The MCP trace and tool timings are unchanged.
 
-官网当前演示为 **154.104 秒、2880×1800**，包含十一段英语神经合成男声旁白、中英字幕和七个章节。表单文字与浏览器展示区已放大，高清展示帧直接一次编码为 H.264/AAC MP4，并非把上一版 WebM 放大或再次压缩。稿件使用更口语化的短句与自然停顿，点击播放后默认有声，也可使用明确的声音开关。字幕默认关闭，可以从播放器手动开启。当前版本只替换旁白和字幕，原有 H.264 画面流的哈希保持一致。
+官网当前演示为 **154.104 秒、2880×1800**，包含十一段英语男声旁白、默认关闭的中英字幕、七个章节和可视操作指针。指针按本地页面实测控件位置标注，配合讲解节奏移动；它是讲解辅助，并非真实物理鼠标录屏。原有 MCP 调用记录和工具耗时没有改变。真实使用时，Tablaze 也会在通过引用验证的点击、输入等动作上短暂显示指针，可关闭。
 
 ## Reproduce / 复现
 
-Install the source dependencies and build the runtime. The current voice is Microsoft Edge's `en-US-AndrewMultilingualNeural` (male), synthesized from the checked-in [English script and Chinese subtitles](https://github.com/SweetDianDian/tablaze/blob/main/demo/narration.en-US.json) with [`edge-tts`](https://github.com/rany2/edge-tts). This recipe sends the public narration text to the online speech service. Use an FFmpeg executable with `libx264` and AAC:
+Install the source dependencies and build the runtime. The current voice is Microsoft Edge's `en-US-AndrewMultilingualNeural` (male), synthesized from the checked-in [English script and Chinese subtitles](narration.en-US.json) with [`edge-tts`](https://github.com/rany2/edge-tts). This recipe sends the public narration text to the online speech service. Use an FFmpeg executable with `libx264` and AAC:
 
 ```sh
 npm ci
@@ -35,6 +35,15 @@ node demo/revoice.mjs /absolute/path/original-recording \
 ```
 
 Each clip must fit its original presentation hold. `revoice.mjs` copies the H.264 packets, verifies identical picture-stream hashes before/after, regenerates captions and records a separate `media_revision`. It keeps the original events, assertions, tool timings and chapters. This is an audio edit, not a new benchmark run. The legacy `narrate.mjs` recipe remains available for offline macOS synthesis of the historical v3 script.
+
+To annotate the narrated recording with the measured action guide:
+
+```sh
+TABLAZE_DEMO_FFMPEG=/absolute/path/ffmpeg \
+node demo/annotate-cursor.mjs /absolute/path/male-narrated.mp4 /absolute/path/annotated.mp4
+```
+
+[`cursor-track.json`](cursor-track.json) records native screenshot control centers and narration-paced intervals. `annotate-cursor.mjs` verifies that the AAC stream is copied unchanged and emits an evidence JSON beside the new MP4. These overlays are editorial guides over actual still captures, not new browser actions or a continuous mouse recording. In the live browser, the pointer appears only briefly after an action target passes validation and never receives pointer input. The CLI switch `--no-visual-pointer` turns it off.
 
 The recorder starts the actual compiled stdio server, connects a real MCP SDK client and completes one continuous travel workflow in a localhost fixture. It verifies browser results, server counters and downloaded bytes. An isolated presentation browser renders actual returned JSON and `tab_capture` images. At each display update it saves a lossless 2× PNG; those frames retain the observed timeline. `render-video.mjs` produces 2880×1800 H.264 at CRF 16/12 fps and AAC narration at 48 kHz, targeting −16 LUFS. The embedded browser captures remain the engine's original 1280×800 JPEG screenshots; the larger form typography improves their legibility, not their native resolution. Frame scheduling is quantized to 1/12 second and is not a continuous browser video feed.
 
@@ -70,12 +79,16 @@ The underlying browser workflow passed on **2026-09-23 (Asia/Shanghai)**: 22 MCP
 
 本次正式录制通过：22 次 MCP 调用、八项浏览器检查、一份审批订单、一个内容匹配的 145 字节 CSV，零遗留会话。视频 154.104 秒，保留原来约 138.063 秒的讲解停留；v4 含约 96.984 秒的英语男声旁白，只替换声音与字幕，画面和章节不变。实际工具耗时合计 2,161.036 毫秒，不能作为模型执行能力或 Browser Use 的速度对比。
 
-[Complete trace](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-run.json) · [34 website checks](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-site-qa-v4.json) · [Decoded narration evidence](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-narration-v4.json)
+v5 在原有讲解视频上叠加操作位置指引，AAC 语音数据保持逐包相同；视频画面因此重新编码，原始 MCP 记录、章节和工具耗时均未改动。旧引用被拒绝的一段只指向候选控件，没有模拟成功点击。
+
+[Complete trace](../docs/evidence/demo-run.json) · [34 website checks](../docs/evidence/demo-site-qa-v4.json) · [Decoded narration evidence](../docs/evidence/demo-narration-v4.json)
+
+[Cursor annotation evidence](../docs/evidence/demo-cursor-v5.json)
 
 The v4 media/player release passed 34 browser checks, including 2880×1800 video metadata, an actual decoded audio track, initially unmuted playback, keyboard sound control, eleven English cues and eleven Chinese subtitle cues, complete video decode and all seven chapter jumps. All eleven source clips and the final AAC are decoded and checked separately; the narration evidence includes the actual measurements and exact voice metadata. These checks establish audio in the file and player; local device volume is controlled by the viewer.
 
-This deterministic SDK demonstration does not invoke a reasoning model, make external bookings or payments, or prove general website reliability or superiority over Browser Use. Source hashes bind the trace to the recorded runtime. The original [female-narrated v3](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-run-v3.json), [short v1](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-run-v1.json) and [silent 126-second v2](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-run-v2.json) traces remain historical records.
+This deterministic SDK demonstration does not invoke a reasoning model, make external bookings or payments, or prove general website reliability or superiority over Browser Use. Source hashes bind the trace to the recorded runtime. The original [female-narrated v3](../docs/evidence/demo-run-v3.json), [short v1](../docs/evidence/demo-run-v1.json) and [silent 126-second v2](../docs/evidence/demo-run-v2.json) traces remain historical records.
 
-The later [caption-default check](https://github.com/SweetDianDian/tablaze/blob/main/docs/evidence/demo-caption-default-v1.json) verifies that both tracks start disabled, the approval scene is unobstructed, English audio decodes, and an optional caption choice survives language and chapter changes. Captions remain available through native video controls.
+The later [caption-default check](../docs/evidence/demo-caption-default-v1.json) verifies that both tracks start disabled, the approval scene is unobstructed, English audio decodes, and an optional caption choice survives language and chapter changes. Captions remain available through native video controls.
 
 字幕显示调整已单独验证：首次播放默认不显示字幕，审批画面不再被大字幕遮挡，英语声音正常；手动开启字幕后，切换语言或章节会保留选择。

@@ -1,0 +1,20 @@
+# Four-task, two-seed matched Codex development comparison
+
+Date: 2026-09-24. This comparison used clean Tablaze commit `1fb865ca6e0aaeb4e823057bce698458bbc08cd9` (empty patch SHA-256 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`; source-tree SHA-256 `648f16257eeb66dd9caa63ca7c90f5a2ec0a9a7db5b8b86a17e5047235cf63e3`) and Browser Use Python Agent 0.13.10 at `d8110c5ff87ccba887aaa726cdb780f2f84bef8d`. The runner alternated engine order and reset the local fixture and isolated Chrome for every attempt. Both sides used the same `gpt-6-astra / ultra` Codex CLI inference bridge, a reported 160,000-token ceiling, 40 planning steps and a 240-second deadline. Tablaze used caller URL initialization and `follow-single`; Browser Use's default post-task judge stayed enabled.
+
+| Task, seeds 52–53 | Tablaze full / Agent done median | Browser Use full / Agent done median | Independent business outcome |
+| --- | ---: | ---: | --- |
+| Form | 32.547 / 32.397 s | 54.431 / 37.326 s | Both 2/2; one correct write, zero duplicates per attempt |
+| Virtual list | 70.925 / 70.765 s | 82.645 / 65.549 s | Both 2/2; one correct write, zero duplicates per attempt |
+| Visual canvas | 52.968 / 52.809 s | 60.251 / 38.275 s | Both 2/2; one correct write, zero duplicates per attempt |
+| Interrupted-response order | 63.997 / 63.842 s | 65.905 / 49.556 s | Both 2/2; one correct write, zero duplicates per attempt |
+
+All 16 attempts passed the independent server judge, reported successful Agent completion and returned before the shared deadline. Across the eight equally weighted attempts per engine, the **visible** median whole-run time was **56.331 s Tablaze versus 61.211 s Browser Use**. The Agent-done median was **56.177 versus 44.063 s**, so Tablaze's Agent phase was slower even though its overall median was shorter. Tablaze returned sooner in seven of eight pairs, but its Agent completed sooner in only the two form pairs. On interrupted-response order seed 52, Tablaze was slower even on whole-run time: **68.747 versus 61.804 s**. These counterexamples matter to the efficiency goal.
+
+The distinction is material: Browser Use made one default judge model call after each Agent completion (eight across this suite), while Tablaze made none. That work is included in Browser Use's whole-run time and excluded from both Agent-done times. Model calls including the default judge were Tablaze 28 and Browser Use 28; excluding the judge, Browser Use used 20. For canvas, Tablaze used four planning calls per attempt versus Browser Use's two Agent calls plus its judge. Tablaze's virtual-list Agent also spent an extra planning round after checking for `Reserved VIRTUAL-130` when the actual page displayed `Saved successfully`; it did not repeat the write. The trace records these behaviors, but their timing differences are not proof of a causal framework overhead.
+
+This is a **visible synthetic development suite**, two seeds per task, not held-out evaluation. The CLI bridge has its own instructions and does not verify matched temperature or output-token controls; cost and missing usage fields are not inferred. No confidence interval, p95 or production performance distribution follows from these samples. The result does not establish parity across Browser Use's MCP, Harness, Pi or hosted products, nor overall Tablaze superiority. Follow-up work should reduce the extra canvas and verification planning rounds, then repeat on a larger frozen task set with separately reported Agent and full-run latency.
+
+The unmodified [runner report](evidence/mixed-four-20260924/results.json) has SHA-256 `cda7cf0190600e44b206319bf81a80534b4339877edddd5b384b588a3e8fefac`. The [trace index](evidence/mixed-four-20260924/README.md) links all 16 model-visible trajectories. The runner report retains each source/environment pin, attempt, business verdict, Agent completion, full return, model/judge call count and raw trace path.
+
+中文结论：四类任务、每类两个种子，双方业务验收、Agent 完成及期限内返回都是 8/8；每次服务端仅接受一次正确写入，零重复。Tablaze 全程中位数 56.331 秒，对方 61.211 秒；但 Agent 完成中位数为 56.177 对 44.063 秒，Tablaze 更慢。Browser Use 默认评审只计入全程。订单种子 52 的 Tablaze 全程也更慢。这些可见开发样本不证明稳定效率或整体功能领先。

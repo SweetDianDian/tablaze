@@ -57,6 +57,8 @@ Action feedback now retains the operated child frame after such a failed post-ch
 
 The [current Browser Use capability and public-issue audit](docs/BROWSER_USE_2026_AUDIT.md) tracks what is implemented, what remains missing across Agent/MCP/Harness/Pi/cloud, and which reported defects have a local reproduction or regression. Password fields now reveal only whether a value is present, while keeping its bytes redacted.
 
+A [four-task, two-seed matched Codex comparison](docs/CODEX_MIXED_FOUR_20260924.md) covers forms, a virtual list, visual canvas and interrupted-response order recovery. Both engines passed 8/8 independent business checks with one correct write and no duplicates per attempt. Tablaze's visible median whole-run time was 56.331 versus Browser Use's 61.211 s, but Agent-done time was 56.177 versus 44.063 s; Browser Use's default judge runs after Agent completion. This development sample does not prove stable efficiency or overall parity.
+
 ## Get started
 
 Requires **Node.js 20+**, npm and Git. This is a developer preview; npm publication is pending, so install from source:

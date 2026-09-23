@@ -236,7 +236,7 @@ export function compactAgentHistory(history: readonly AgentMessage[], options: {
   const kept: AgentMessage[][] = []; const metadata: Record<string, unknown>[] = []; let omittedGroups = 0;
   for (let index = 0; index < groups.length; index++) {
     const group = groups[index];
-    const protectedGroup = group.some(message => message.role === "tool" && protectedIds.has(message.toolCallId) || message.role === "assistant" && message.content.startsWith(PARTIAL_HISTORY_PREFIX));
+    const protectedGroup = group.some(message => message.role === "tool" && protectedIds.has(message.toolCallId) || message.role === "assistant" && message.content.startsWith(PARTIAL_HISTORY_PREFIX) || message.role === "user" && !message.content.startsWith(summaryPrefix));
     if (index >= groups.length - options.keepRecentGroups || protectedGroup) { kept.push(group); continue; }
     omittedGroups++;
     for (const message of group) {

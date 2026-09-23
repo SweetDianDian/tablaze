@@ -131,8 +131,8 @@ export interface AgentOptions {
   reconciliation?: { resolvedCallIds: string[]; note: string };
   plannerRecovery?: { maxRetries?: number; retryDelayMs?: number; fallback?: AgentPlanner; shouldRetry?: (error: unknown) => boolean };
   stallDetection?: { repeatThreshold?: number; maxWarnings?: number };
-  /** Opt-in, deterministic removal of complete old tool groups. */
-  historyCompaction?: { keepRecentGroups?: number };
+  /** Proactively bound model context; false retains the full history until maxHistoryBytes. */
+  historyCompaction?: false | { keepRecentGroups?: number; triggerBytes?: number };
   /** Optional bounded draft-07 final-result contract; resume requires the same schema. */
   finalOutputSchema?: ExtractionSchema;
   /** Optional independent schema for append-only checked partial results. */
@@ -275,7 +275,8 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
   const retryDelayMs = nonnegative(options.plannerRecovery?.retryDelayMs, 250, 30_000, "plannerRecovery.retryDelayMs");
   const repeatThreshold = bounded(options.stallDetection?.repeatThreshold, 3, 20, "stallDetection.repeatThreshold");
   const maxWarnings = nonnegative(options.stallDetection?.maxWarnings, 1, 10, "stallDetection.maxWarnings");
-  const keepRecentGroups = bounded(options.historyCompaction?.keepRecentGroups, 6, 100, "historyCompaction.keepRecentGroups");
+  const keepRecentGroups = bounded(options.historyCompaction === false ? undefined : options.historyCompaction?.keepRecentGroups, 6, 100, "historyCompaction.keepRecentGroups");
+  const compactionTriggerBytes = bounded(options.historyCompaction === false ? undefined : options.historyCompaction?.triggerBytes, 256 * 1024, 128 * 1024 * 1024, "historyCompaction.triggerBytes");
   const sessionMap = z.record(z.string().min(1).max(160), z.string().min(1).max(160)).parse(options.resumeSessionMap ?? {});
   const reconciliation = options.reconciliation === undefined ? undefined : z.object({ resolvedCallIds: z.array(z.string().min(1)).max(100), note: z.string().min(1).max(10_000) }).strict().parse(options.reconciliation);
   if ((options.resumeFeedback || Object.keys(sessionMap).length || reconciliation) && !resumed) throw new Error("Resume feedback, session mapping, and reconciliation require a checkpoint.");
@@ -395,12 +396,15 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
     executionIdentity ??= checked.data;
   };
   const fitHistory = () => {
-    if (Buffer.byteLength(JSON.stringify(history)) <= maxHistoryBytes) return true;
-    if (!options.historyCompaction) return false;
-    const compacted = compactAgentHistory(history, { maxBytes: maxHistoryBytes, keepRecentGroups, protectedCallIds: [...evidence.keys(), ...ambiguous.keys(), ...(initialization?.state === "attempted" ? [initialization.toolCallId] : [])] });
-    if (!compacted) return false;
-    history = compacted;
-    return true;
+    const bytes = Buffer.byteLength(JSON.stringify(history));
+    if (bytes <= Math.min(compactionTriggerBytes, maxHistoryBytes) || options.historyCompaction === false && bytes <= maxHistoryBytes) return true;
+    if (options.historyCompaction === false) return false;
+    const protectedCallIds = [...evidence.keys(), ...ambiguous.keys(), ...(initialization?.state === "attempted" ? [initialization.toolCallId] : [])];
+    const compacted = compactAgentHistory(history, { maxBytes: Math.min(compactionTriggerBytes, maxHistoryBytes), keepRecentGroups, protectedCallIds })
+      ?? (bytes > maxHistoryBytes ? compactAgentHistory(history, { maxBytes: maxHistoryBytes, keepRecentGroups, protectedCallIds }) : undefined);
+    if (compacted) { history = compacted; return true; }
+    // A protected group may exceed the proactive target. The hard budget still applies.
+    return bytes <= maxHistoryBytes;
   };
   const plan = async (listed: AgentTool[]): Promise<unknown> => {
     let active = options.planner; let role: AgentPlannerMetric["planner"] = "primary"; let retries = 0; let attempt = 0;

@@ -10,7 +10,6 @@ import { startNavigationGuard, type NavigationGuard } from './navigation-guard.j
 import { compileSecretStore, SecretError, type BrowserSecretOptions, type CompiledSecretStore } from './secret-store.js';
 import { installSecretBridge, type SecretInputBridge } from './secret-input.js';
 import { projectSecretSnapshot, projectSecretExtraction, projectSecretText, redactSecretMetadata } from './secret-projection.js';
-import { prepareVisualPointer, showVisualPointer, pointForElement } from './visual-pointer.js';
 import { NetworkJournal, NetworkJournalError } from './network-journal.js';
 import { acquireOwnedProfile, type OwnedProfileLease } from './owned-profile.js';
 import { executePageScript } from './page-script.js';
@@ -21,7 +20,7 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; visualPointer?: boolean; captureNetwork?: boolean; allowPageScript?: boolean }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; captureNetwork?: boolean; allowPageScript?: boolean }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
 export interface FindTextOptions { text: string; frameId?: string; containerRef?: string; snapshotId?: string; maxScrolls?: number; timeoutMs?: number; signal?: AbortSignal }
 type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
@@ -94,13 +93,6 @@ export class BrowserEngine {
   private readonly secretBridgeKey = `__tablaze_${randomUUID().replaceAll('-', '')}`;
   private readonly secretOperations = new Set<AbortController>();
   private artifactDirectory?: Promise<string>;
-  private get visualPointerEnabled(): boolean { return this.options.visualPointer === true; }
-  private async pointAt(page: Page, action: string, target: ElementHandle<Element>, revalidate?: () => Promise<unknown>): Promise<void> {
-    if (!this.visualPointerEnabled) return;
-    const point = await pointForElement(target);
-    await revalidate?.();
-    if (point) await showVisualPointer(page, point, action);
-  }
   constructor(private options: BrowserOptions = {}) {
     this.timeout = integer(options.timeoutMs, 10000, 100, 60000, 'timeoutMs');
     if (options.profileDir !== undefined && (typeof options.profileDir !== 'string' || !isAbsolute(options.profileDir) || options.profileDir === '/')) throw new BrowserError('PROFILE_PATH_INVALID', 'profileDir must be a dedicated absolute directory.');
@@ -380,7 +372,6 @@ export class BrowserEngine {
       if (this.secretStore) await phase(context.addInitScript(installSecretBridge, { key: this.secretBridgeKey }));
       page = await phase(context.newPage(), value => { page = value; }, value => value.close());
       check();
-      if (this.visualPointerEnabled) await phase(prepareVisualPointer(page));
       const navigationContextId = navigationGuard ? await phase(navigationGuard.contextIdFor(page)) : undefined;
       session = {
         id: randomUUID(), context, ownsContext, page, tail: Promise.resolve(), closed: false,
@@ -412,7 +403,6 @@ export class BrowserEngine {
     if (existing) return existing[0];
     const id = `t${session.nextTab++}`;
     session.tabs.set(id, page);
-    if (this.visualPointerEnabled && page !== session.page) void prepareVisualPointer(page).catch(() => {});
     page.setDefaultTimeout(this.timeout);
     page.setDefaultNavigationTimeout(this.timeout);
     page.once('close', () => {
@@ -498,7 +488,6 @@ export class BrowserEngine {
           await page.close().catch(() => {});
           throw new BrowserError('SESSION_CLOSED', 'The session closed while creating this tab.');
         }
-        if (this.visualPointerEnabled) await prepareVisualPointer(page);
         const id = this.registerPage(session, page);
         const blockedBefore = this.blockedNavigations(session);
         try { if (url !== 'about:blank') await page.goto(url, { waitUntil: 'domcontentloaded' }); }
@@ -975,7 +964,6 @@ export class BrowserEngine {
             const viewport = await observedPage.evaluate(() => ({ width: innerWidth, height: innerHeight }));
             if (!Number.isFinite(action.x) || !Number.isFinite(action.y) || action.x < 0 || action.y < 0 || action.x >= viewport.width || action.y >= viewport.height) throw new BrowserError('INVALID_ARGUMENT', 'Coordinates must be inside the current viewport in CSS pixels.');
             checkInterruption();
-            if (this.visualPointerEnabled) await showVisualPointer(observedPage, { x: action.x, y: action.y }, action.type);
             actionStarted = true;
             popupWindow = armPopupWindow();
             await observedPage.mouse.click(action.x, action.y);
@@ -996,7 +984,7 @@ export class BrowserEngine {
             if (currentTop.documentId !== top.documentId || currentTop.origin !== top.origin) throw new BrowserError('SECRET_CONTEXT_CHANGED', 'The top document changed while resolving the secret.');
             await this.secretStore.assertContext(secretController.signal);
             checkInterruption();
-            await this.pointAt(observedPage, action.type, target, () => this.reference(session, state, action.ref));
+            await this.reference(session, state, action.ref);
             // No focus, keyboard events, or selector re-resolution with plaintext.
             // An RPC failure after dispatch cannot prove that the setter did not run.
             session.secretTainted = true;
@@ -1016,7 +1004,6 @@ export class BrowserEngine {
             if (action.ref) {
               const ref = action.ref;
               const target = await this.reference(session, state, ref);
-              await this.pointAt(observedPage, action.type, target, () => this.reference(session, state, ref));
               checkInterruption(); actionStarted = true;
               await target.evaluate((element, { x, y }) => element.scrollBy(x, y), delta);
             } else { actionStarted = true; await state.frame.evaluate(({ x, y }) => window.scrollBy(x, y), delta); }
@@ -1034,7 +1021,6 @@ export class BrowserEngine {
             checkInterruption();
             await this.reference(session, state, action.ref);
             const timeout = remaining(Math.max(1, actionDeadline - performance.now()));
-            await this.pointAt(observedPage, action.type, target, () => this.reference(session, state, action.ref));
             switch (action.type) {
               case 'click': popupWindow = armPopupWindow(); await target.click({ timeout }); break;
               case 'double_click': popupWindow = armPopupWindow(); await target.dblclick({ timeout }); break;
@@ -1124,7 +1110,6 @@ export class BrowserEngine {
                 await ensureHit(destination, destinationPoint);
                 await ensureHit(target, source);
                 checkInterruption();
-                if (this.visualPointerEnabled) await showVisualPointer(observedPage, source, 'drag');
                 await observedPage.mouse.move(source.x, source.y);
                 await this.reference(session, state, action.ref);
                 await this.reference(session, state, action.targetRef);
@@ -1138,7 +1123,6 @@ export class BrowserEngine {
                   await observedPage.mouse.down();
                   checkInterruption();
                   await observedPage.mouse.move(destinationPoint.x, destinationPoint.y, { steps: 12 });
-                  if (this.visualPointerEnabled) await showVisualPointer(observedPage, destinationPoint, 'drag');
                   await observedPage.mouse.move(destinationPoint.x, destinationPoint.y);
                   await this.reference(session, state, action.targetRef);
                   await ensureHit(destination, destinationPoint, target);

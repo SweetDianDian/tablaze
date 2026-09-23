@@ -29,8 +29,6 @@ Usage / 用法:
 Options / 选项:
   --headless                Run headless (default) / 无头模式
   --headed                  Show the isolated browser / 显示独立浏览器
-  --visual-pointer          Show action targets, including headless captures / 显示操作位置
-  --no-visual-pointer       Hide the action pointer / 关闭操作指针
   --capture-network         Expose bounded owned-tab response inspection / 观察自有标签页响应
   --page-script             Expose page-origin JavaScript (full page authority) / 开启页面脚本
   --profile-dir <path>       Use a dedicated persistent Chrome profile / 使用专有持久资料目录
@@ -105,14 +103,13 @@ function loadNavigationPolicy(path: string): NavigationPolicy {
 
 function parseOptions(): { command: string; options: BrowserOptions; run?: RunOptions } {
   const { values, positionals } = parseArgs({
-    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, "visual-pointer": { type: "boolean" }, "no-visual-pointer": { type: "boolean" }, "capture-network": { type: "boolean" }, "page-script": { type: "boolean" }, "profile-dir": { type: "string" }, "profile-id": { type: "string" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, "secret-config": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
+    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, "capture-network": { type: "boolean" }, "page-script": { type: "boolean" }, "profile-dir": { type: "string" }, "profile-id": { type: "string" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, "secret-config": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
     allowPositionals: true, strict: true,
   });
   if (values.help) return { command: "help", options: {} };
   if (values.version) return { command: "version", options: {} };
   if (positionals.length > 1 || (positionals[0] && !["doctor", "setup", "run"].includes(positionals[0]))) throw new Error("Expected no command, doctor, setup, or run. Run tablaze --help.");
   if (values.headless && values.headed) throw new Error("Choose either --headless or --headed.");
-  if (values["visual-pointer"] && values["no-visual-pointer"]) throw new Error("Choose either --visual-pointer or --no-visual-pointer.");
   if (values["page-script"] && (values["secret-config"] || values["cdp-url"] || values["navigation-policy"])) throw new Error("--page-script cannot be combined with --secret-config, --cdp-url, or --navigation-policy.");
   const cdpUrl = values["cdp-url"];
   if (values["profile-id"] && !values["profile-dir"]) throw new Error("--profile-id requires --profile-dir.");
@@ -170,7 +167,7 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
     };
     run = { task: values.task, startUrl: values["start-url"] === undefined ? undefined : normalizeStartUrl(values["start-url"]), provider, model: values.model, endpoint: values.endpoint, apiKey: provider === "codex" ? undefined : process.env[envName] || undefined, codexCommand: values["codex-command"], reasoningEffort, maxOutputTokens, maxSteps: limit("max-steps", 30, 1000), maxToolCalls: limit("max-calls", 100, 10000), timeoutMs: limit("run-timeout-ms", 300000, 86400000), checkpointPath: values.checkpoint ? resolve(values.checkpoint) : undefined, resumePath: values.resume ? resolve(values.resume) : undefined, reconciled: values.reconciled };
   } else if (runKeys.some(key => values[key] !== undefined)) throw new Error("Agent options require the run command.");
-  return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, profileDir: values["profile-dir"] !== undefined ? resolve(values["profile-dir"]) : undefined, expectedProfileId: values["profile-id"], timeoutMs, popupPolicy, navigationPolicy, secrets, visualPointer: values["visual-pointer"] ? true : values["no-visual-pointer"] ? false : undefined, captureNetwork: values["capture-network"] ?? false, allowPageScript: values["page-script"] ?? false }, run };
+  return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, profileDir: values["profile-dir"] !== undefined ? resolve(values["profile-dir"]) : undefined, expectedProfileId: values["profile-id"], timeoutMs, popupPolicy, navigationPolicy, secrets, captureNetwork: values["capture-network"] ?? false, allowPageScript: values["page-script"] ?? false }, run };
 }
 
 function channelExecutable(channel: string): string | undefined {

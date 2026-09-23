@@ -1,8 +1,8 @@
 # Real MCP demonstration / 真实 MCP 演示
 
-The current website recording is **154.104 seconds at 2880×1800**, with eleven segments of conversational English male neural narration, optional captions (off by default), seven chapter shortcuts and a visible action-guide cursor. The guide points to measured targets over authentic browser captures. Its movement is paced for narration; it is not a recording of the physical mouse. The MCP trace and tool timings are unchanged.
+The current website recording is **154.104 seconds at 2880×1800**, with eleven segments of conversational English male neural narration, optional captions (off by default), and seven chapter shortcuts. The MCP trace and tool timings are unchanged.
 
-官网当前演示为 **154.104 秒、2880×1800**，包含十一段英语男声旁白、默认关闭的中英字幕、七个章节和可视操作提示。视频指针按本地页面实测控件位置标注，配合讲解节奏移动；它是讲解辅助，并非真实物理鼠标录屏。原有 MCP 调用记录和工具耗时没有改变。真实使用时，可选的提示会短暂标出通过引用验证的目标；只有点击、悬停、拖拽等鼠标操作才显示鼠标图标，输入和滚动只显示目标光圈。
+官网当前演示为 **154.104 秒、2880×1800**，包含十一段英语男声旁白、默认关闭的中英字幕、七个章节。原有 MCP 调用记录和工具耗时没有改变。
 
 ## Reproduce / 复现
 
@@ -36,15 +36,6 @@ node demo/revoice.mjs /absolute/path/original-recording \
 
 Each clip must fit its original presentation hold. `revoice.mjs` copies the H.264 packets, verifies identical picture-stream hashes before/after, regenerates captions and records a separate `media_revision`. It keeps the original events, assertions, tool timings and chapters. This is an audio edit, not a new benchmark run. The legacy `narrate.mjs` recipe remains available for offline macOS synthesis of the historical v3 script.
 
-To annotate the narrated recording with the measured action guide:
-
-```sh
-TABLAZE_DEMO_FFMPEG=/absolute/path/ffmpeg \
-node demo/annotate-cursor.mjs /absolute/path/male-narrated.mp4 /absolute/path/annotated.mp4
-```
-
-[`cursor-track.json`](cursor-track.json) records native screenshot control centers and narration-paced intervals. `annotate-cursor.mjs` verifies that the AAC stream is copied unchanged and emits an evidence JSON beside the new MP4. These overlays are editorial guides over actual still captures, not new browser actions or a continuous mouse recording. In the live browser, the optional cue appears only briefly after an action target passes validation and never receives pointer input. It shows a mouse icon for pointer actions and a target ring for non-pointer actions; the feature is off by default and `--no-visual-pointer` turns it off explicitly.
-
 The recorder starts the actual compiled stdio server, connects a real MCP SDK client and completes one continuous travel workflow in a localhost fixture. It verifies browser results, server counters and downloaded bytes. An isolated presentation browser renders actual returned JSON and `tab_capture` images. At each display update it saves a lossless 2× PNG; those frames retain the observed timeline. `render-video.mjs` produces 2880×1800 H.264 at CRF 16/12 fps and AAC narration at 48 kHz, targeting −16 LUFS. The embedded browser captures remain the engine's original 1280×800 JPEG screenshots; the larger form typography improves their legibility, not their native resolution. Frame scheduling is quantized to 1/12 second and is not a continuous browser video feed.
 
 录制器通过真实 MCP SDK 完成整条任务，再用实际响应和截图呈现过程。每次展示更新保存 2 倍像素的无损 PNG，并按原时间轴编码；嵌入的网页截图仍为引擎返回的原始 1280×800 JPEG，表单字体放大提高了可读性，没有冒称网页截图本身是 2880 像素。视频帧时间对齐到十二分之一秒，不是被控页面的连续视频流。
@@ -57,7 +48,7 @@ Output defaults to `demo/output/`:
 - Five original JPEG captures, `poster.png`, and the verified `wayfar-itinerary.csv`.
 - `frames/` and `frames.ffconcat`: local lossless presentation inputs, retained for inspection.
 
-The current website loads the [identical MP4 from a fixed GitHub commit](https://raw.githubusercontent.com/SweetDianDian/tablaze/821c441eea6433dcc6c1bbadc041c2e7030107cb/demo/media/tablaze-demo-hd.mp4?v=34223f1e). The fixed commit identifies the exact published bytes; external media hosting avoids recurring large-archive upload timeouts. The VTT, report, CSV, five captures and `poster-hd.png` remain hosted with the website. For self-hosting, copy all output assets into the website's `demo/` directory and change the video URLs back to `demo/tablaze-demo-hd.mp4`; copy `poster.png` as `poster-hd.png`. Set `release.json` to `"demo": true`. Generated videos, audio and frames are excluded from source packages. The current reproduction scripts are in this GitHub repository; downloadable website preview packages retain their labeled original build.
+The current website loads the [identical MP4 from a fixed GitHub commit](https://raw.githubusercontent.com/SweetDianDian/tablaze/dacb3e4b27a5e13db89b50ed67b56da9dc208c53/demo/media/tablaze-demo-hd.mp4?v=ba2e6cc0). The fixed commit identifies the exact published bytes; external media hosting avoids recurring large-archive upload timeouts. The VTT, report, CSV, five captures and `poster-hd.png` remain hosted with the website. For self-hosting, copy all output assets into the website's `demo/` directory and change the video URLs back to `demo/tablaze-demo-hd.mp4`; copy `poster.png` as `poster-hd.png`. Set `release.json` to `"demo": true`. Generated videos, audio and frames are excluded from source packages. The current reproduction scripts are in this GitHub repository; downloadable website preview packages retain their labeled original build.
 
 Without narration configuration, the original silent WebM recipe remains available. `TABLAZE_DEMO_QUICK=1` is only for a short harness check and cannot be used with narrated publication. Do not present quick-mode output as the normal-speed website recording.
 
@@ -79,11 +70,7 @@ The underlying browser workflow passed on **2026-09-23 (Asia/Shanghai)**: 22 MCP
 
 本次正式录制通过：22 次 MCP 调用、八项浏览器检查、一份审批订单、一个内容匹配的 145 字节 CSV，零遗留会话。视频 154.104 秒，保留原来约 138.063 秒的讲解停留；v4 含约 96.984 秒的英语男声旁白，只替换声音与字幕，画面和章节不变。实际工具耗时合计 2,161.036 毫秒，不能作为模型执行能力或 Browser Use 的速度对比。
 
-v5 在原有讲解视频上叠加操作位置指引，AAC 语音数据保持逐包相同；视频画面因此重新编码，原始 MCP 记录、章节和工具耗时均未改动。旧引用被拒绝的一段只指向候选控件，没有模拟成功点击。
-
 [Complete trace](../docs/evidence/demo-run.json) · [34 website checks](../docs/evidence/demo-site-qa-v4.json) · [Decoded narration evidence](../docs/evidence/demo-narration-v4.json)
-
-[Cursor annotation evidence](../docs/evidence/demo-cursor-v5.json)
 
 The v4 media/player release passed 34 browser checks, including 2880×1800 video metadata, an actual decoded audio track, initially unmuted playback, keyboard sound control, eleven English cues and eleven Chinese subtitle cues, complete video decode and all seven chapter jumps. All eleven source clips and the final AAC are decoded and checked separately; the narration evidence includes the actual measurements and exact voice metadata. These checks establish audio in the file and player; local device volume is controlled by the viewer.
 

@@ -119,7 +119,6 @@ The separate [cross-origin authorization-return task](docs/CODEX_AUTH_RETURN_SMO
 | **Guarded actions** | Check snapshot revisions and DOM targets before input. Re-observe when a target changes. |
 | **Ordered batches** | Send up to 20 actions in one call, with completed, failed and skipped steps. Stops on error; earlier effects remain. |
 | **Explicit verification** | Check the resulting URL, title, text, field values, visibility and element counts. |
-| **Optional action cue** | Off by default. Use `--visual-pointer` (or `visualPointer: true`) for brief, non-intercepting target feedback. Mouse operations show a cursor icon; typing and scrolling show only a target ring. It does not depict the physical mouse path. |
 | **Optional response journal** | Use `--capture-network` to inspect bounded responses from owned pages and popups through a seventeenth MCP tool, [`tab_network`](docs/NETWORK.md). Off by default; not a programmable JS/CDP surface. |
 | **Optional navigation policy** | [Exact-origin allow/deny rules](docs/NAVIGATION_POLICY.md) for HTTP(S) document requests, including redirects, frames and popups, in owned isolated browsers. No external CDP; not a network firewall. |
 

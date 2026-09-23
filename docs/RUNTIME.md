@@ -4,7 +4,7 @@
 
 ## English
 
-This reference describes the current source, its 16 default MCP tools, one optional network-response tool and typed custom-tool SDK. The historical 0.1.0 archive and earlier validation reports cover an earlier capability set; identify the build by its commit and tool catalog. All recorded real Codex comparisons predate the custom-tool SDK, its bound recovery/context-key implementation and the network journal; those reports do not measure these additions' model performance. npm publication remains pending.
+This reference describes the current source, its 16 default MCP tools, one optional network-response tool, owned persistent profiles and typed custom-tool SDK. The historical 0.1.0 archive and earlier validation reports cover an earlier capability set; identify the build by its commit and tool catalog. All recorded real Codex comparisons predate the owned-profile increment; they do not measure its model performance. npm publication remains pending.
 
 ### Sessions and observations
 
@@ -43,8 +43,11 @@ Value verification accepts either a CSS selector or an observed ref with its cur
 | Managed Chromium | `setup` installs the browser matched to the locked Playwright version; startup never downloads it automatically. |
 | `--channel chrome` | Selects installed Chrome and launches separate browser resources. It does not attach to normal signed-in tabs. |
 | `--cdp-url` | Explicitly attaches to an existing Chromium endpoint and creates owned pages in its default context. Login and storage are shared with that profile. |
+| `--profile-dir` | Opt-in [owned persistent profile](PROFILES.md) with a private marker, required ID on reuse and exclusive lock. Browser-managed state survives restart; sessions, refs and Agent progress do not. |
 
 CDP cleanup closes owned pages and disconnects; it does not intentionally close unrelated tabs or terminate the external Chrome process. CDP uses Playwright's lower-fidelity attachment path. `doctor` checks configuration/executable availability, not a real browser launch or CDP connection.
+
+An owned profile is incompatible with external CDP, workspace/state import, CLI checkpoint/resume and document navigation policy. The profile ID binds a directory, not a website account or tenant. Verify active identity before sensitive writes. The profile directory contains credentials and is not encrypted by Tablaze.
 
 ### Results, data and current limits
 
@@ -96,7 +99,7 @@ CLI checkpoint JSON contains full Agent history and browser storage and is writt
 
 ## 简体中文
 
-本页描述当前源码默认的 16 个 MCP 工具、可选的第十七个[网络响应工具](NETWORK.md)与类型化自定义工具 SDK。历史 0.1.0 归档和早期验证报告覆盖较早的能力范围，请结合提交号与工具目录确认所用构建。已记录的真实 Codex 对照全部早于自定义工具 SDK、恢复绑定、contextKey 与网络日志，不代表这些新能力的模型表现。npm 尚未发布。
+本页描述当前源码默认的 16 个 MCP 工具、可选的第十七个[网络响应工具](NETWORK.md)、自有持久 profile 与类型化自定义工具 SDK。历史 0.1.0 归档和早期验证报告覆盖较早的能力范围，请结合提交号与工具目录确认所用构建。已记录的真实 Codex 对照全部早于持久 profile 增量，不代表该功能的模型表现。npm 尚未发布。
 
 ### 会话与观察
 
@@ -135,8 +138,11 @@ Agent CLI 将清理失败与原始 Agent 结果分开报告，能退出时返回
 | 管理的 Chromium | `setup` 安装与锁定 Playwright 版本匹配的浏览器；服务启动不会自动下载。 |
 | `--channel chrome` | 选择本机 Chrome 并启动独立浏览器资源，不接管日常已登录标签页。 |
 | `--cdp-url` | 显式连接既有 Chromium 端点，在默认上下文内创建自有页面，共享该 profile 的登录状态和存储。 |
+| `--profile-dir` | 可选[自有持久 profile](PROFILES.md)：目录有私有标记，重开时必须核对 ID，且拒绝并发占用。浏览器管理的状态可跨重启保存，会话、引用和 Agent 进度不会保留。 |
 
 CDP 清理只关闭自有页面并断开连接，不主动关闭无关标签页或终止外部 Chrome；该方式使用 Playwright 保真度较低的连接路径。`doctor` 检查配置及程序是否存在，不执行真实浏览器启动或 CDP 连接。
+
+自有持久 profile 不能与外部 CDP、工作区/存储导入、CLI 检查点/恢复或文档导航策略组合。profile ID 仅绑定目录，不证明网站当前账户或租户；敏感写入前仍需验证身份。目录包含凭据，Tablaze 不加密它。
 
 ### 返回结果、数据与当前限制
 

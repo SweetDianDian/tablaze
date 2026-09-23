@@ -239,7 +239,7 @@ Tablaze 跟踪自己创建的页面及其弹出页面；清理时只关闭这些
 | `UNSUPPORTED_FLOW` | 查看具体流程；原生对话框应提前调用 `tab_dialog`，重试前检查可能已发生的副作用。自有弹窗和下载有对应工具。 |
 | CDP 连接失败 | 在服务之外检查端点；错误信息有意省略端点详情。 |
 
-当前源码支持显式上传下载、自有弹窗、预设响应的原生对话框和视口坐标点击。封闭 Shadow DOM 仍不属于 DOM 观察范围，没有通用 eval 工具或完整的持久磁盘 profile。显式 workspace 恢复重建所保存的浏览器状态和 URL，不恢复正在运行的页面内存。快照角色和名称是精简 DOM 元数据，不是完整无障碍实现。具体边界见 [SECURITY.md](SECURITY.md)。
+当前源码支持显式上传下载、自有弹窗、预设响应的原生对话框、视口坐标点击，以及可选的[自有持久 Chrome profile](PROFILES.md)。封闭 Shadow DOM 仍不属于 DOM 观察范围，也没有通用 eval 工具。显式 workspace 恢复重建所保存的浏览器状态和 URL，不恢复正在运行的页面内存。快照角色和名称是精简 DOM 元数据，不是完整无障碍实现。具体边界见 [SECURITY.md](SECURITY.md)。
 
 `codex mcp remove tablaze` 移除配置中的服务条目，不会卸载源码或 tarball 安装目录。
 

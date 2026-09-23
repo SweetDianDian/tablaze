@@ -110,6 +110,7 @@ The separate [cross-origin authorization-return task](docs/CODEX_AUTH_RETURN_SMO
 | Capability | What it gives your agent |
 | --- | --- |
 | **Warm sessions** | Keep page state between calls. Temporary, isolated browser contexts by default; explicit CDP attachment for an existing profile. |
+| **Owned persistent profile** | Opt into a [dedicated private Chrome directory](docs/PROFILES.md) with a required profile ID on reuse and exclusive ownership. Browser-managed login state can survive a cold restart. |
 | **Compact observations** | Full or incremental snapshots with element refs, text budgets and visible truncation. |
 | **Guarded actions** | Check snapshot revisions and DOM targets before input. Re-observe when a target changes. |
 | **Ordered batches** | Send up to 20 actions in one call, with completed, failed and skipped steps. Stops on error; earlier effects remain. |

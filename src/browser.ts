@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { mkdtemp, realpath, stat, writeFile, chmod, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { basename, join } from 'node:path';
+import { basename, isAbsolute, join } from 'node:path';
 import { chromium, type Browser, type BrowserContext, type Download, type ElementHandle, type Frame, type JSHandle, type Page } from 'playwright';
 import { inspectDOM } from './snapshot.js';
 import { assembleDOMExtraction, inspectDOMField, validateDOMFieldPlan, type DOMFieldPlan, type DOMFieldObservation, type ExtractionSchema } from './extraction.js';
@@ -12,6 +12,7 @@ import { installSecretBridge, type SecretInputBridge } from './secret-input.js';
 import { projectSecretSnapshot, projectSecretExtraction, projectSecretText, redactSecretMetadata } from './secret-projection.js';
 import { prepareVisualPointer, showVisualPointer, pointForElement } from './visual-pointer.js';
 import { NetworkJournal, NetworkJournalError } from './network-journal.js';
+import { acquireOwnedProfile, type OwnedProfileLease } from './owned-profile.js';
 
 export class BrowserError extends Error {
   constructor(public readonly code: string, message: string) { super(message); this.name = 'BrowserError'; }
@@ -19,7 +20,7 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; visualPointer?: boolean; captureNetwork?: boolean }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; visualPointer?: boolean; captureNetwork?: boolean }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
 export interface FindTextOptions { text: string; frameId?: string; containerRef?: string; snapshotId?: string; maxScrolls?: number; timeoutMs?: number; signal?: AbortSignal }
 type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
@@ -82,6 +83,8 @@ export class BrowserEngine {
   private disposalWork?: Promise<void>;
   private ownedBrowserClosing?: Promise<void>;
   private ownedBrowserLaunch?: Promise<Browser>;
+  private profileContext?: BrowserContext;
+  private profileLease?: OwnedProfileLease;
   private timeout: number;
   private popupPolicy: PopupPolicy;
   private readonly navigationPolicy?: CompiledNavigationPolicy;
@@ -99,11 +102,16 @@ export class BrowserEngine {
   }
   constructor(private options: BrowserOptions = {}) {
     this.timeout = integer(options.timeoutMs, 10000, 100, 60000, 'timeoutMs');
+    if (options.profileDir !== undefined && (typeof options.profileDir !== 'string' || !isAbsolute(options.profileDir) || options.profileDir === '/')) throw new BrowserError('PROFILE_PATH_INVALID', 'profileDir must be a dedicated absolute directory.');
+    if (options.expectedProfileId !== undefined && (typeof options.expectedProfileId !== 'string' || !options.expectedProfileId)) throw new BrowserError('PROFILE_ID_MISMATCH', 'expectedProfileId must be a nonempty profile identifier.');
     if (options.popupPolicy !== undefined && !['stay', 'follow-single'].includes(options.popupPolicy)) throw new BrowserError('INVALID_ARGUMENT', 'popupPolicy must be stay or follow-single.');
     this.popupPolicy = options.popupPolicy ?? 'stay';
+    if (options.profileDir && options.cdpUrl) throw new BrowserError('PROFILE_CDP_UNSUPPORTED', 'An owned persistent profile cannot attach to an external CDP browser.');
+    if (options.expectedProfileId && !options.profileDir) throw new BrowserError('PROFILE_PATH_INVALID', 'expectedProfileId requires profileDir.');
     try { this.navigationPolicy = compileNavigationPolicy(options.navigationPolicy); }
     catch { throw new BrowserError('NAVIGATION_POLICY_INVALID', 'Invalid navigation policy configuration.'); }
     if (this.navigationPolicy && options.cdpUrl) throw new BrowserError('NAVIGATION_POLICY_CDP_UNSUPPORTED', 'Navigation policy requires an isolated browser owned by this engine.');
+    if (this.navigationPolicy && options.profileDir) throw new BrowserError('PROFILE_NAVIGATION_POLICY_UNSUPPORTED', 'A persistent profile may restore documents before the navigation guard starts. Use fresh isolated contexts for a navigation policy.');
     try { this.secretStore = compileSecretStore(options.secrets); }
     catch { throw new BrowserError('SECRET_CONFIG_INVALID', 'Invalid browser secret configuration.'); }
     if (this.secretStore && options.cdpUrl) throw new BrowserError('SECRET_CDP_UNSUPPORTED', 'Browser secrets require an isolated browser owned by this engine.');
@@ -145,6 +153,21 @@ export class BrowserEngine {
     if (!this.browserPromise) {
       const launch = this.options.cdpUrl
         ? chromium.connectOverCDP(this.options.cdpUrl, { timeout: 30000 })
+        : this.options.profileDir
+          ? acquireOwnedProfile(this.options.profileDir, this.options.expectedProfileId).then(async lease => {
+            this.profileLease = lease;
+            try {
+              const context = await chromium.launchPersistentContext(lease.directory, { headless: this.options.headless ?? true, channel: this.options.channel, executablePath: this.options.executablePath, timeout: 30000, viewport: { width: 1280, height: 800 }, acceptDownloads: true });
+              this.profileContext = context;
+              const browser = context.browser();
+              if (!browser) { await context.close(); throw new BrowserError('BROWSER_LAUNCH_FAILED', 'The persistent Chrome context has no browser connection.'); }
+              return browser;
+            } catch (error) {
+              await lease.release();
+              if (this.profileLease === lease) this.profileLease = undefined;
+              throw error;
+            }
+          })
         : chromium.launch({ headless: this.options.headless ?? true, channel: this.options.channel, executablePath: this.options.executablePath, timeout: 30000, ...(this.navigationPolicy ? { args: ['--remote-debugging-port=0', '--enable-automation'] } : {}) });
       if (!this.options.cdpUrl) {
         this.ownedBrowserLaunch = launch;
@@ -157,11 +180,14 @@ export class BrowserEngine {
         }
         browser.once('disconnected', () => {
           if (this.browserPromise === pending) this.browserPromise = undefined;
+          if (this.options.profileDir) {
+            this.profileContext = undefined;
+          }
           const guard = this.navigationGuards.get(browser);
           if (guard) void guard.close().finally(() => this.navigationGuards.delete(browser)).catch(() => { this.cleanupFailed = true; });
         });
         return browser;
-      }).catch(error => { if (this.browserPromise === pending) this.browserPromise = undefined; if (error instanceof BrowserError) throw error; throw new BrowserError('BROWSER_LAUNCH_FAILED', this.options.cdpUrl ? 'Could not connect to the configured CDP endpoint. Check reachability and Chrome remote debugging; endpoint details are omitted.' : errorInfo(error).message); });
+      }).catch(error => { if (this.browserPromise === pending) this.browserPromise = undefined; if (error instanceof BrowserError) throw error; throw new BrowserError('BROWSER_LAUNCH_FAILED', this.options.cdpUrl ? 'Could not connect to the configured CDP endpoint. Check reachability and Chrome remote debugging; endpoint details are omitted.' : this.options.profileDir ? 'Could not launch the dedicated Chrome profile. Check the browser executable and profile ownership; directory details are omitted.' : errorInfo(error).message); });
       this.browserPromise = pending;
     }
     return this.browserPromise;
@@ -275,7 +301,7 @@ export class BrowserEngine {
     return operation;
   }
   private async openInternal(url: string, options: { storageState?: string | StorageState; signal?: AbortSignal }): Promise<Record<string, unknown>> {
-    const ownsContext = !this.options.cdpUrl;
+    const ownsContext = !this.options.cdpUrl && !this.options.profileDir;
     let context: BrowserContext | undefined, page: Page | undefined, session: Session | undefined;
     let navigationGuard: NavigationGuard | undefined;
     let attemptCleanup: Promise<void> | undefined;
@@ -336,13 +362,15 @@ export class BrowserEngine {
     try {
       check();
       this.assertNavigationAllowed(url, true);
-      if (options.storageState && this.options.cdpUrl) throw new BrowserError('INVALID_ARGUMENT', 'Storage state import requires an isolated context.');
+      if (options.storageState && (this.options.cdpUrl || this.options.profileDir)) throw new BrowserError('INVALID_ARGUMENT', 'Storage state import requires a fresh isolated context, not an attached or persistent profile.');
       if (typeof options.storageState === 'string' && (await phase(stat(options.storageState))).size > 10 * 1024 * 1024) throw new BrowserError('STATE_TOO_LARGE', 'Storage state exceeds 10 MiB.');
       const browser = await phase(this.browser());
       navigationGuard = this.navigationGuards.get(browser);
       this.assertNavigationGuard(navigationGuard);
       check();
-      context = ownsContext
+      context = this.options.profileDir
+        ? this.profileContext
+        : ownsContext
         ? await phase(browser.newContext({ viewport: { width: 1280, height: 800 }, acceptDownloads: true, storageState: options.storageState, ...(this.navigationPolicy ? { serviceWorkers: 'block' as const } : {}) }), value => { context = value; }, value => value.close())
         : browser.contexts()[0];
       if (!context) throw new BrowserError('CDP_CONTEXT_MISSING', 'The attached browser has no default context.');
@@ -367,7 +395,7 @@ export class BrowserEngine {
       this.assertNavigationGuard(navigationGuard);
       this.sessions.set(session.id, session);
       this.openingSessions.delete(session);
-      return { ...snapshot, session_mode: ownsContext ? 'isolated' : 'attached_profile' };
+      return { ...snapshot, session_mode: this.options.profileDir ? 'persistent_profile' : ownsContext ? 'isolated' : 'attached_profile', ...(this.profileLease ? { profile_id: this.profileLease.id } : {}) };
     } catch (error) {
       const failure = interruption ?? this.navigationGuardFailure(navigationGuard) ?? (error instanceof BrowserError ? error : session && this.blockedNavigations(session) > 0 ? new BrowserError('NAVIGATION_BLOCKED', 'Navigation was blocked by the configured policy.') : new BrowserError('NAVIGATION_FAILED', errorInfo(error).message));
       // Cancellation returns promptly even when a close RPC is stuck. Disposal
@@ -555,7 +583,7 @@ export class BrowserEngine {
     return { version: 1, popupPolicy: this.popupPolicy, ...(this.navigationPolicy ? { navigationPolicyHash: this.navigationPolicy.hash } : {}), ...(this.secretStore ? { secretPolicyHash: this.secretStore.hash } : {}), sessions };
   }
   async restoreWorkspace(input: unknown): Promise<{ sessionMap: Record<string, string>; snapshots: Record<string, unknown>[] }> {
-    if (this.options.cdpUrl) throw new BrowserError('INVALID_ARGUMENT', 'Workspace restoration requires isolated contexts.');
+    if (this.options.cdpUrl || this.options.profileDir) throw new BrowserError('INVALID_ARGUMENT', 'Workspace restoration requires fresh isolated contexts.');
     if (this.disposed || this.sessions.size || this.opening.size) throw new BrowserError('INVALID_ARGUMENT', 'Restore into a new, empty browser engine.');
     const workspace = input as BrowserWorkspace;
     if (!workspace || workspace.version !== 1 || !Array.isArray(workspace.sessions) || workspace.sessions.length > 20 || Buffer.byteLength(JSON.stringify(workspace)) > 10 * 1024 * 1024) throw new BrowserError('INVALID_ARGUMENT', 'Invalid or oversized browser workspace.');
@@ -1258,7 +1286,7 @@ export class BrowserEngine {
       return { buffer, mimeType: 'image/jpeg', url: this.secretText(page.url(), 4000), tabId, viewport, coordinateSpace: fullPage ? 'document-css' : 'viewport-css' };
     });
   }
-  list(): Record<string, unknown>[] { return [...this.sessions.values()].filter(session => !session.closed && !session.page.isClosed()).map(session => ({ session_id: session.id, url: this.secretText(session.page.url(), 4000), snapshot_id: session.snapshot?.id ?? null, tab_id: session.activeTabId, tab_count: session.tabs.size, session_mode: session.ownsContext ? 'isolated' : 'attached_profile' })); }
+  list(): Record<string, unknown>[] { return [...this.sessions.values()].filter(session => !session.closed && !session.page.isClosed()).map(session => ({ session_id: session.id, url: this.secretText(session.page.url(), 4000), snapshot_id: session.snapshot?.id ?? null, tab_id: session.activeTabId, tab_count: session.tabs.size, session_mode: this.options.profileDir ? 'persistent_profile' : session.ownsContext ? 'isolated' : 'attached_profile', ...(this.profileLease ? { profile_id: this.profileLease.id } : {}) })); }
   private cleanup(session: Session): Promise<void> {
     for (const lease of this.bindings) if (lease.sessionId === session.id) lease.invalidate(this.disposed ? 'ENGINE_CLOSED' : 'BINDING_STALE');
     if (!session.cleanup) {
@@ -1298,7 +1326,15 @@ export class BrowserEngine {
           void Promise.allSettled(alreadyClosing).then(() => { clearTimeout(timer); resolve(); });
         });
         const browser = await (ownedBrowserLaunch ?? browserPromise)?.catch(() => undefined);
-        if (browser) await browser.close().catch(() => { this.cleanupFailed = true; });
+        let closed = !browser;
+        if (browser) {
+          try { await browser.close(); closed = true; }
+          catch { this.cleanupFailed = true; }
+        }
+        if (this.profileLease) {
+          if (closed) await this.profileLease.release().catch(() => { this.cleanupFailed = true; });
+          else this.cleanupFailed = true;
+        }
       })();
       for (const cancel of this.cancelOpening) cancel();
       this.disposalWork = (async () => {

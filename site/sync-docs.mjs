@@ -13,6 +13,7 @@ const publicGuides = new Map([
   ['docs/NAVIGATION_POLICY.md', 'NAVIGATION_POLICY.md'],
   ['docs/NAVIGATION_POLICY_VALIDATION.md', 'NAVIGATION_POLICY_VALIDATION.md'],
   ['docs/NETWORK.md', 'NETWORK.md'],
+  ['docs/PROFILES.md', 'PROFILES.md'],
   ['docs/CODEX_NETWORK_RECEIPT_SMOKE.md', 'CODEX_NETWORK_RECEIPT_SMOKE.md'],
   ['docs/CODEX.md', 'CODEX.md'],
   ['docs/CODEX.zh-CN.md', 'CODEX.zh-CN.md'],
@@ -34,7 +35,7 @@ for (const [source, target] of publicGuides) {
 }
 for (const name of ['CODEX_COMPARISON_RESULTS_V3.md', 'CODEX_TERMINAL_FOLLOWUP.md', 'CODEX_PROVIDER_SMOKE.md', 'CODEX_VIRTUAL_LIST_SMOKE.md', 'CODEX_AUTH_RETURN_SMOKE.md', 'CODEX_NATIVE_MCP_SMOKE.md', 'CODEX_MCP_VARIANTS_V2.md']) await copyFile(join(root, 'docs', name), join(site, name));
 for (const name of [
-  'development-tests.txt', 'development-tests-2026-09-23.txt', 'development-tests-auth-return.txt', 'development-validation.json',
+  'development-tests.txt', 'development-tests-2026-09-23.txt', 'development-tests-auth-return.txt', 'development-tests-profile.txt', 'development-validation.json',
   'navigation-policy-probe-v1.json', 'codex-provider-smoke-v1.json', 'codex-e2e.json', 'codex-matched-smoke-v3.json',
   'codex-matched-smoke-v3-analysis.json', 'codex-terminal-followup-v1.json', 'codex-terminal-followup-v1-analysis.json',
   'codex-virtual-list-smoke-v1.json', 'codex-auth-return-smoke-v1.json', 'native-mcp-preflight-v1.json',
@@ -52,5 +53,6 @@ for (const name of [
   'native-mcp-network-browser-use-cli-mcp.jsonl', 'native-mcp-network-browser-use-mcp.jsonl',
   'native-mcp-network-browser-use-mcp-full-attempt1.jsonl', 'native-mcp-network-browser-use-mcp-full-attempt2.jsonl',
   'network-receipt-direct-runner-v1.mjs', 'development-tests-network-receipt.txt',
+  'owned-profile-validation.json',
 ]) await copyFile(join(root, 'docs/evidence', name), join(site, 'evidence', name));
 console.log('Synchronized public guides, comparison reports, and their fixed evidence files. Historical benchmark.json is unchanged.');

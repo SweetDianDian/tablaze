@@ -1,0 +1,41 @@
+{
+  "kind": "owned-persistent-profile-local-validation-v1",
+  "date": "2026-09-23",
+  "baseHead": "e05ea51e993094ca26627f1b65ccc92cc40dcc23",
+  "environment": {
+    "node": "v25.9.0",
+    "chrome": "153.0.8010.53",
+    "browserChannel": "chrome",
+    "platform": "macOS"
+  },
+  "command": "TABLAZE_BROWSER_CHANNEL=chrome npm test",
+  "result": {
+    "exitCode": 0,
+    "tests": 447,
+    "passed": 447,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 193209.648708
+  },
+  "log": {
+    "path": "development-tests-profile.txt",
+    "sha256": "512755f93cc3e949dbca1dc0a3f035576a0a182794cedfdf59c08c04053eb665"
+  },
+  "sourceFilesSha256": {
+    "src/browser.ts": "65a756e644da02f8773cec84389682ac96523f58489e68c92ef894ddf1de5bc6",
+    "src/cli.ts": "b8781973b8528b31cc23d88ccca5f2c2aaaeb7a2186f2c09297edfe26dd7b5b8",
+    "src/owned-profile.ts": "e803b21ed98201775224c079477fe6d911ce2f48529f7d6346f12e9ca9ba3e12",
+    "tests/owned-profile.test.mjs": "e445cf970423a96ae3e268a8812ca6fd439a91af3f867ad737cbc358ef94a031",
+    "dist/browser.js": "4f50ec30695ed26dcc70297865949175d70c171509a91469c5ea8ed7702586ef",
+    "dist/cli.js": "3939ac6d25f17e094e8c5d6da3122056b9ff6cede05bb4069041202c255da032",
+    "dist/owned-profile.js": "14337b9803995ab53f2b5b3018d3865f7f840d3894aad77e23c8361029dd6669"
+  },
+  "scope": "Real local Chrome: cold Tablaze process restart, durable cookie/localStorage/IndexedDB, stdio MCP, directory ID and lock, unrelated profile refusal, failed launch cleanup. No Browser Use or production OAuth attempt.",
+  "packageDryRun": {
+    "command": "npm_config_cache=/private/tmp/tablaze-npm-cache npm pack --dry-run --json",
+    "entryCount": 276,
+    "includesDistOwnedProfile": true,
+    "includesProfileGuide": true
+  }
+}

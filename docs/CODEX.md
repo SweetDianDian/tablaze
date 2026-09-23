@@ -239,7 +239,7 @@ Tablaze tracks the pages it creates and their popups. Normal cleanup closes thos
 | `UNSUPPORTED_FLOW` | Inspect the reported flow; arm `tab_dialog` before a native dialog and inspect possible effects before retrying. Owned popups and downloads have dedicated tools. |
 | CDP cannot connect | Confirm the endpoint independently. Tablaze intentionally omits endpoint details from connection errors. |
 
-Current source supports explicit uploads and downloads, owned popups, armed native dialogs, and viewport coordinate clicks. Closed shadow roots remain outside DOM observation; no generic eval tool or complete persistent disk profile is provided. Explicit workspace restoration rebuilds selected browser state and URLs, not live page memory. Snapshot role/name heuristics are compact DOM metadata, not a full accessibility implementation. Read [SECURITY.md](../SECURITY.md) for the implemented redaction and isolation boundaries.
+Current source supports explicit uploads and downloads, owned popups, armed native dialogs, viewport coordinate clicks and an opt-in [owned persistent Chrome profile](PROFILES.md). Closed shadow roots remain outside DOM observation and no generic eval tool is provided. Explicit workspace restoration rebuilds selected browser state and URLs, not live page memory. Snapshot role/name heuristics are compact DOM metadata, not a full accessibility implementation. Read [SECURITY.md](../SECURITY.md) for the implemented redaction and isolation boundaries.
 
 To remove this integration, `codex mcp remove tablaze` removes the configured server entry. It does not uninstall your source checkout or tarball installation.
 

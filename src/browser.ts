@@ -22,9 +22,9 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; devicePreset?: DevicePreset; viewport?: { width: number; height: number }; screen?: { width: number; height: number }; deviceScaleFactor?: number; userAgent?: string; locale?: string; timezoneId?: string; isMobile?: boolean; hasTouch?: boolean; permissions?: string[]; proxy?: { server: string; bypass?: string; username?: string; password?: string }; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; captureNetwork?: boolean; recordVideo?: boolean; recordHar?: boolean; recordTrace?: boolean; allowPageScript?: boolean }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; devicePreset?: DevicePreset; viewport?: { width: number; height: number }; screen?: { width: number; height: number }; deviceScaleFactor?: number; userAgent?: string; locale?: string; timezoneId?: string; isMobile?: boolean; hasTouch?: boolean; permissions?: string[]; proxy?: { server: string; bypass?: string; username?: string; password?: string }; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; captureNetwork?: boolean; recordVideo?: boolean; recordHar?: boolean; recordHarContent?: 'omit' | 'embed' | 'attach'; recordHarMode?: 'full' | 'minimal'; recordTrace?: boolean; allowPageScript?: boolean }
 export interface BrowserRecording { session_id: string; tab_id: string; path: string; bytes: number; mime_type: 'video/webm'; sha256: string }
-export interface BrowserDiagnosticArtifact { session_id: string; kind: 'har' | 'trace'; path: string; bytes: number; mime_type: 'application/json' | 'application/zip'; sha256: string }
+export interface BrowserDiagnosticArtifact { session_id: string; kind: 'har' | 'trace'; path: string; bytes: number; mime_type: 'application/json' | 'application/zip'; sha256: string; content_mode?: 'omit' | 'embed' | 'attach'; har_mode?: 'full' | 'minimal' }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
 export interface FindTextOptions { text: string; frameId?: string; containerRef?: string; snapshotId?: string; maxScrolls?: number; timeoutMs?: number; signal?: AbortSignal }
 type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
@@ -129,6 +129,8 @@ export class BrowserEngine {
     }
     if (options.recordVideo !== undefined && typeof options.recordVideo !== 'boolean') throw new BrowserError('INVALID_ARGUMENT', 'recordVideo must be a boolean.');
     if (options.recordHar !== undefined && typeof options.recordHar !== 'boolean' || options.recordTrace !== undefined && typeof options.recordTrace !== 'boolean') throw new BrowserError('INVALID_ARGUMENT', 'recordHar and recordTrace must be booleans.');
+    if (options.recordHarContent !== undefined && !['omit', 'embed', 'attach'].includes(options.recordHarContent) || options.recordHarMode !== undefined && !['full', 'minimal'].includes(options.recordHarMode)) throw new BrowserError('INVALID_ARGUMENT', 'Invalid HAR content or recording mode.');
+    if ((options.recordHarContent !== undefined || options.recordHarMode !== undefined) && options.recordHar !== true) throw new BrowserError('INVALID_ARGUMENT', 'HAR modes require recordHar: true.');
     if (options.profileDir !== undefined && (typeof options.profileDir !== 'string' || !isAbsolute(options.profileDir) || options.profileDir === '/')) throw new BrowserError('PROFILE_PATH_INVALID', 'profileDir must be a dedicated absolute directory.');
     if (options.expectedProfileId !== undefined && (typeof options.expectedProfileId !== 'string' || !options.expectedProfileId)) throw new BrowserError('PROFILE_ID_MISMATCH', 'expectedProfileId must be a nonempty profile identifier.');
     if (options.popupPolicy !== undefined && !['stay', 'follow-single'].includes(options.popupPolicy)) throw new BrowserError('INVALID_ARGUMENT', 'popupPolicy must be stay or follow-single.');
@@ -401,12 +403,12 @@ export class BrowserEngine {
       navigationGuard = this.navigationGuards.get(browser);
       this.assertNavigationGuard(navigationGuard);
       check();
-      if (this.options.recordHar) harPath = join(await phase(this.artifacts()), `${randomUUID()}.har`);
+      if (this.options.recordHar) harPath = join(await phase(this.artifacts()), `${randomUUID()}.${this.options.recordHarContent === 'attach' ? 'zip' : 'har'}`);
       if (this.options.recordTrace) tracePath = join(await phase(this.artifacts()), `${randomUUID()}.trace.zip`);
       context = this.options.profileDir
         ? this.profileContext
         : ownsContext
-        ? await phase(browser.newContext({ viewport: this.options.viewport ?? { width: 1280, height: 800 }, screen: this.options.screen, deviceScaleFactor: this.options.deviceScaleFactor, userAgent: this.options.userAgent, locale: this.options.locale, timezoneId: this.options.timezoneId, isMobile: this.options.isMobile, hasTouch: this.options.hasTouch, permissions: this.options.permissions, proxy: this.options.proxy, acceptDownloads: true, storageState: options.storageState, ...(this.navigationPolicy ? { serviceWorkers: 'block' as const } : {}), ...(this.options.recordVideo ? { recordVideo: { dir: await this.artifacts(), size: this.options.viewport ?? { width: 1280, height: 800 } } } : {}), ...(harPath ? { recordHar: { path: harPath, content: 'omit' as const, mode: 'full' as const } } : {}) }), value => { context = value; }, value => value.close())
+        ? await phase(browser.newContext({ viewport: this.options.viewport ?? { width: 1280, height: 800 }, screen: this.options.screen, deviceScaleFactor: this.options.deviceScaleFactor, userAgent: this.options.userAgent, locale: this.options.locale, timezoneId: this.options.timezoneId, isMobile: this.options.isMobile, hasTouch: this.options.hasTouch, permissions: this.options.permissions, proxy: this.options.proxy, acceptDownloads: true, storageState: options.storageState, ...(this.navigationPolicy ? { serviceWorkers: 'block' as const } : {}), ...(this.options.recordVideo ? { recordVideo: { dir: await this.artifacts(), size: this.options.viewport ?? { width: 1280, height: 800 } } } : {}), ...(harPath ? { recordHar: { path: harPath, content: this.options.recordHarContent ?? 'omit', mode: this.options.recordHarMode ?? 'full' } } : {}) }), value => { context = value; }, value => value.close())
         : browser.contexts()[0];
       if (!context) throw new BrowserError('CDP_CONTEXT_MISSING', 'The attached browser has no default context.');
       check();
@@ -1488,7 +1490,7 @@ export class BrowserEngine {
       await chmod(path, 0o600);
       const digest = createHash('sha256');
       for await (const chunk of createReadStream(path)) digest.update(chunk);
-      const artifact: BrowserDiagnosticArtifact = { session_id: session.id, kind, path, bytes: metadata.size, mime_type: kind === 'har' ? 'application/json' : 'application/zip', sha256: digest.digest('hex') };
+      const artifact: BrowserDiagnosticArtifact = { session_id: session.id, kind, path, bytes: metadata.size, mime_type: kind === 'har' && this.options.recordHarContent !== 'attach' ? 'application/json' : 'application/zip', sha256: digest.digest('hex'), ...(kind === 'har' ? { content_mode: this.options.recordHarContent ?? 'omit', har_mode: this.options.recordHarMode ?? 'full' } : {}) };
       session.diagnostics.push(artifact);
       this.completedDiagnostics.push(artifact);
     }

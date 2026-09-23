@@ -111,6 +111,41 @@ test('run CLI completes a scripted model task through real Chrome and prints a b
   assert.match(child.stderr, /planning step 4/);
 });
 
+test('CLI passes a final schema to the model and returns only corrected verified data', { timeout: 30_000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'tablaze-output-schema-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const schemaPath = join(directory, 'receipt.schema.json');
+  const schema = { type: 'object', properties: { title: { type: 'string', const: 'Agent CLI fixture' } }, required: ['title'], additionalProperties: false };
+  await writeFile(schemaPath, JSON.stringify(schema));
+  let sessionId, verificationId;
+  const service = await fixture(t, (body, step) => {
+    const finish = body.tools.find(item => item.function.name === 'agent_finish').function.parameters;
+    assert.ok(finish.required.includes('data'));
+    assert.deepEqual(finish.properties.data, schema);
+    if (step === 1) return { name: 'tab_open', arguments: { url: `${service.url}/form` } };
+    const previous = latest(body);
+    if (step === 2) {
+      sessionId = previous.structuredContent.session_id;
+      return { name: 'tab_verify', arguments: { session_id: sessionId, checks: [{ kind: 'title', contains: 'Agent CLI fixture' }] } };
+    }
+    if (step === 3) {
+      verificationId = previous.toolCallId;
+      return { name: 'agent_finish', arguments: { summary: 'Title checked.', evidence: [verificationId], data: { title: 'invented title' } } };
+    }
+    assert.equal(step, 4);
+    assert.ok(body.messages.some(item => typeof item.content === 'string' && item.content.includes('FINAL_OUTPUT_INVALID')));
+    return { name: 'agent_finish', arguments: { summary: 'Title checked.', evidence: [verificationId], data: { title: 'Agent CLI fixture' } } };
+  });
+  const child = await launch(['run', '--task', 'Return the verified page title.', '--model', 'scripted-cli-fixture', '--endpoint', service.endpoint, '--channel', process.env.TABLAZE_BROWSER_CHANNEL || 'chrome', '--output-schema', schemaPath, '--max-steps', '4']);
+  assert.deepEqual(service.errors, [], service.errors.map(error => error.message).join('\n'));
+  assert.equal(child.code, 0, child.stderr + child.stdout);
+  const report = JSON.parse(child.stdout);
+  assert.equal(report.status, 'succeeded');
+  assert.deepEqual(report.data, { title: 'Agent CLI fixture' });
+  assert.equal(report.verification[0].tool_call_id, verificationId);
+  assert.equal(report.verification[0].session_id, sessionId);
+});
+
 test('run CLI returns human input with exit 2 and an explicit failure with exit 1', { timeout: 30_000 }, async t => {
   for (const kind of ['human_input', 'failure']) {
     const service = await fixture(t, () => kind === 'human_input'
@@ -146,7 +181,7 @@ test('run CLI does not accept an unverified model completion and enforces the st
 });
 
 test('CLI rejects agent-only options outside run and validates required arguments and limits', { timeout: 30_000 }, async () => {
-  for (const [flag, value] of [['--task', 'x'], ['--model', 'fixture'], ['--endpoint', 'http://localhost/fixture'], ['--api-key-env', 'TEST_KEY'], ['--max-steps', '1'], ['--max-calls', '1'], ['--run-timeout-ms', '1000']]) {
+  for (const [flag, value] of [['--task', 'x'], ['--model', 'fixture'], ['--endpoint', 'http://localhost/fixture'], ['--api-key-env', 'TEST_KEY'], ['--max-steps', '1'], ['--max-calls', '1'], ['--output-schema', '/tmp/schema.json'], ['--run-timeout-ms', '1000']]) {
     const child = await launch(['doctor', flag, value]);
     assert.equal(child.code, 1, flag);
     assert.equal(child.stdout, '', flag);
@@ -161,6 +196,31 @@ test('CLI rejects agent-only options outside run and validates required argument
     assert.equal(child.stdout, '', flag);
     assert.ok(child.stderr.includes(flag), flag);
   }
+});
+
+test('CLI rejects invalid or changed final schema before restoring a browser', { timeout: 30_000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'tablaze-schema-resume-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const schemaPath = join(directory, 'schema.json');
+  await writeFile(schemaPath, JSON.stringify({ $ref: 'https://untrusted.example/schema.json' }));
+  const base = ['run', '--task', 'Resume typed output.', '--model', 'scripted-cli-fixture', '--endpoint', 'http://127.0.0.1:1/unused'];
+  const invalid = await launch([...base, '--output-schema', schemaPath]);
+  assert.equal(invalid.code, 1);
+  assert.match(invalid.stderr, /--output-schema/);
+  assert.equal(invalid.stdout, '');
+  const schema = { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] };
+  await writeFile(schemaPath, JSON.stringify(schema));
+  const saved = await runAgent({ task: 'Resume typed output.', finalOutputSchema: schema, tools: { listTools: async () => [], callTool: async () => { throw new Error('unused'); } }, planner: async () => ({ type: 'human_input', question: 'Which ID?' }) });
+  const checkpoint = join(directory, 'run.json');
+  await writeFile(checkpoint, JSON.stringify({ version: 1, savedAt: new Date().toISOString(), agent: saved.checkpoint, browser: { version: 1, sessions: [] } }));
+  const missing = await launch(['run', '--resume', checkpoint, '--model', 'scripted-cli-fixture', '--endpoint', 'http://127.0.0.1:1/unused']);
+  assert.equal(missing.code, 1);
+  assert.match(missing.stderr, /original --output-schema/);
+  await writeFile(schemaPath, JSON.stringify({ type: 'string' }));
+  const changed = await launch(['run', '--resume', checkpoint, '--model', 'scripted-cli-fixture', '--endpoint', 'http://127.0.0.1:1/unused', '--output-schema', schemaPath]);
+  assert.equal(changed.code, 1);
+  assert.match(changed.stderr, /original --output-schema/);
+  assert.equal(changed.stdout, '');
 });
 
 async function preload(t, body) {

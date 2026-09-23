@@ -80,7 +80,7 @@ test('typed backend write, actual browser receipt, and Agent verification comple
   assert.equal(site.records.A[0].callId, result.history.find(message => message.role === 'tool' && message.name === 'reserve_stock').toolCallId);
   assert.equal(result.evidence.length, 1);
   assert.ok(result.checkpoint.executionIdentity);
-  assert.equal(parseAgentCheckpoint(result.checkpoint).schemaVersion, 3);
+  assert.equal(parseAgentCheckpoint(result.checkpoint).schemaVersion, 4);
   for (const text of [...plannerInputs, JSON.stringify(result)]) {
     assert.equal(text.includes(secret), false); assert.equal(text.includes('principal:fixture/tenant:'), false);
   }

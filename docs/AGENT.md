@@ -30,6 +30,20 @@ node dist/cli.js run --provider codex --model "<your-codex-model>" \
   --task "<authorized task>" --channel chrome
 ```
 
+To require a machine-readable deliverable, pass a local draft-7 JSON Schema file to `--output-schema`:
+
+```json
+{"type":"object","properties":{"title":{"type":"string"}},"required":["title"],"additionalProperties":false}
+```
+
+```sh
+node dist/cli.js run --provider codex --model "<your-codex-model>" \
+  --task "Read and verify the page title." --start-url https://example.com \
+  --output-schema ./title.schema.json --channel chrome
+```
+
+The file must be a regular UTF-8 JSON file of at most 64 KiB. Final `data` must be JSON-safe, at most 2 MiB, and pass the supplied schema; otherwise the Agent asks the model to correct it and cannot report success. The result and successful CLI JSON report include `data`. Schema validity only checks shape and types: browser `tab_verify` evidence and an optional application `validateCompletion` hook still determine whether the claimed values satisfy the task. Treat final data as potentially sensitive page data. The schema digest is saved in checkpoints; resume requires the same schema file and rejects a different schema before browser restoration.
+
 Anthropic's `--max-output-tokens` maps to `max_tokens` and defaults to 4096. Ollama sends `options.num_predict` only when the flag is supplied. Codex's `--codex-command` defaults to `codex`; `--reasoning-effort` is optional and must be supported by the selected model/CLI. Inapplicable provider flags are rejected. These settings are independent of byte, time, and tool-call budgets. No adapter silently substitutes a model.
 
 If cleanup fails after the Agent returns, the CLI reports `status: "failed"`, preserves the original result in `agent_status` and `agent_reason`, and adds `cleanup: { status: "incomplete", code, message }`. Verification evidence is retained; a cleanup error does not erase a verified business result or count as successful disposal. Cleanup errors also appear on stderr, including when browser restoration was interrupted before an Agent result existed. Browser disposal reports `CLEANUP_INCOMPLETE` when cleanup cannot be confirmed within two seconds. An attached CDP connection may remain alive to clean up a late owned page, so this bounded result does not guarantee that the CLI process has exited. See [runtime cancellation and ownership](RUNTIME.md) for the resource boundary.
@@ -38,7 +52,7 @@ If cleanup fails after the Agent returns, the CLI reports `status: "failed"`, pr
 
 `--popup-policy stay|follow-single` is a browser option available to both stdio MCP and `run`; `stay` is the default. The library equivalent is `createServer({ popupPolicy: "follow-single" })`. Following considers a unique new popup from the acted-on owned page during a bounded observation window. After a switch, the action returns a fresh snapshot and `replan_required: true`; remaining actions and later tools in that decision are skipped. `ok: true` can describe the completed action while `batch_complete: false` identifies skipped actions. Plan from the new snapshot and still verify the business outcome. Popup association within this window does not establish that an asynchronous business operation has completed; a later observation or bounded verification may be needed.
 
-The default CLI report excludes raw task prompts, tool arguments, and conversation history. It includes the model's terminal summary/question and verification check results, which can themselves contain page data; it is **not** a redacted export. The CLI applies the default mechanical verification gate. Use the programmatic `validateCompletion` hook below when exact task-specific acceptance rules are required.
+The default CLI report excludes raw task prompts, tool arguments, and conversation history. It includes the model's terminal summary/question, optional schema-validated final data, and verification check results, which can themselves contain page data; it is **not** a redacted export. The CLI applies the default mechanical verification gate. Use the programmatic `validateCompletion` hook below when exact task-specific acceptance rules are required.
 
 ```ts
 import {
@@ -89,7 +103,7 @@ The application supplies the task and retains responsibility for authorization. 
 
 ## Provider-independent planning
 
-An `AgentPlanner` receives `{ task, messages, tools, step, signal }`. `tools` is the discovered public catalog, including JSON input/output schemas and annotations. A standard MCP client discovers it once per invocation; the optional bound execution interface below refreshes it for each decision. The `messages` contain actual results, `isError`, structured output, and image blocks. Implement a planner using any model/provider or a deterministic policy:
+An `AgentPlanner` receives `{ task, messages, tools, step, signal, finalOutputSchema? }`. `tools` is the discovered public catalog, including JSON input/output schemas and annotations. A standard MCP client discovers it once per invocation; the optional bound execution interface below refreshes it for each decision. The `messages` contain actual results, `isError`, structured output, and image blocks. Implement a planner using any model/provider or a deterministic policy:
 
 ```ts
 const planner = async ({ messages, tools, signal }) => {
@@ -106,7 +120,7 @@ Supported decisions:
 | Decision | Fields | Effect |
 | --- | --- | --- |
 | `tools` | `calls: [{ name, arguments }]` | Execute 1–20 calls sequentially. |
-| `finish` | `summary`, `evidence: [toolCallId]` | Request completion with actual verification evidence. |
+| `finish` | `summary`, `evidence: [toolCallId]`, optional `data` | Request completion with actual verification evidence and, when configured, schema-valid JSON data. |
 | `human_input` | `question` | Return `needs_input`; no further actions execute. |
 | `fail` | `reason` | Return `failed`; no further actions execute. |
 
@@ -154,7 +168,7 @@ The agent instructions favor the latest snapshot already returned by a tool, inc
 
 New mutations invalidate earlier verification. The final cited evidence must include the session of the latest mutation when that session is available. A successful `tab_close` is treated as cleanup, allowing verify–close–finish. A failed close invalidates prior evidence because its effects are uncertain. Tools without `readOnlyHint: true` are conservatively treated as mutations. This global invalidation can require repeating checks during workflows involving multiple sessions; it does not establish a business transaction across those sessions.
 
-These mechanical checks do **not** prove that a model selected assertions covering every part of the user's request. For example, the presence of a page title does not prove an invoice was submitted. Use `validateCompletion` to require task-specific checks and outcomes. It receives `{ task, summary, evidence, history }`; return `true` to accept, `false` or a corrective string to replan. The default does not infer business semantics or establish a comparative task success rate.
+These mechanical checks do **not** prove that a model selected assertions covering every part of the user's request. For example, the presence of a page title does not prove an invoice was submitted. Use `finalOutputSchema` on `runAgent` to require JSON data and `validateCompletion` to require task-specific checks and outcomes. The hook receives `{ task, summary, data?, evidence, history }`; return `true` to accept, `false` or a corrective string to replan. The default does not infer business semantics or establish a comparative task success rate.
 
 Any MCP `isError: true` or structured `ok: false` stops the current tool-call batch. Later calls in that batch are recorded as skipped. Ordinary reported failures return to the planner; a stale reference requires a new observation. If a mutating tool throws or returns a malformed result, its effects are unknown: the runner stops with `needs_input` and records the call as ambiguous. It never automatically repeats a mutating action.
 
@@ -184,7 +198,7 @@ Use `onCheckpoint: async checkpoint => { ... }` to save `AgentCheckpoint` JSON. 
 
 Pass a loaded object to `resume`, or validate it first with `parseAgentCheckpoint`. Version, bounded JSON size, original task boundary, message pairing, call IDs/sequences, pending calls, and budget counters are checked. The resumed `task` must exactly match. The run ID, call sequence, cumulative steps, tool calls, planner calls, and active elapsed time continue; process downtime is not counted. Limits default to saved limits. A trusted caller can explicitly increase them; completed counts never reset. The original application `systemPrompt` is inherited unless the caller explicitly replaces it. If the original run installed `validateCompletion`, the checkpoint records `requiresCompletionPolicy`; resuming without supplying that function again is rejected before any execution. Functions cannot be serialized, and the caller must supply the intended policy implementation. Do not load checkpoint files from untrusted authors: schema validation detects invalid structure, not forged provenance or a maliciously rewritten history.
 
-Checkpoint version `3` preserves optional initialization as `not_started` or `attempted`, with the latter pointing to the first standalone `tab_open` call. `attempted` means the call was registered; actual execution, results, and uncertainty remain represented by its paired history, pending call, and ambiguity entries. Once registered, initialization is never automatically replayed, including after reconciliation or persistence failure. Only a saved `not_started` initializer can run on resume. A resumed `startUrl`, if supplied, must equal the saved canonical URL; an existing run cannot acquire a new initialization URL. Strictly valid version `1` and `2` checkpoints migrate explicitly to version `3` without an execution identity; version `1` has no initialization, while version `2` preserves its initializer. The initialization history group is retained during optional compaction so its identity and counters remain verifiable.
+Checkpoint version `4` preserves optional initialization as `not_started` or `attempted`, with the latter pointing to the first standalone `tab_open` call. `attempted` means the call was registered; actual execution, results, and uncertainty remain represented by its paired history, pending call, and ambiguity entries. Once registered, initialization is never automatically replayed, including after reconciliation or persistence failure. Only a saved `not_started` initializer can run on resume. A resumed `startUrl`, if supplied, must equal the saved canonical URL; an existing run cannot acquire a new initialization URL. Strictly valid version `1` and `2` checkpoints migrate explicitly without an execution identity; version `1` has no initialization, while version `2` preserves its initializer. Strictly valid version `3` checkpoints also migrate to version `4`. Version `4` saves `outputSchemaHash` when a final output schema is configured; a resumed run must provide the same schema, and a previously unconfigured run cannot acquire one. The initialization history group is retained during optional compaction so its identity and counters remain verifiable.
 
 A bound run saves `executionIdentity: { registryHash, contextHash }`. Resume requires the paired execution methods and exact identity equality before catalog preparation or planning. Missing or different bindings cannot be waived by reconciliation, and an old unbound checkpoint cannot gain a registry on resume. A claimed pending read is retained until its effect is checked against trusted registry metadata; a mismatch blocks execution. Fresh leases are always acquired, old refs and completion evidence remain invalid, and earlier calls are never replayed. Legacy clients without the bound interface continue to resume unbound checkpoints.
 
@@ -195,11 +209,11 @@ An unresolved `ambiguousCalls` entry, including a pending mutation, causes `need
 The CLI pairs agent checkpoints with browser state:
 
 ```sh
-tablaze run --task "Your authorized task" \
+tablaze run --task "Your authorized task" --output-schema ./result.schema.json \
   --model "$TABLAZE_MODEL" --endpoint "$TABLAZE_MODEL_ENDPOINT" \
   --channel chrome --checkpoint ./private-run.json
 
-tablaze run --resume ./private-run.json \
+tablaze run --resume ./private-run.json --output-schema ./result.schema.json \
   --model "$TABLAZE_MODEL" --endpoint "$TABLAZE_MODEL_ENDPOINT" \
   --channel chrome
 ```

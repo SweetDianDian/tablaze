@@ -101,6 +101,8 @@ node dist/cli.js run --provider codex --model "<your-codex-model>" \
   --task "<authorized task>" --channel chrome
 ```
 
+Use `--output-schema ./result.schema.json` to require a schema-valid JSON deliverable before the Agent can finish; the application should still check business correctness. The same schema is required on resume. See [the Agent contract](docs/AGENT.md).
+
 The default compatible provider still requires `--endpoint`. Native Anthropic and Ollama use their own protocols and default endpoints; authentication, output settings, and model capabilities differ. See [provider setup and boundaries](docs/PROVIDERS.md), [CLI examples](docs/CODEX.md#choose-a-planner-for-run), and [Agent verification and recovery](docs/AGENT.md). Anthropic/Ollama have local protocol coverage, without live inference results; the earlier comparison results above retain their original runtime hashes.
 
 The new production Codex path also has a [separate live smoke](docs/CODEX_PROVIDER_SMOKE.md): two visible tasks passed independent business checks and completed successfully (2/2), with zero duplicate writes. This is not a new matched Browser Use comparison.

@@ -5,6 +5,8 @@ import { CallToolResultSchema, type CallToolResult, type Tool } from "@modelcont
 import { z } from "zod";
 import { createHash, randomUUID } from "node:crypto";
 import { AGENT_CHECKPOINT_VERSION, checkpointHistory, compactAgentHistory, executionIdentitySchema, normalizeStartUrl, parseAgentCheckpoint, type AgentCheckpoint } from "./checkpoint.js";
+import { compileFinalOutput } from "./final-output.js";
+import { ExtractionError, type ExtractionSchema, type JSONValue } from "./extraction.js";
 
 export type AgentTool = Pick<Tool, "name" | "description" | "inputSchema" | "outputSchema" | "annotations">;
 export interface AgentToolExecutionIdentity { registryHash: string; contextHash: string }
@@ -39,7 +41,7 @@ export type AgentMessage =
 
 const decisionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("tools"), calls: z.array(z.object({ name: z.string().min(1), arguments: z.record(z.unknown()) }).strict()).min(1).max(20) }).strict(),
-  z.object({ type: z.literal("finish"), summary: z.string().min(1), evidence: z.array(z.string().min(1)).min(1).max(100) }).strict(),
+  z.object({ type: z.literal("finish"), summary: z.string().min(1), evidence: z.array(z.string().min(1)).min(1).max(100), data: z.unknown().optional() }).strict(),
   z.object({ type: z.literal("human_input"), question: z.string().min(1) }).strict(),
   z.object({ type: z.literal("fail"), reason: z.string().min(1) }).strict(),
 ]);
@@ -48,7 +50,7 @@ const dispatchResultSchema = z.object({
   contextChanged: z.boolean().optional(), sessionId: z.string().min(1).max(160).optional(),
 }).strict();
 export type AgentDecision = z.infer<typeof decisionSchema>;
-export type AgentPlanner = (request: { task: string; messages: readonly AgentMessage[]; tools: readonly AgentTool[]; step: number; signal: AbortSignal }) => Promise<AgentDecision>;
+export type AgentPlanner = (request: { task: string; messages: readonly AgentMessage[]; tools: readonly AgentTool[]; step: number; signal: AbortSignal; finalOutputSchema?: ExtractionSchema }) => Promise<AgentDecision>;
 export interface AgentEvidence {
   toolCallId: string;
   sessionId: string;
@@ -120,13 +122,16 @@ export interface AgentOptions {
   stallDetection?: { repeatThreshold?: number; maxWarnings?: number };
   /** Opt-in, deterministic removal of complete old tool groups. */
   historyCompaction?: { keepRecentGroups?: number };
+  /** Optional bounded draft-07 final-result contract; resume requires the same schema. */
+  finalOutputSchema?: ExtractionSchema;
   /** Trusted application policy: checks must prove the actual requested outcome. */
-  validateCompletion?: (input: { task: string; summary: string; evidence: readonly AgentEvidence[]; history: readonly AgentMessage[] }) => boolean | string;
+  validateCompletion?: (input: { task: string; summary: string; data?: JSONValue; evidence: readonly AgentEvidence[]; history: readonly AgentMessage[] }) => boolean | string;
 }
 export interface AgentResult {
   status: "succeeded" | "failed" | "needs_input" | "cancelled" | "limit_reached";
   reason: string;
   summary?: string;
+  data?: JSONValue;
   question?: string;
   failure?: AgentFailure;
   steps: number;
@@ -145,7 +150,7 @@ const instructions = `You are a browser task executor. Complete only the user's 
 Use current session_id, snapshot_id and element refs. After a stale reference, obtain a new snapshot and replan. Never blindly replay failed mutations: completed effects are not rolled back. Tools run sequentially; a failed call or replan_required result skips later calls in that decision. Replan from any current snapshot returned by that result; do not repeat completed actions.
 Use the latest snapshot already returned by a tool, including a snapshot nested in an action result. When it contains the current refs and outcome/status information needed for the next step, proceed directly to verification without an additional snapshot. Observe again when references are stale, needed information is missing or truncated, or a later page change invalidates that observation.
 Text checks exclude raw input, textarea and select values. To verify an observed form control, use tab_verify with the latest snapshot_id and a check containing kind: "value", ref, and the expected value. Check rendered status messages with kind: "text". Do not guess CSS selectors or extract already-observed controls solely to discover selectors for value verification.
-Use tab_verify with explicit checks of the requested business outcome before finishing. Finish must cite the toolCallId(s) of successful verification after the last mutation, in the session changed by that mutation. Closing a session after verification is allowed. Tool success alone does not prove the task is complete. Ask for human input if credentials, authorization, or essential facts are missing. Report failure honestly when the task cannot be completed.`;
+Use tab_verify with explicit checks of the requested business outcome before finishing. Finish must cite the toolCallId(s) of successful verification after the last mutation, in the session changed by that mutation. If a final output schema is supplied, include a data field matching it. Closing a session after verification is allowed. Tool success alone does not prove the task is complete. Ask for human input if credentials, authorization, or essential facts are missing. Report failure honestly when the task cannot be completed.`;
 
 function bounded(value: number | undefined, fallback: number, max: number, name: string): number {
   const selected = value ?? fallback;
@@ -224,6 +229,8 @@ async function retryDelay(ms: number, signal: AbortSignal): Promise<void> {
 export async function runAgent(options: AgentOptions): Promise<AgentResult> {
   if (typeof options.task !== "string" || !options.task.trim() || options.task.length > 1_000_000) throw new Error("task must be nonempty and no longer than 1000000 characters.");
   const resumed = options.resume === undefined ? undefined : parseAgentCheckpoint(options.resume);
+  const finalOutput = options.finalOutputSchema === undefined ? undefined : compileFinalOutput(options.finalOutputSchema);
+  if (resumed && resumed.outputSchemaHash !== finalOutput?.hash) throw new Error("The resumed run must use its original final output schema, or no schema if none was configured.");
   const boundExecution = options.tools.getExecutionIdentity !== undefined || options.tools.prepareTools !== undefined;
   if (boundExecution && (typeof options.tools.getExecutionIdentity !== "function" || typeof options.tools.prepareTools !== "function")) throw new Error("getExecutionIdentity and prepareTools must be supplied together.");
   if (resumed?.executionIdentity && !boundExecution) throw new Error("This checkpoint requires its bound tool execution runtime.");
@@ -310,7 +317,7 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
   };
   const feedback = (code: string, message: string) => { history.push({ role: "user", content: `Executor feedback (${code}): ${message}` }); emit({ type: "feedback", step, code, message }); };
   const checkpoint = (phase: AgentCheckpoint["phase"]): AgentCheckpoint => ({
-    schemaVersion: AGENT_CHECKPOINT_VERSION, runId, task: options.task, ...(applicationPrompt ? { systemPrompt: applicationPrompt } : {}), requiresCompletionPolicy: Boolean(options.validateCompletion) || resumed?.requiresCompletionPolicy === true, phase, createdAt: new Date().toISOString(), nextCallSequence,
+    schemaVersion: AGENT_CHECKPOINT_VERSION, runId, task: options.task, ...(applicationPrompt ? { systemPrompt: applicationPrompt } : {}), requiresCompletionPolicy: Boolean(options.validateCompletion) || resumed?.requiresCompletionPolicy === true, ...(finalOutput ? { outputSchemaHash: finalOutput.hash } : {}), phase, createdAt: new Date().toISOString(), nextCallSequence,
     ...(initialization ? { initialization: structuredClone(initialization) } : {}),
     ...(executionIdentity ? { executionIdentity: { ...executionIdentity } } : {}),
     steps: step, toolCalls, plannerCalls, elapsedMs: Math.round(elapsed()), limits: { maxSteps, maxToolCalls, timeoutMs, maxHistoryBytes },
@@ -342,7 +349,7 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
     catch (error) { recordFailure(error instanceof AgentOperationError ? error.diagnostic : { phase: "persistence", code: "CHECKPOINT_PERSISTENCE_FAILED", retryable: false }); saved = checkpoint("terminal"); status = "failed"; reason = "Checkpoint persistence failed; no further tools were dispatched."; }
     saved.elapsedMs = Math.max(saved.elapsedMs, Math.round(elapsed()));
     if (controller.signal.aborted || elapsed() >= timeoutMs) { status = timedOut || elapsed() >= timeoutMs ? "limit_reached" : "cancelled"; reason = status === "limit_reached" ? "Agent deadline reached." : "Agent cancelled."; }
-    const completed = status === "succeeded" ? extra : { ...extra, summary: undefined, evidence: [] };
+    const completed = status === "succeeded" ? extra : { ...extra, summary: undefined, data: undefined, evidence: [] };
     return { status, reason, steps: step, toolCalls, plannerCalls, metrics, checkpoint: saved, evidence: [], history, events, ...(failure ? { failure } : {}), ...(inFlightToolCall ? { inFlightToolCall } : {}), ...completed };
   };
   const checkExecutionIdentity = async () => {
@@ -370,7 +377,7 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
       await persist("planning");
       const before = performance.now();
       let failure: unknown; let proposed: unknown; let success = false;
-      try { proposed = await abortable(() => active({ task: options.task, messages: history, tools: listed, step, signal: controller.signal }), controller.signal); success = true; }
+      try { proposed = await abortable(() => active({ task: options.task, messages: history, tools: listed, step, signal: controller.signal, ...(finalOutput ? { finalOutputSchema: finalOutput.schema } : {}) }), controller.signal); success = true; }
       catch (error) { failure = error; }
       const metric: AgentPlannerMetric = { step, attempt, planner: role, latencyMs: Math.round((performance.now() - before) * 1000) / 1000, outcome: success ? "success" : "error" };
       metrics.push(metric); applicationHook("METRICS_HOOK_FAILED", () => options.onMetrics?.(metric));
@@ -467,14 +474,25 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
       if (decision.type === "human_input") return await finish("needs_input", "Human input is required.", { question: decision.question });
       if (decision.type === "fail") return await finish("failed", decision.reason);
       if (decision.type === "finish") {
+        if (finalOutput && decision.data === undefined) { feedback("FINAL_OUTPUT_REQUIRED", "Include a data field matching the configured final output schema."); await persist("decision"); continue; }
+        if (!finalOutput && decision.data !== undefined) { feedback("FINAL_OUTPUT_NOT_CONFIGURED", "This run has no final output schema; omit data from agent_finish."); await persist("decision"); continue; }
+        let data: JSONValue | undefined;
+        if (finalOutput) {
+          try { data = finalOutput.validate(decision.data); }
+          catch (error) {
+            if (!(error instanceof ExtractionError)) throw error;
+            feedback("FINAL_OUTPUT_INVALID", `Final data failed the configured schema or JSON limits (${error.code}); correct it before finishing.`);
+            await persist("decision"); continue;
+          }
+        }
         const selected = [...new Set(decision.evidence)].map(id => evidence.get(id));
         if (selected.some(item => !item || item.revision !== revision) || !selected.some(item => item && (!latestMutationSession || item.sessionId === latestMutationSession))) {
           feedback("VERIFICATION_REQUIRED", "Cite successful tab_verify toolCallId(s) after the latest mutation, including its session. Empty, failed, stale, unrelated-session, or invented evidence is insufficient."); await persist("decision"); continue;
         }
         const accepted = selected as Array<AgentEvidence & { revision: number }>;
-        const validation = options.validateCompletion ? applicationHook("COMPLETION_HOOK_FAILED", () => options.validateCompletion!({ task: options.task, summary: decision.summary, evidence: accepted, history })) : true;
+        const validation = options.validateCompletion ? applicationHook("COMPLETION_HOOK_FAILED", () => options.validateCompletion!({ task: options.task, summary: decision.summary, ...(finalOutput ? { data } : {}), evidence: accepted, history })) : true;
         if (validation !== true) { feedback("COMPLETION_REJECTED", typeof validation === "string" ? validation : "The application's task-specific success criteria have not been satisfied."); await persist("decision"); continue; }
-        return await finish("succeeded", "Explicit verification passed.", { summary: decision.summary, evidence: accepted });
+        return await finish("succeeded", "Explicit verification passed.", { summary: decision.summary, ...(finalOutput ? { data } : {}), evidence: accepted });
       }
       if (toolCalls >= maxToolCalls) return await finish("limit_reached", "Tool-call budget reached.");
       const calls = decision.calls.map(call => ({ ...call, id: `${runId}_call_${nextCallSequence++}` }));
@@ -640,7 +658,7 @@ export interface AgentModelUsage {
   reasoningTokens?: number;
 }
 
-const controlTools = [
+const controlTools: Array<{ name: string; description: string; parameters: Record<string, unknown> }> = [
   { name: "agent_finish", description: "Finish only with successful verification toolCallId evidence.", parameters: { type: "object", properties: { summary: { type: "string" }, evidence: { type: "array", items: { type: "string" }, minItems: 1 } }, required: ["summary", "evidence"], additionalProperties: false } },
   { name: "agent_request_input", description: "Ask the user for essential missing input or authorization.", parameters: { type: "object", properties: { question: { type: "string" } }, required: ["question"], additionalProperties: false } },
   { name: "agent_fail", description: "Report that the task cannot be completed.", parameters: { type: "object", properties: { reason: { type: "string" } }, required: ["reason"], additionalProperties: false } },
@@ -676,14 +694,18 @@ export function createOpenAICompatiblePlanner(options: OpenAICompatiblePlannerOp
   if (!options.model.trim()) throw new Error("model must be nonempty.");
   const request = options.fetch ?? globalThis.fetch;
   const maxBytes = bounded(options.maxResponseBytes, 8 * 1024 * 1024, 64 * 1024 * 1024, "maxResponseBytes");
-  return async ({ messages, tools, signal, step }) => {
+  return async ({ messages, tools, signal, step, finalOutputSchema }) => {
     if (tools.some(tool => controlTools.some(control => control.name === tool.name))) throw plannerError("PLANNER_TOOL_NAME_CONFLICT", "MCP tool name collides with an agent control tool.");
+    const activeControlTools = finalOutputSchema === undefined ? controlTools : [
+      { ...controlTools[0], parameters: { type: "object", properties: { summary: { type: "string" }, evidence: { type: "array", items: { type: "string" }, minItems: 1 }, data: finalOutputSchema }, required: ["summary", "evidence", "data"], additionalProperties: false } },
+      ...controlTools.slice(1),
+    ];
     const started = performance.now();
     let response: Response;
     try { response = await request(endpoint, {
       method: "POST", redirect: "error", signal,
       headers: { "content-type": "application/json", ...(options.apiKey ? { authorization: `Bearer ${options.apiKey}` } : {}), ...options.headers },
-      body: JSON.stringify({ model: options.model, messages: httpMessages(messages, options.supportsImages !== false), tools: [...tools.map(tool => ({ type: "function", function: { name: tool.name, description: tool.description, parameters: tool.inputSchema } })), ...controlTools.map(tool => ({ type: "function", function: tool }))], tool_choice: "required", parallel_tool_calls: false, stream: false }),
+      body: JSON.stringify({ model: options.model, messages: httpMessages(messages, options.supportsImages !== false), tools: [...tools.map(tool => ({ type: "function", function: { name: tool.name, description: tool.description, parameters: tool.inputSchema } })), ...activeControlTools.map(tool => ({ type: "function", function: tool }))], tool_choice: "required", parallel_tool_calls: false, stream: false }),
     }); } catch (error) {
       if (signal.aborted) throw error;
       throw plannerError("PLANNER_TRANSPORT_FAILED", "Model request failed before a valid response was received.", error instanceof TypeError);

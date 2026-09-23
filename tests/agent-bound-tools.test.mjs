@@ -218,6 +218,20 @@ test('version-one and version-two checkpoints explicitly migrate unbound and can
   await assert.rejects(runAgent({ task: 'Reject an incomplete interface.', tools: { ...runtime.connection.tools, prepareTools: runtime.tools.prepareTools }, planner: async () => input() }), /supplied together/);
 });
 
+test('version-three bound checkpoints migrate without gaining a final output contract', async t => {
+  const runtime = await fixture(t);
+  const original = await runAgent({ task: 'Preserve the old registry identity.', tools: runtime.tools, planner: async () => input() });
+  const old = { ...original.checkpoint, schemaVersion: 3 };
+  const migrated = parseAgentCheckpoint(old);
+  assert.equal(migrated.schemaVersion, AGENT_CHECKPOINT_VERSION);
+  assert.deepEqual(migrated.executionIdentity, original.checkpoint.executionIdentity);
+  assert.equal(migrated.outputSchemaHash, undefined);
+  assert.throws(() => parseAgentCheckpoint({ ...old, outputSchemaHash: hash('added-later') }), /version 3/);
+  const resumed = await runAgent({ task: old.task, resume: old, tools: runtime.tools, planner: async () => input() });
+  assert.equal(resumed.status, 'needs_input');
+  assert.equal(resumed.steps, 2);
+});
+
 test('resume rechecks a pending call effect rather than trusting a tampered mutating flag', async t => {
   const runtime = await fixture(t); let pending;
   const first = await runAgent({ task: 'Preserve uncertain writes.', tools: runtime.tools, planner: async () => calls('save_a'), onCheckpoint: checkpoint => { if (checkpoint.phase === 'before_tool') { pending = structuredClone(checkpoint); throw new Error('Stop before dispatch.'); } } });

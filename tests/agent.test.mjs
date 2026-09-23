@@ -129,6 +129,44 @@ test('application task-specific acceptance can reject a technically passing unre
   assert.ok(run.events.some(event => event.type === 'feedback' && event.code === 'COMPLETION_REJECTED'));
 });
 
+test('final data needs valid JSON, a matching schema, verification, and application acceptance', async t => {
+  const connection = await mockMcp(t);
+  const schema = { type: 'object', properties: { receiptId: { type: 'string', pattern: '^WF-[0-9]{3}$' }, amount: { type: 'integer', minimum: 1 } }, required: ['receiptId', 'amount'], additionalProperties: false };
+  let verifiedId;
+  const run = await runAgent({ task: 'Report the verified invoice receipt.', tools: connection.tools, maxSteps: 5, finalOutputSchema: schema,
+    validateCompletion: ({ data, evidence }) => data?.receiptId === 'WF-001' && evidence.length === 1 || 'The returned receipt does not match the accepted invoice.',
+    planner: async ({ step, messages, finalOutputSchema }) => {
+      assert.deepEqual(finalOutputSchema, schema);
+      if (step === 1) return tool('tab_verify', check());
+      verifiedId = last(messages).toolCallId;
+      if (step === 2) return { ...done(verifiedId), data: { receiptId: 'WF-001', amount: '2' } };
+      if (step === 3) return { ...done(verifiedId), data: { receiptId: 'WF-999', amount: 2 } };
+      return { ...done(verifiedId), data: { receiptId: 'WF-001', amount: 2 } };
+    },
+  });
+  assert.equal(run.status, 'succeeded');
+  assert.deepEqual(run.data, { receiptId: 'WF-001', amount: 2 });
+  assert.equal(run.toolCalls, 1);
+  assert.deepEqual(run.events.filter(item => item.type === 'feedback').map(item => item.code), ['FINAL_OUTPUT_INVALID', 'COMPLETION_REJECTED']);
+  assert.match(run.checkpoint.outputSchemaHash, /^[a-f0-9]{64}$/);
+});
+
+test('a resumed run cannot omit or change its final result schema before using tools', async () => {
+  let catalogs = 0;
+  const tools = { listTools: async () => { catalogs++; return []; }, callTool: async () => { throw new Error('No tool should run.'); } };
+  const schema = { type: 'object', properties: { id: { type: 'string' } }, required: ['id'], additionalProperties: false };
+  const saved = await runAgent({ task: 'Keep the original result contract.', tools, finalOutputSchema: schema, planner: async () => ({ type: 'human_input', question: 'Which item?' }) });
+  assert.equal(saved.status, 'needs_input');
+  const before = catalogs;
+  const base = { task: 'Keep the original result contract.', tools, resume: saved.checkpoint, planner: async () => ({ type: 'human_input', question: 'Still waiting?' }) };
+  await assert.rejects(runAgent(base), /original final output schema/);
+  await assert.rejects(runAgent({ ...base, finalOutputSchema: { type: 'string' } }), /original final output schema/);
+  assert.equal(catalogs, before);
+  const resumed = await runAgent({ ...base, finalOutputSchema: schema });
+  assert.equal(resumed.status, 'needs_input');
+  assert.equal(resumed.checkpoint.outputSchemaHash, saved.checkpoint.outputSchemaHash);
+});
+
 test('tool and planning budgets are bounded; invalid decisions never dispatch a tool', async t => {
   const connection = await mockMcp(t);
   const run = await runAgent({ task: 'Read repeatedly.', tools: connection.tools, maxToolCalls: 1, maxSteps: 10, planner: async () => tool('tab_snapshot') });

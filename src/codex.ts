@@ -250,7 +250,14 @@ export function createCodexPlanner(options: CodexPlannerOptions): CodexPlanner {
             if (!record(raw) || typeof raw.name !== 'string' || typeof raw.arguments_json !== 'string') throw new CodexError('CODEX_RESPONSE_INVALID');
             const tool = body.tools.find(tool => tool.function.name === raw.name);
             const parameters: unknown = JSON.parse(raw.arguments_json);
-            if (!tool || !record(parameters) || !ajv.validate(tool.function.parameters, parameters)) throw new CodexError('CODEX_RESPONSE_INVALID');
+            const finishShape = raw.name === 'agent_finish' && record(parameters)
+              && Object.keys(parameters).every(key => ['summary', 'evidence', 'data'].includes(key))
+              && typeof parameters.summary === 'string' && parameters.summary.length > 0
+              && Array.isArray(parameters.evidence) && parameters.evidence.length >= 1 && parameters.evidence.length <= 100
+              && parameters.evidence.every(value => typeof value === 'string' && value.length > 0);
+            // A shape-correct finish with invalid data must reach Agent feedback,
+            // so the model can correct it without replaying browser mutations.
+            if (!tool || !record(parameters) || !(finishShape || ajv.validate(tool.function.parameters, parameters))) throw new CodexError('CODEX_RESPONSE_INVALID');
             return { id: `codex_${randomUUID()}`, type: 'function', function: { name: raw.name, arguments: JSON.stringify(parameters) } };
           });
           signal.throwIfAborted();

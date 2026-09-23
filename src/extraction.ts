@@ -103,6 +103,18 @@ function checkSchema(validate: ReturnType<typeof schemaValidator>['validate'], d
   try { const result = validate(data); if (typeof result !== 'boolean') return fail('INVALID_SCHEMA', 'Validation must be synchronous.'); passed = result; } catch { return fail('INVALID_SCHEMA', 'The schema could not validate this data safely.'); }
   if (!passed) throw new ExtractionError('SCHEMA_MISMATCH', 'Extracted data does not match the requested schema.', (validate.errors ?? []).slice(0, 50).map((error: ErrorObject) => ({ pointer: error.instancePath, message: error.message ?? error.keyword })));
 }
+/** Shared bounded draft-07 validator for extraction and final Agent results. */
+export function compileJSONSchema(schema: ExtractionSchema): { schema: ExtractionSchema; validate(input: unknown): JSONValue } {
+  const compiled = schemaValidator(schema);
+  return {
+    schema: compiled.schema,
+    validate(input: unknown): JSONValue {
+      const data = jsonCopy(input, maxOutputBytes, 'INVALID_DATA');
+      checkSchema(compiled.validate, data);
+      return data;
+    },
+  };
+}
 function sourcesFor(input: readonly ExtractionSource[]): ExtractionSource[] {
   if (!Array.isArray(input) || input.length < 1 || input.length > 100) return fail('INVALID_SOURCE', 'Supply between 1 and 100 sources.');
   const ids = new Set<string>(); let characters = 0;

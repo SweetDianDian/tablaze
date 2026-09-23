@@ -160,6 +160,17 @@ test('Codex validates original tool arguments and the final schema before dispat
   }
 });
 
+test('Codex forwards a shape-correct but schema-invalid final value for Agent correction', async t => {
+  const schema = { type: 'object', properties: { receiptId: { type: 'string' } }, required: ['receiptId'], additionalProperties: false };
+  const fake = await fixture(t, 'normal', { response: { tool_calls: [{ name: 'agent_finish', arguments_json: JSON.stringify({ summary: 'Verified.', evidence: ['verification-1'], data: { receiptId: 7 } }) }] } });
+  const planner = fake.planner();
+  const decision = await planner(input({ finalOutputSchema: schema }));
+  assert.deepEqual(decision, { type: 'finish', summary: 'Verified.', evidence: ['verification-1'], data: { receiptId: 7 } });
+  const [report] = await fake.reports();
+  assert.ok(report.prompt.includes('"receiptId"'));
+  assert.ok(report.prompt.includes('"data"'));
+});
+
 test('Codex timeout drains final reported usage, deletes files and keeps fixed failure diagnostics', async t => {
   const fake = await fixture(t, 'wait'); const usages = [], diagnostics = [];
   const planner = fake.planner({ timeoutMs: 500, onUsage: value => usages.push(value), onDiagnostic: value => diagnostics.push(value) });

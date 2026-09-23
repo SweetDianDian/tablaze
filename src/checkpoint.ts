@@ -2,7 +2,7 @@ import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import type { AgentMessage, AgentToolCall, AgentToolExecutionIdentity } from "./agent.js";
 
-export const AGENT_CHECKPOINT_VERSION = 3 as const;
+export const AGENT_CHECKPOINT_VERSION = 4 as const;
 
 export const executionIdentitySchema = z.object({ registryHash: z.string().regex(/^[a-f0-9]{64}$/), contextHash: z.string().regex(/^[a-f0-9]{64}$/) }).strict();
 
@@ -53,9 +53,13 @@ const versionTwoCheckpointSchema = legacyCheckpointSchema.extend({
   schemaVersion: z.literal(2),
   initialization: initializationSchema.optional(),
 }).strict();
-const checkpointSchema = versionTwoCheckpointSchema.extend({
-  schemaVersion: z.literal(AGENT_CHECKPOINT_VERSION),
+const versionThreeCheckpointSchema = versionTwoCheckpointSchema.extend({
+  schemaVersion: z.literal(3),
   executionIdentity: executionIdentitySchema.optional(),
+}).strict();
+const checkpointSchema = versionThreeCheckpointSchema.extend({
+  schemaVersion: z.literal(AGENT_CHECKPOINT_VERSION),
+  outputSchemaHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
 }).strict();
 
 export interface AgentCheckpoint {
@@ -64,6 +68,8 @@ export interface AgentCheckpoint {
   task: string;
   systemPrompt?: string;
   requiresCompletionPolicy?: boolean;
+  /** Resume must supply exactly the original final-result schema. */
+  outputSchemaHash?: string;
   /** Bound runs cannot resume with a different registry or caller context. */
   executionIdentity?: AgentToolExecutionIdentity;
   /** An attempted initializer is never automatically replayed, even after reconciliation. */
@@ -101,6 +107,11 @@ export function parseAgentCheckpoint(value: unknown, options: { maxBytes?: numbe
     const legacy = versionTwoCheckpointSchema.safeParse(raw);
     if (!legacy.success) throw new Error("Invalid version 2 agent checkpoint.");
     // Older runs have no execution identity. Never infer a tenant/registry binding.
+    raw = { ...legacy.data, schemaVersion: 3 };
+  }
+  if (raw?.schemaVersion === 3) {
+    const legacy = versionThreeCheckpointSchema.safeParse(raw);
+    if (!legacy.success) throw new Error("Invalid version 3 agent checkpoint.");
     raw = { ...legacy.data, schemaVersion: AGENT_CHECKPOINT_VERSION };
   }
   const parsed = checkpointSchema.safeParse(raw);

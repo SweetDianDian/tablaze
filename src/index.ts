@@ -4,6 +4,7 @@ export type { NavigationPolicy } from "./navigation-policy.js";
 export type { BrowserSecretDefinition, BrowserSecretOptions } from "./secret-store.js";
 export { createServer, SERVER_VERSION } from "./server.js";
 export { runAgent, connectAgentTools, createMcpToolClient, createOpenAICompatiblePlanner, AgentPlannerError } from "./agent.js";
+export { AgentControl, createAgentControl } from "./agent-control.js";
 export { parseAgentCheckpoint, AGENT_CHECKPOINT_VERSION } from "./checkpoint.js";
 export type { AgentCheckpoint } from "./checkpoint.js";
 export type { AgentOptions, AgentResult, AgentFailure, AgentPlanner, AgentDecision, AgentTool, AgentToolCall, AgentToolClient, AgentToolCatalog, AgentToolExecutionIdentity, AgentToolDispatchResult, AgentMessage, AgentEvent, AgentEvidence, AgentPlannerMetric, AgentModelUsage, OpenAICompatiblePlannerOptions } from "./agent.js";

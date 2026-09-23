@@ -1,0 +1,134 @@
+{
+  "kind": "codex-sdk-intervention-live-smoke",
+  "schema_version": 1,
+  "started_at": "2026-09-23T13:38:37.033Z",
+  "comparison": false,
+  "base_commit": "717851b95238e00f0cd5b807d23207c51f6d3aa5",
+  "model": "gpt-6-astra",
+  "reasoning_effort": "ultra",
+  "codex_version": "codex-cli 0.155.0-alpha.9.2",
+  "source_sha256": "51de94ae27c9f5e5ab2a2a796912001b45b496267969a7e2cf852467b930db6d",
+  "policy": {
+    "seed": 23,
+    "task_timeout_ms": 180000,
+    "max_steps": 20,
+    "max_tool_calls": 30,
+    "automatic_retries": false,
+    "browser_channel": "chrome"
+  },
+  "attempt": {
+    "task_id": "form",
+    "task_sha256": "d421362f24f52651841fbdeb7e481361608b2b4124d1499973b9c179961ca70e",
+    "whole_run_ms": 86218.722208,
+    "intervention_trigger": "requested",
+    "pause_reached_boundary": true,
+    "status": "succeeded",
+    "reason": "Explicit verification passed.",
+    "steps": 5,
+    "tool_calls": 5,
+    "planner_calls": 5,
+    "feedback_codes": [
+      "INTERVENTION_REPLAN",
+      "STEERING_APPLIED"
+    ],
+    "verification": [
+      {
+        "tool_call_id": "2d6c3357-995f-41d3-9e18-3f8e04e0f996_call_5",
+        "session_id": "2cef3642-4fe1-45c5-9510-99447ed623b1",
+        "checks": [
+          {
+            "index": 0,
+            "kind": "value",
+            "pass": true,
+            "actual": "Ada"
+          },
+          {
+            "index": 1,
+            "kind": "value",
+            "pass": true,
+            "actual": "Lisbon"
+          },
+          {
+            "index": 2,
+            "kind": "text",
+            "pass": true,
+            "actual": "Name City Save contact Saved successfully"
+          }
+        ]
+      }
+    ],
+    "reported_usage": [
+      {
+        "step": 1,
+        "model": "gpt-6-astra",
+        "latencyMs": 18863.452,
+        "promptTokens": 14241,
+        "completionTokens": 183,
+        "cachedPromptTokens": 0,
+        "cacheCreationPromptTokens": 0,
+        "reasoningTokens": 50
+      },
+      {
+        "step": 2,
+        "model": "gpt-6-astra",
+        "latencyMs": 22438.517,
+        "promptTokens": 14996,
+        "completionTokens": 304,
+        "cachedPromptTokens": 0,
+        "cacheCreationPromptTokens": 0,
+        "reasoningTokens": 171
+      },
+      {
+        "step": 3,
+        "model": "gpt-6-astra",
+        "latencyMs": 12963.556,
+        "promptTokens": 15471,
+        "completionTokens": 107,
+        "cachedPromptTokens": 0,
+        "cacheCreationPromptTokens": 0,
+        "reasoningTokens": 48
+      },
+      {
+        "step": 4,
+        "model": "gpt-6-astra",
+        "latencyMs": 13031.491,
+        "promptTokens": 16011,
+        "completionTokens": 175,
+        "cachedPromptTokens": 0,
+        "cacheCreationPromptTokens": 0,
+        "reasoningTokens": 41
+      },
+      {
+        "step": 5,
+        "model": "gpt-6-astra",
+        "latencyMs": 18041.041,
+        "promptTokens": 16393,
+        "completionTokens": 146,
+        "cachedPromptTokens": 0,
+        "cacheCreationPromptTokens": 0,
+        "reasoningTokens": 63
+      }
+    ],
+    "independent_judge": {
+      "passed": true,
+      "evidence": {
+        "records": [
+          {
+            "name": "Ada",
+            "city": "Lisbon"
+          }
+        ],
+        "writeCount": 1,
+        "duplicateWrites": 0,
+        "downloadRequests": 0,
+        "authorizations": 0,
+        "receiptRequests": 0,
+        "artifactHashes": []
+      },
+      "judge": "fixture-server-state-and-artifact-sha256-v1"
+    },
+    "complete_success": true
+  },
+  "finished_at": "2026-09-23T13:40:03.427Z",
+  "source_unchanged": true
+}

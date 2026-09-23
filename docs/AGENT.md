@@ -99,6 +99,24 @@ try {
 
 Import `createCodexPlanner` from `tablaze`. Its `close()` cancels outstanding requests, waits for process/file cleanup and reported-usage callbacks, and prevents new calls. Incomplete planner cleanup produces `CODEX_CLEANUP_FAILED`; the CLI preserves the original Agent outcome separately from this cleanup failure. See [Codex lifecycle and authentication](PROVIDERS.md#codex-cli-planner).
 
+### Live operator intervention (SDK)
+
+Create one `AgentControl` for one active `runAgent` call. `pause()` resolves `true` when the Agent reaches a safe planning/tool boundary, or `false` if it finishes first. After a successful pause, a trusted caller can inspect the application or browser, call `steer(text)` to refine the original task, and then call `resume()`:
+
+```ts
+import { createAgentControl, runAgent } from "tablaze";
+
+const control = createAgentControl();
+const running = runAgent({ task, planner, tools, control });
+if (await control.pause()) {
+  control.steer("The approved record is WF-001. Verify it before finishing.");
+  control.resume();
+}
+const result = await running;
+```
+
+An already-running tool can finish; pause cannot roll it back. A pending model decision is discarded, and later calls in its queued tool batch are recorded as skipped before replanning. Pause or steering invalidates prior verification and observed references, so the Agent must observe and verify again. If pause arrives during write-ahead persistence, the current call is stopped before dispatch; a crash at that precise point may still leave a conservative uncertain-call checkpoint requiring reconciliation. Operator text is bounded to 10 KiB per instruction and 32 KiB pending, becomes part of history/checkpoints, and must not contain credentials. The caller must keep steering within the original authorized task; browser guards, verification, and `validateCompletion` still apply. The cumulative run deadline keeps counting while paused; the caller can cancel via the existing `signal`. This is an in-process SDK control, not a cross-process CLI command or a persistent JavaScript worker.
+
 The application supplies the task and retains responsibility for authorization. A website cannot authorize a task change. Page text and images are marked as untrusted inputs in the model instructions; this is a prompt-level defense, not a guarantee against prompt injection. Do not enable tools or accounts outside the intended task scope.
 
 ## Provider-independent planning

@@ -265,5 +265,6 @@ export function inspectDOM(input: any): any {
   }
   const text = readText(input.textLimit);
   const truncation = { elements: candidates > input.maxElements, text: text.clipped, fields: fieldsTruncated, scan: scanTruncated };
-  return { nodes, data: { records, text: text.text, next_ref: nextRef, scanned_nodes: scanned, truncation, truncated: Object.values(truncation).some(Boolean) } };
+  const canvasInViewport = tree.elements.some(element => element.tagName === 'CANVAS' && visible(element) && inViewport(element));
+  return { nodes, data: { records, text: text.text, next_ref: nextRef, scanned_nodes: scanned, canvas_in_viewport: canvasInViewport, truncation, truncated: Object.values(truncation).some(Boolean) } };
 }

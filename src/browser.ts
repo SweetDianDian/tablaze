@@ -931,6 +931,7 @@ export class BrowserEngine {
     session.snapshot = { id, frame, generation, refs, actionable: true, entries, scope };
     const metadataTruncated = allFrames.length > 100 || allFrames.some(frame => frame.url.length > 4000 || frame.name.length > 200) || title.length > 1000 || session.page.url().length > 4000;
     const output: Record<string, unknown> = { ok: true, session_id: session.id, snapshot_id: id, tab_id: session.activeTabId, tabs: this.tabList(session), scope: { selector: scope.selector ?? null, viewport_only: scope.viewportOnly }, mode: options.mode ?? 'full', frame_id: frameId, url: this.secretText(session.page.url(), 4000), title: this.secretText(title, 1000), frames, frame_count: allFrames.length, elements: entries, text: data.text, truncated: data.truncated || metadataTruncated, truncation: { ...data.truncation, metadata: metadataTruncated }, budgets: { max_elements: maxElements, text_limit: textLimit, max_frames: 100 }, elapsed_ms: Math.round(performance.now() - start) };
+    if (data.canvas_in_viewport === true) output.visual_content = { canvas_in_viewport: true };
     this.assertNavigationGuard(session.navigationGuard);
     if (session.navigationGuard) output.navigation_policy = { enabled: true, blocked_requests: this.blockedNavigations(session) };
     if (options.mode === 'diff') {

@@ -10,6 +10,7 @@ export const TASKS = Object.freeze([
   { id: 'pagination', tags: ['navigation', 'pagination'], instruction: 'Find record CEDAR across the result pages and reserve that record.' },
   { id: 'dynamic-menu', tags: ['dynamic_ui', 'wait'], instruction: 'Open the delayed menu and choose Express delivery.' },
   { id: 'popup', tags: ['tabs'], instruction: 'Open the approval tab and approve request 42 there.' },
+  { id: 'auth-return', tags: ['authentication', 'tabs', 'cross_origin', 'state'], instruction: 'Connect the account in the provider popup, return to the original app tab, and finish the connection exactly once.' },
   { id: 'shadow-form', tags: ['shadow_dom', 'forms'], instruction: 'Save shadow-component note Orion.' },
   { id: 'iframe-form', tags: ['iframe', 'forms'], instruction: 'Save frame-component note Vega.' },
   { id: 'large-page', tags: ['large_dom', 'targeting'], instruction: 'Find and activate Final target after the long list of decoy controls.' },
@@ -37,6 +38,9 @@ function page(attempt, route) {
     }
     case 'dynamic-menu': body = `<button onclick="setTimeout(()=>document.querySelector('#menu').innerHTML=\`<button onclick='save({delivery:&quot;Express&quot;})'>Express delivery</button>\`,100)">Open delivery menu</button><div id="menu"></div>`; break;
     case 'popup': body = route === 'approval' ? '<button onclick="save({approved:42})">Approve request 42</button>' : `<a href="${prefix}/approval" target="_blank">Open approval tab</a>`; break;
+    case 'auth-return': body = `<a href="${attempt.authUrl}" target="_blank" rel="opener">Connect account</a><p id="connection">Not connected</p><button id="finish" disabled>Finish connection</button><script>
+      document.querySelector('#finish').onclick=()=>save({token:sessionStorage.getItem(${script('authorized-' + attempt.id)})});
+      addEventListener('message',event=>{if(event.origin!==${script(attempt.authOrigin)}||event.data?.kind!=='fixture-authorization'||typeof event.data.token!=='string')return;sessionStorage.setItem(${script('authorized-' + attempt.id)},event.data.token);document.querySelector('#connection').textContent='Account connected';document.querySelector('#finish').disabled=false});</script>`; break;
     case 'shadow-form': body = `<section id="component"></section><script>document.querySelector('#component').attachShadow({mode:'open'}).innerHTML='<label>Shadow note<input id="note"></label><button>Save shadow note</button>';const root=document.querySelector('#component').shadowRoot;root.querySelector('button').onclick=()=>save({note:root.querySelector('input').value});</script>`; break;
     case 'iframe-form': body = route === 'frame' ? '<label>Frame note<input id="note"></label><button onclick="save({note:document.querySelector(\'#note\').value})">Save frame note</button>' : `<iframe title="Note editor" src="${prefix}/frame" width="600" height="240"></iframe>`; break;
     case 'large-page': body = Array.from({ length: 520 }, (_, i) => `<button>Decoy ${i + 1}</button>`).join('') + `<section id="final"><button onclick="save({target:'final'})">Final target</button></section>`; break;
@@ -64,6 +68,22 @@ async function readBody(request) {
 export async function startTaskService() {
   const directory = await mkdtemp(join(tmpdir(), 'tablaze-comparison-fixtures-'));
   const attempts = new Map();
+  const authServer = createServer(async (request, response) => {
+    try {
+      const match = new URL(request.url, 'http://auth-fixture').pathname.match(/^\/r\/([^/]+)\/(.*)$/);
+      const attempt = match && attempts.get(match[1]);
+      if (!attempt || attempt.task.id !== 'auth-return') { response.writeHead(404); response.end('Unknown authorization'); return; }
+      if (match[2] === 'authorize' && request.method === 'POST') {
+        attempt.authorizations++;
+        response.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+        response.end(JSON.stringify({ token: attempt.token })); return;
+      }
+      if (match[2] !== 'auth') { response.writeHead(404); response.end('Unknown authorization route'); return; }
+      response.writeHead(200, { 'content-type': 'text/html', 'cache-control': 'no-store' });
+      response.end(`<!doctype html><html><head><meta charset="utf-8"><title>Provider authorization</title></head><body><h1>Provider authorization</h1><button id="authorize">Authorize account</button><p id="status">Awaiting authorization</p><script>
+        document.querySelector('#authorize').onclick=async()=>{const result=await fetch('/r/${attempt.id}/authorize',{method:'POST'});const body=await result.json();window.opener?.postMessage({kind:'fixture-authorization',token:body.token},${script(attempt.appOrigin)});document.querySelector('#status').textContent='Account authorized. Return to the app.';document.querySelector('#authorize').disabled=true};</script></body></html>`);
+    } catch { response.writeHead(400); response.end('Invalid authorization request'); }
+  });
   const server = createServer(async (request, response) => {
     try {
       const match = new URL(request.url, 'http://fixture').pathname.match(/^\/r\/([^/]+)\/(.*)$/);
@@ -87,7 +107,9 @@ export async function startTaskService() {
     }
   });
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
+  await new Promise((resolve, reject) => { authServer.once('error', reject); authServer.listen(0, '127.0.0.1', resolve); });
   const base = `http://127.0.0.1:${server.address().port}`;
+  const authBase = `http://127.0.0.1:${authServer.address().port}`;
   return {
     async createAttempt(taskId, seed = 1) {
       const task = TASKS.find(task => task.id === taskId);
@@ -97,13 +119,13 @@ export async function startTaskService() {
       const uploadContent = `Comparison document seed=${seed}\n`;
       const uploadPath = join(directory, `${id}.txt`);
       if (taskId === 'upload') await writeFile(uploadPath, uploadContent, { mode: 0o600 });
-      const attempt = { id, task, seed, token, price, records: [], downloadRequests: 0, uploadContent, csv: `quarter,revenue\nQ1,${100 + seed}\n` };
+      const attempt = { id, task, seed, token, price, records: [], downloadRequests: 0, authorizations: 0, appOrigin: base, authOrigin: authBase, authUrl: `${authBase}/r/${id}/auth`, uploadContent, csv: `quarter,revenue\nQ1,${100 + seed}\n` };
       attempts.set(id, attempt);
       const canonicalPrompt = `${task.instruction}\nStart at {{TASK_URL}}.${taskId === 'upload' ? '\nSupplied document: {{UPLOAD_PATH}}.' : ''}`;
       const url = `${base}/r/${id}/`;
       const prompt = canonicalPrompt.replace('{{TASK_URL}}', url).replace('{{UPLOAD_PATH}}', uploadPath);
       return {
-        id, taskId, seed, tags: task.tags, url, prompt, canonicalPrompt,
+        id, taskId, seed, tags: task.tags, url, authUrl: taskId === 'auth-return' ? attempt.authUrl : null, prompt, canonicalPrompt,
         taskHash: hash(JSON.stringify({ task, seed, canonicalPrompt })),
         uploadPath: taskId === 'upload' ? uploadPath : null,
         async judge({ artifactPaths = [] } = {}) {
@@ -116,6 +138,7 @@ export async function startTaskService() {
             case 'pagination': passed = exactOne && record.record === 'CEDAR'; break;
             case 'dynamic-menu': passed = exactOne && record.delivery === 'Express'; break;
             case 'popup': passed = exactOne && record.approved === 42; break;
+            case 'auth-return': passed = exactOne && record.token === token && attempt.authorizations === 1; break;
             case 'shadow-form': passed = exactOne && record.note === 'Orion'; break;
             case 'iframe-form': passed = exactOne && record.note === 'Vega'; break;
             case 'large-page': passed = exactOne && record.target === 'final'; break;
@@ -132,11 +155,11 @@ export async function startTaskService() {
             case 'duplicate-write': passed = exactOne && record.order === 'one'; break;
             case 'extraction': passed = exactOne && record.total === price * 3 + 14; break;
           }
-          return { passed, evidence: { records, writeCount: records.length, duplicateWrites: Math.max(0, records.length - 1), downloadRequests: attempt.downloadRequests, artifactHashes }, judge: 'fixture-server-state-and-artifact-sha256-v1' };
+          return { passed, evidence: { records, writeCount: records.length, duplicateWrites: Math.max(0, records.length - 1), downloadRequests: attempt.downloadRequests, authorizations: attempt.authorizations, artifactHashes }, judge: 'fixture-server-state-and-artifact-sha256-v1' };
         },
-        reset() { attempt.records.length = 0; attempt.downloadRequests = 0; },
+        reset() { attempt.records.length = 0; attempt.downloadRequests = 0; attempt.authorizations = 0; },
       };
     },
-    async close() { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await rm(directory, { recursive: true, force: true }); },
+    async close() { server.closeAllConnections(); authServer.closeAllConnections(); await Promise.all([new Promise(resolve => server.close(resolve)), new Promise(resolve => authServer.close(resolve))]); await rm(directory, { recursive: true, force: true }); },
   };
 }

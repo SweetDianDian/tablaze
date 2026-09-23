@@ -1,0 +1,176 @@
+{
+  "schema": "tablaze-auth-return-development-smoke-v1",
+  "date": "2026-09-23",
+  "purpose": "One visible synthetic cross-origin authentication task, not a superiority experiment",
+  "rawResultSha256": "eaa4ba80a475000734bdfce0a175918bb71575ccbce3dcd8c8f3f6daae3b7ac1",
+  "source": {
+    "commit": "57ce6aedf05845bd1bfed265d759f1411669d4a9",
+    "patchSha256": "20fb1752d18e2a59fb7ae8d36881ecd4d8a514e39830a05b1e85d38476bc0014",
+    "sourceTreeSha256": "ea5dfb7aef8647413138633e7201b2589ce921c3b72eae389465f06d3dfff353",
+    "judgeSha256": "e7e15f6977694504e14842af24855ff72e447628f5c5b1c3d8e2489b3643fde5",
+    "lockSha256": "0defcc13cd2deeff5b4a90e7d678ab8bec1d5144e13287cf629524ffafb17971"
+  },
+  "preflight": {
+    "browserUse": {
+      "status": "ready",
+      "version": "0.13.10",
+      "commit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+      "source": {
+        "kind": "official_archive",
+        "commit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+        "url": "https://github.com/browser-use/browser-use/archive/d8110c5ff87ccba887aaa726cdb780f2f84bef8d.zip",
+        "sha256": "bd48c9cee82a1bd1980171bd28dbcc04e948c09bee36294db3a55e8302dcb426"
+      }
+    },
+    "codex": {
+      "status": "ready",
+      "version": "0.155.0-alpha.9.2",
+      "expectedVersion": "0.155.0-alpha.9.2",
+      "authenticated": true,
+      "authentication": "ChatGPT"
+    }
+  },
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v25.9.0",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "modelConfiguration": {
+      "model": "gpt-6-astra",
+      "transport": "codex-cli",
+      "endpoint": null,
+      "temperature": null,
+      "reasoningEffort": "ultra",
+      "maxOutputTokens": null,
+      "tokenBudget": 250000,
+      "transportRetries": 0,
+      "codexVersion": "0.155.0-alpha.9.2",
+      "providerHTTPOverride": true,
+      "provider": "tablaze-comparison",
+      "providerConfiguredRequestRetries": 0,
+      "providerConfiguredStreamRetries": 0,
+      "disabledFeatures": [
+        "shell_tool",
+        "unified_exec",
+        "apps",
+        "plugins",
+        "hooks",
+        "memories",
+        "chronicle",
+        "browser_use",
+        "browser_use_external",
+        "computer_use",
+        "in_app_browser",
+        "multi_agent",
+        "multi_agent_v2",
+        "image_generation",
+        "view_image",
+        "goals",
+        "sleep_tool",
+        "workspace_dependencies",
+        "shell_snapshot"
+      ],
+      "limitations": [
+        "Codex CLI is an inference bridge with its own fixed system instructions, not a raw model API.",
+        "The CLI has no verified per-call output token or temperature control in this transport.",
+        "The CLI provider disables request and stream retries; unobservable retries remain unknown."
+      ]
+    },
+    "engineOptions": {
+      "tablaze": {
+        "initializeUrl": false,
+        "popupPolicy": "follow-single"
+      },
+      "browserUse": {
+        "useJudge": true
+      }
+    }
+  },
+  "attempts": [
+    {
+      "engine": "tablaze",
+      "taskId": "auth-return",
+      "taskHash": "ac0c6fd4db79105a13eb9fa7c037daef622531d1143bb748be2e398380351721",
+      "outcome": "passed",
+      "agentStatus": "succeeded",
+      "businessPassed": true,
+      "agentDoneObserved": true,
+      "agentSuccessObserved": true,
+      "runReturnedBeforeDeadline": true,
+      "wallTimeMs": 123718.68875,
+      "inputTokens": 127014,
+      "outputTokens": 1245,
+      "cachedTokens": 20736,
+      "modelCalls": 8,
+      "toolCalls": 7,
+      "steps": 8,
+      "judgeUsage": null,
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "token": "45e121e6580d5063818c"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 1,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "stepBudget": 40,
+      "toolBudget": 150,
+      "deadlineMs": 240000
+    },
+    {
+      "engine": "browser-use",
+      "taskId": "auth-return",
+      "taskHash": "ac0c6fd4db79105a13eb9fa7c037daef622531d1143bb748be2e398380351721",
+      "outcome": "passed",
+      "agentStatus": "succeeded",
+      "businessPassed": true,
+      "agentDoneObserved": true,
+      "agentSuccessObserved": true,
+      "runReturnedBeforeDeadline": true,
+      "wallTimeMs": 119515.17000000001,
+      "inputTokens": 111839,
+      "outputTokens": 1517,
+      "cachedTokens": 0,
+      "modelCalls": 6,
+      "toolCalls": 6,
+      "steps": 6,
+      "judgeUsage": {
+        "inputTokens": 17186,
+        "outputTokens": 228,
+        "cachedTokens": 0,
+        "totalTokens": 17414,
+        "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "token": "45e121e6580d5063818c"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 1,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "stepBudget": 40,
+      "toolBudget": null,
+      "deadlineMs": 240000
+    }
+  ]
+}

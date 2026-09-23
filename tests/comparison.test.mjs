@@ -61,6 +61,26 @@ test('download judge requires the actual matching file, not a download request o
   assert.equal((await attempt.judge({ artifactPaths: [file] })).passed, false);
 });
 
+test('authorization-return judge requires one provider approval and one app submission', async t => {
+  const service = await startTaskService();
+  t.after(() => service.close());
+  const attempt = await service.createAttempt('auth-return', 17);
+  const fake = () => fetch(attempt.url + 'save', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token: 'claimed-without-popup' }) });
+  await fake();
+  assert.equal((await attempt.judge()).passed, false);
+  attempt.reset();
+  const authorized = await fetch(attempt.authUrl.replace(/\/auth$/, '/authorize'), { method: 'POST' });
+  const { token } = await authorized.json();
+  assert.equal((await attempt.judge()).passed, false, 'Provider approval alone is not app completion');
+  await fetch(attempt.url + 'save', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ token }) });
+  assert.equal((await attempt.judge()).passed, true);
+  await fake();
+  const duplicate = await attempt.judge();
+  assert.equal(duplicate.passed, false);
+  assert.equal(duplicate.evidence.authorizations, 1);
+  assert.equal(duplicate.evidence.duplicateWrites, 1);
+});
+
 test('model gateway enforces equal wire settings and measures returned usage without a paid provider', async t => {
   const requests = [];
   const provider = createServer(async (request, response) => {

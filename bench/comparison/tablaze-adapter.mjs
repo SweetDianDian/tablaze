@@ -37,6 +37,20 @@ export function scriptedPlanner(attempt, { initialized = false } = {}) {
         page = (yield call('tab_tabs', { session_id: page.session_id, action: 'switch', tab_id: popup.tab_id })).data;
         yield* click('Approve request 42'); break;
       }
+      case 'auth-return': {
+        const originalTabId = page.tab_id;
+        yield* click('Connect account');
+        const tabs = (yield call('tab_tabs', { session_id: page.session_id, action: 'list' })).data.tabs;
+        const popup = tabs.find(tab => tab.url === attempt.authUrl);
+        if (!popup) throw new Error('Script fixture authorization popup unavailable');
+        page = (yield call('tab_tabs', { session_id: page.session_id, action: 'switch', tab_id: popup.tab_id })).data;
+        yield* click('Authorize account');
+        page = (yield call('tab_tabs', { session_id: page.session_id, action: 'switch', tab_id: originalTabId })).data;
+        yield* wait('Account connected');
+        yield* click('Finish connection');
+        yield* wait('Saved successfully');
+        break;
+      }
       case 'shadow-form': yield* act([{ type: 'fill', ref: find('Shadow note'), value: 'Orion' }, { type: 'click', ref: find('Save shadow note') }]); break;
       case 'iframe-form':
         page = (yield call('tab_snapshot', { session_id: page.session_id, frame_id: page.frames.find(frame => !frame.is_main).frame_id })).data;

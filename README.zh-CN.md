@@ -103,6 +103,8 @@ node dist/cli.js run --provider codex --model "<你的Codex模型>" \
 
 新增[虚拟列表同条件任务](docs/CODEX_VIRTUAL_LIST_SMOKE.md)：双方各完整成功一次，独立验收通过且没有重复写入。共同 120,000-token 预算下，Tablaze 全程 86.830 秒，Browser Use 全程 141.597 秒（含默认评审）。单个可见开发任务不能证明整体性能或成功率领先。
 
+另一个[跨来源授权返回任务](docs/CODEX_AUTH_RETURN_SMOKE.md)中，双方也各成功一次，提供方授权和主页面提交均恰好一次。Browser Use 全程 119.515 秒，略快于 Tablaze 的 123.719 秒。该合成弹窗流程不能证明生产登录能力或整体排名。
+
 ## 简单的工作流，明确的控制
 
 | 能力 | 给 Agent 带来什么 |

@@ -30,6 +30,6 @@ for (const [source, target] of publicGuides) {
   });
   await writeFile(join(site, target), text);
 }
-for (const name of ['CODEX_COMPARISON_RESULTS_V3.md', 'CODEX_TERMINAL_FOLLOWUP.md', 'CODEX_PROVIDER_SMOKE.md', 'CODEX_VIRTUAL_LIST_SMOKE.md']) await copyFile(join(root, 'docs', name), join(site, name));
-for (const name of ['development-tests.txt', 'development-tests-2026-09-23.txt', 'development-validation.json', 'navigation-policy-probe-v1.json', 'codex-provider-smoke-v1.json', 'codex-e2e.json', 'codex-matched-smoke-v3.json', 'codex-matched-smoke-v3-analysis.json', 'codex-terminal-followup-v1.json', 'codex-terminal-followup-v1-analysis.json', 'codex-virtual-list-smoke-v1.json']) await copyFile(join(root, 'docs/evidence', name), join(site, 'evidence', name));
+for (const name of ['CODEX_COMPARISON_RESULTS_V3.md', 'CODEX_TERMINAL_FOLLOWUP.md', 'CODEX_PROVIDER_SMOKE.md', 'CODEX_VIRTUAL_LIST_SMOKE.md', 'CODEX_AUTH_RETURN_SMOKE.md']) await copyFile(join(root, 'docs', name), join(site, name));
+for (const name of ['development-tests.txt', 'development-tests-2026-09-23.txt', 'development-tests-auth-return.txt', 'development-validation.json', 'navigation-policy-probe-v1.json', 'codex-provider-smoke-v1.json', 'codex-e2e.json', 'codex-matched-smoke-v3.json', 'codex-matched-smoke-v3-analysis.json', 'codex-terminal-followup-v1.json', 'codex-terminal-followup-v1-analysis.json', 'codex-virtual-list-smoke-v1.json', 'codex-auth-return-smoke-v1.json']) await copyFile(join(root, 'docs/evidence', name), join(site, 'evidence', name));
 console.log('Synchronized public guides, comparison reports, and their fixed evidence files. Historical benchmark.json is unchanged.');

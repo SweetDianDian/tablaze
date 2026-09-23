@@ -75,6 +75,11 @@ also completed this visible task on both engines under a shared 120,000-token
 budget. This closes one development smoke gap, not the requirement for
 representative virtualized applications or repeated matched model outcomes.
 
+A [single synthetic cross-origin authorization-return pair](CODEX_AUTH_RETURN_SMOKE.md)
+now passes independent one-authorization/one-submission checks on both agents.
+It tests popup handoff and return in a local fixture, not real account security,
+profile continuity or repeated production-site reliability.
+
 Sources:
 
 - **A:** [Agent parameters](https://docs.browser-use.com/open-source/customize/agent/all-parameters).
@@ -238,7 +243,7 @@ All gates must have direct evidence before this objective can be marked complete
 
 ## Executable development smoke and machine-readable record
 
-The [smoke runner](../bench/comparison/README.md) executes 14 diverse local tasks
+The [smoke runner](../bench/comparison/README.md) executes 15 diverse local tasks
 through the actual Tablaze agent/MCP/browser path with an explicitly scripted
 planner. It also provides real-model Tablaze and pinned Browser Use Agent
 adapters, a shared model-settings gateway, prerequisite checks and per-attempt

@@ -103,6 +103,8 @@ The new production Codex path also has a [separate live smoke](docs/CODEX_PROVID
 
 A [new matched virtual-list task](docs/CODEX_VIRTUAL_LIST_SMOKE.md) completed once on each engine with independent acceptance and zero duplicate writes. Under a shared 120,000-token budget, whole-run time was 86.830 s for Tablaze and 141.597 s for Browser Use, including its default judge. This one visible development task does not establish a general performance or success-rate advantage.
 
+The separate [cross-origin authorization-return task](docs/CODEX_AUTH_RETURN_SMOKE.md) also passed once on each engine with one provider authorization and one app submission. Browser Use's 119.515 s whole run was slightly shorter than Tablaze's 123.719 s. This synthetic popup flow does not establish production login parity or an overall ranking.
+
 ## A small loop, with useful controls
 
 | Capability | What it gives your agent |

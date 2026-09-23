@@ -120,8 +120,13 @@ export function createServer(options: BrowserOptions = {}): { server: McpServer;
           if ((acted.verification as Record<string, unknown>).passed !== true) acted.replan_required = true;
         }
         if (include_snapshot !== false && !acted.snapshot && acted.session_closed !== true) {
-          try { acted.snapshot = await engine.snapshot(session_id); }
-          catch (error) { acted.snapshot_error = (safeError(error, protectedValues).error); }
+          try { acted.snapshot = await engine.snapshot(session_id, typeof acted.action_frame_id === 'string' ? { frameId: acted.action_frame_id } : {}); }
+          catch (error) {
+            if (typeof acted.action_frame_id === 'string') {
+              try { acted.snapshot = await engine.snapshot(session_id); }
+              catch (fallbackError) { acted.snapshot_error = safeError(fallbackError, protectedValues).error; }
+            } else acted.snapshot_error = safeError(error, protectedValues).error;
+          }
         }
       }
       return acted;

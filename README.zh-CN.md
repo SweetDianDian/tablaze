@@ -53,6 +53,7 @@ Browser Use 默认评审已计入总时间和用量。Agent 完成与全程时�
 新增[四任务同模型开发对照](docs/CODEX_CURRENT_FOUR_SMOKE.md)，覆盖 iframe 填写、响应中断后的订单核对、虚拟列表和视觉画布。双方各四次完整成功且通过独立业务验收；Tablaze 的 iframe 样本较慢（83.799 秒对 52.515 秒），另三题全程时间较短。每题每侧仅一次，不能证明稳定效率或整体领先。
 初次观察现在会在有限时间内等待新附加的子 iframe 就绪；真实 Chrome 回归确认第一次 `tab_open` 可看到延迟加载的子表单。
 后续[三组 iframe 同模型复测](docs/CODEX_IFRAME_READINESS_SMOKE.md)的独立业务验收双方全部通过，但 Tablaze 可见样本的全程中位数为 79.699 秒，Browser Use 为 56.040 秒。Tablaze 两组因误把输入值当页面文本检查而多用模型回合，目前不能声称效率已接近。
+后续动作反馈已在检查失败时保留原操作的子 iframe，下一次决策可直接看到正确页面，无需额外切回 frame；这项较新的改动仍需单独进行模型对照。
 
 [Browser Use 当前功能与公开问题审计](docs/BROWSER_USE_2026_AUDIT.md)逐项记录 Agent、MCP、Harness、Pi 和云服务的实现与缺口，以及公开问题是否有本地复现和回归测试。密码框现在只显示是否已填，不暴露原值。
 

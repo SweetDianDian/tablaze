@@ -52,6 +52,8 @@ Browser Use 默认评审已计入总时间和用量。Agent 完成与全程时�
 
 新增[四任务同模型开发对照](docs/CODEX_CURRENT_FOUR_SMOKE.md)，覆盖 iframe 填写、响应中断后的订单核对、虚拟列表和视觉画布。双方各四次完整成功且通过独立业务验收；Tablaze 的 iframe 样本较慢（83.799 秒对 52.515 秒），另三题全程时间较短。每题每侧仅一次，不能证明稳定效率或整体领先。
 
+[Browser Use 当前功能与公开问题审计](docs/BROWSER_USE_2026_AUDIT.md)逐项记录 Agent、MCP、Harness、Pi 和云服务的实现与缺口，以及公开问题是否有本地复现和回归测试。密码框现在只显示是否已填，不暴露原值。
+
 ## 开始使用
 
 需要 **Node.js 20+**、npm 和 Git。当前为开发者预览版，npm 尚未发布，请从源码安装：

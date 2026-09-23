@@ -30,6 +30,7 @@ const documentFor = (path) => {
     <div id="links">${Array.from({ length: 30 }, (_, index) => `<a href="/item-${index}">${'Link label '.repeat(120)}</a>`).join('')}</div>
     <table>${Array.from({ length: 25 }, () => `<tr><td>${'Cell '.repeat(250)}</td><td>${'Other '.repeat(250)}</td></tr>`).join('')}</table>`;
   if (path === '/scan') return `<!doctype html><body>${'<i></i>'.repeat(30001)}<p>After scan limit</p></body>`;
+  if (path === '/redacted-controls') return '<!doctype html><label>Empty password <input type="password"></label><label>Existing password <input type="password" value="fixture-private-password"></label><label>Current status <select disabled><option value="active">Active</option></select></label><button>Continue</button>';
   return '<!doctype html><p>Destination</p>';
 };
 
@@ -49,6 +50,26 @@ async function open(t, path) {
   t.after(async () => { if (engine.list().some(session => session.session_id === snapshot.session_id)) await engine.close(snapshot.session_id); });
   return snapshot;
 }
+
+test('redacted password state and disabled select selection remain observable without exposing credentials', async t => {
+  const initial = await open(t, '/redacted-controls');
+  const empty = initial.elements.find(item => item.name === 'Empty password');
+  const existing = initial.elements.find(item => item.name === 'Existing password');
+  const status = initial.elements.find(item => item.name === 'Current status');
+  assert.equal(empty.value_redacted, true);
+  assert.equal(empty.value_filled, false);
+  assert.equal(existing.value_redacted, true);
+  assert.equal(existing.value_filled, true);
+  assert.equal(status.disabled, true);
+  assert.equal(status.value, 'active');
+  assert.deepEqual(status.options.map(({ label, selected }) => ({ label, selected })), [{ label: 'Active', selected: true }]);
+  assert.doesNotMatch(JSON.stringify(initial), /fixture-private-password/);
+  const filled = await engine.act(initial.session_id, initial.snapshot_id, [{ type: 'fill', ref: empty.ref, value: 'new-private-password' }], { snapshot: false });
+  assert.equal(filled.ok, true);
+  const diff = await engine.snapshot(initial.session_id, { mode: 'diff' });
+  assert.equal(diff.changed.find(item => item.name === 'Empty password').value_filled, true);
+  assert.doesNotMatch(JSON.stringify(diff), /new-private-password|fixture-private-password/);
+});
 
 test('viewport observation reaches the 501st button after scrolling a truncated page', async t => {
   const initial = await open(t, '/long');

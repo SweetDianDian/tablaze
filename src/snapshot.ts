@@ -165,7 +165,12 @@ export function inspectDOM(input: any): any {
     const entry: Record<string, unknown> = { role, name: name.slice(0, 400 + outputPadding) };
     let fieldsTruncated = name.length > 400;
     if (tag === 'input' || tag === 'textarea' || tag === 'select') {
-      if (type === 'password') entry.value_redacted = true;
+      if (type === 'password') {
+        entry.value_redacted = true;
+        // Expose only whether the live control is filled. The value itself never
+        // crosses the page/host boundary through this observation path.
+        entry.value_filled = control.value.length > 0;
+      }
       else if (type !== 'hidden') { const value = control.value ?? ''; entry.value = value.slice(0, 1000 + outputPadding); fieldsTruncated ||= value.length > 1000; }
       if (type === 'checkbox' || type === 'radio') entry.checked = control.checked;
       if (control.disabled) entry.disabled = true;

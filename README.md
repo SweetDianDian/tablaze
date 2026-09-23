@@ -52,6 +52,8 @@ Browser Use's default judge is included in its totals. Agent and end-to-end cloc
 
 A [new four-task matched development smoke](docs/CODEX_CURRENT_FOUR_SMOKE.md) tested iframe input, interrupted-response order recovery, a virtual list and a visual canvas. Both engines completed all four with independent business acceptance; Tablaze's iframe sample was slower (83.799 s versus 52.515 s), while its other three whole-run samples were shorter. Each task ran once per engine, so this does not prove stable efficiency or overall superiority.
 
+The [current Browser Use capability and public-issue audit](docs/BROWSER_USE_2026_AUDIT.md) tracks what is implemented, what remains missing across Agent/MCP/Harness/Pi/cloud, and which reported defects have a local reproduction or regression. Password fields now reveal only whether a value is present, while keeping its bytes redacted.
+
 ## Get started
 
 Requires **Node.js 20+**, npm and Git. This is a developer preview; npm publication is pending, so install from source:

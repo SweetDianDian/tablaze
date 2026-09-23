@@ -182,7 +182,7 @@ Current captures are JPEG; full-page captures above 32 million pixels and encode
 {}
 ```
 
-**`tab_close`** — closes the owned session and invalidates its IDs.
+**`tab_close`** — closes the owned session and invalidates its IDs. With trusted `--record-video`, its response includes private finalized WebM paths, byte counts and SHA-256 digests for each owned tab. [Recording limits](RECORDING.md).
 
 ```json
 {"session_id":"<session_id>"}

@@ -50,6 +50,8 @@
 
 Browser Use 默认评审已计入总时间和用量。Agent 完成与全程时间的起点不同。这次独立复测不替换原来的 4/5；少量可见样本不能证明整体超过 Browser Use。两份报告均保留原始结果、代码哈希、运行条件与限制。
 
+新增[四任务同模型开发对照](docs/CODEX_CURRENT_FOUR_SMOKE.md)，覆盖 iframe 填写、响应中断后的订单核对、虚拟列表和视觉画布。双方各四次完整成功且通过独立业务验收；Tablaze 的 iframe 样本较慢（83.799 秒对 52.515 秒），另三题全程时间较短。每题每侧仅一次，不能证明稳定效率或整体领先。
+
 ## 开始使用
 
 需要 **Node.js 20+**、npm 和 Git。当前为开发者预览版，npm 尚未发布，请从源码安装：
@@ -115,6 +117,8 @@ SDK 调用方可用 `createAgentControl()` 在安全边界暂停、加入可信�
 
 另一个[跨来源授权返回任务](docs/CODEX_AUTH_RETURN_SMOKE.md)中，双方也各成功一次，提供方授权和主页面提交均恰好一次。Browser Use 全程 119.515 秒，略快于 Tablaze 的 123.719 秒。该合成弹窗流程不能证明生产登录能力或整体排名。
 
+调试真实运行时，可通过 `--record-video` 为每个自有独立标签页生成私有 WebM；`tab_close` 返回最终路径和 SHA-256，独立 `run` 会在清理后把录像清单写入报告。默认关闭，不叠加模拟光标，也不录声音。详见[真实浏览器录制与隐私边界](docs/RECORDING.md)。
+
 ## 简单的工作流，明确的控制
 
 | 能力 | 给 Agent 带来什么 |
@@ -127,6 +131,7 @@ SDK 调用方可用 `createAgentControl()` 在安全边界暂停、加入可信�
 | **延迟控件** | 点击已观察到的入口后，在同一受保护批次中等待并点击唯一、准确命名的可见按钮或菜单项；重名时输入前停止。 |
 | **明确验收** | 核对实际 URL、标题、文字、字段值、可见性与元素数量。已知的同文档结果可在 `tab_act` 批次结束后直接检查，并在同一次调用中形成 Agent 可引用的证据。 |
 | **可选响应日志** | 使用 `--capture-network`，通过第十七个 MCP 工具 [`tab_network`](docs/NETWORK.md) 观察自有页面与弹窗的有界响应；默认关闭，尚非通用 JS/CDP 编程入口。 |
+| **可选真实录像** | 使用 `--record-video` 录制自有独立标签页，关闭会话后返回私有 WebM 路径及 SHA-256。[录制范围与限制](docs/RECORDING.md)。 |
 | **可选导航策略** | 通过[精确来源允许/拒绝规则](docs/NAVIGATION_POLICY.md)限制自有独立浏览器中的 HTTP(S) 文档请求，覆盖重定向、frame 和弹窗。不支持外部 CDP，也不是网络防火墙。 |
 
 ### 十六个工具
@@ -141,7 +146,7 @@ SDK 调用方可用 `createAgentControl()` 在安全边界暂停、加入可信�
 | `tab_extract` | 读取文字、链接或表格。 |
 | `tab_capture` | 获取 JPEG 截图。 |
 | `tab_list` | 查看自有会话。 |
-| `tab_close` | 关闭会话并释放资源。 |
+| `tab_close` | 关闭会话并释放资源；启用录像时返回已完成 WebM 的文件元数据。 |
 | `tab_navigate` | 在会话内前进、后退、刷新或导航。 |
 | `tab_tabs` | 创建、切换和关闭自有标签页，接续弹窗流程。 |
 | `tab_downloads` | 查看下载状态与本地文件。 |
@@ -162,6 +167,7 @@ SDK 调用方可用 `createAgentControl()` 在安全边界暂停、加入可信�
 | [模型提供方](docs/PROVIDERS.md) | Codex CLI、原生 Anthropic/Ollama 与兼容 HTTP 的协议、认证及用量。 |
 | [导航策略](docs/NAVIGATION_POLICY.md) | 可信 CLI/SDK 配置、仅文档请求的范围、连接中断边界与恢复策略身份。 |
 | [定向凭据](docs/SECRETS.md) | 可信别名、精确来源登录填写、遮盖边界与恢复。 |
+| [真实浏览器录像](docs/RECORDING.md) | 可选 WebM、CLI/MCP/SDK 获取方式与隐私边界。 |
 | [Browser Use 多入口审计](docs/BROWSER_USE_VARIANTS.md) | 区分 Agent、MCP、Harness、Pi 和云服务；源码审计不等于性能测量。 |
 | [基准测试](bench/README.md) | 复现本地场景，检查每个原始样本。 |
 | [验证记录](docs/VALIDATION.md) | 真实浏览器、SDK 与 Codex 的结果和验证范围。 |

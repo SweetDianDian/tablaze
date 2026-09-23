@@ -1,8 +1,9 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { createReadStream } from 'node:fs';
 import { mkdtemp, realpath, stat, writeFile, chmod, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, isAbsolute, join } from 'node:path';
-import { chromium, type Browser, type BrowserContext, type Download, type ElementHandle, type Frame, type JSHandle, type Page } from 'playwright';
+import { chromium, type Browser, type BrowserContext, type Download, type ElementHandle, type Frame, type JSHandle, type Page, type Video } from 'playwright';
 import { inspectDOM } from './snapshot.js';
 import { assembleDOMExtraction, inspectDOMField, validateDOMFieldPlan, type DOMFieldPlan, type DOMFieldObservation, type ExtractionSchema } from './extraction.js';
 import { compileNavigationPolicy, NavigationPolicyError, type NavigationPolicy, type CompiledNavigationPolicy } from './navigation-policy.js';
@@ -20,7 +21,8 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; captureNetwork?: boolean; allowPageScript?: boolean }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; captureNetwork?: boolean; recordVideo?: boolean; allowPageScript?: boolean }
+export interface BrowserRecording { session_id: string; tab_id: string; path: string; bytes: number; mime_type: 'video/webm'; sha256: string }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
 export interface FindTextOptions { text: string; frameId?: string; containerRef?: string; snapshotId?: string; maxScrolls?: number; timeoutMs?: number; signal?: AbortSignal }
 type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
@@ -64,6 +66,7 @@ interface Session {
   navigationGuard?: NavigationGuard; navigationContextId?: string;
   secretTainted?: boolean;
   network?: NetworkJournal;
+  videos: Map<string, Video>; recordings: BrowserRecording[];
 }
 const errorInfo = (error: unknown, fallback = 'BROWSER_ERROR') => ({ code: error instanceof BrowserError || error instanceof SecretError || error instanceof NetworkJournalError ? error.code : fallback, message: (error instanceof Error ? error.message : String(error)).split('\nCall log:')[0].slice(0, 2000) });
 const integer = (value: number | undefined, fallback: number, min: number, max: number, name: string) => { const result = value ?? fallback; if (!Number.isInteger(result) || result < min || result > max) throw new BrowserError('INVALID_ARGUMENT', `${name} must be an integer between ${min} and ${max}.`); return result; };
@@ -94,8 +97,10 @@ export class BrowserEngine {
   private readonly secretBridgeKey = `__tablaze_${randomUUID().replaceAll('-', '')}`;
   private readonly secretOperations = new Set<AbortController>();
   private artifactDirectory?: Promise<string>;
+  private readonly completedRecordings: BrowserRecording[] = [];
   constructor(private options: BrowserOptions = {}) {
     this.timeout = integer(options.timeoutMs, 10000, 100, 60000, 'timeoutMs');
+    if (options.recordVideo !== undefined && typeof options.recordVideo !== 'boolean') throw new BrowserError('INVALID_ARGUMENT', 'recordVideo must be a boolean.');
     if (options.profileDir !== undefined && (typeof options.profileDir !== 'string' || !isAbsolute(options.profileDir) || options.profileDir === '/')) throw new BrowserError('PROFILE_PATH_INVALID', 'profileDir must be a dedicated absolute directory.');
     if (options.expectedProfileId !== undefined && (typeof options.expectedProfileId !== 'string' || !options.expectedProfileId)) throw new BrowserError('PROFILE_ID_MISMATCH', 'expectedProfileId must be a nonempty profile identifier.');
     if (options.popupPolicy !== undefined && !['stay', 'follow-single'].includes(options.popupPolicy)) throw new BrowserError('INVALID_ARGUMENT', 'popupPolicy must be stay or follow-single.');
@@ -109,6 +114,8 @@ export class BrowserEngine {
     try { this.secretStore = compileSecretStore(options.secrets); }
     catch { throw new BrowserError('SECRET_CONFIG_INVALID', 'Invalid browser secret configuration.'); }
     if (this.secretStore && options.cdpUrl) throw new BrowserError('SECRET_CDP_UNSUPPORTED', 'Browser secrets require an isolated browser owned by this engine.');
+    if (options.recordVideo && (options.cdpUrl || options.profileDir)) throw new BrowserError('RECORDING_CONTEXT_UNSUPPORTED', 'Video recording requires isolated browser contexts owned by this engine.');
+    if (options.recordVideo && this.secretStore && !this.secretStore.allowSensitiveArtifacts) throw new BrowserError('SECRET_ARTIFACT_BLOCKED', 'Video recording with configured secrets requires allowSensitiveArtifacts in the trusted secret configuration.');
     if (options.allowPageScript && (this.secretStore || options.cdpUrl || this.navigationPolicy)) throw new BrowserError('PAGE_SCRIPT_CONFLICT', 'Page scripts cannot be combined with configured secrets, external CDP, or a navigation policy.');
   }
 
@@ -366,7 +373,7 @@ export class BrowserEngine {
       context = this.options.profileDir
         ? this.profileContext
         : ownsContext
-        ? await phase(browser.newContext({ viewport: { width: 1280, height: 800 }, acceptDownloads: true, storageState: options.storageState, ...(this.navigationPolicy ? { serviceWorkers: 'block' as const } : {}) }), value => { context = value; }, value => value.close())
+        ? await phase(browser.newContext({ viewport: { width: 1280, height: 800 }, acceptDownloads: true, storageState: options.storageState, ...(this.navigationPolicy ? { serviceWorkers: 'block' as const } : {}), ...(this.options.recordVideo ? { recordVideo: { dir: await this.artifacts(), size: { width: 1280, height: 800 } } } : {}) }), value => { context = value; }, value => value.close())
         : browser.contexts()[0];
       if (!context) throw new BrowserError('CDP_CONTEXT_MISSING', 'The attached browser has no default context.');
       check();
@@ -377,7 +384,7 @@ export class BrowserEngine {
       session = {
         id: randomUUID(), context, ownsContext, page, tail: Promise.resolve(), closed: false,
         revision: 0, nextRef: 1, nextFrame: 1, activationEpoch: 0, scriptEpoch: 0, frames: new Map([[page.mainFrame(), 'f0']]), generations: new Map(),
-        tabs: new Map(), activeTabId: '', nextTab: 1, downloads: new Map(), dialogs: [], unexpected: [],
+        tabs: new Map(), activeTabId: '', nextTab: 1, downloads: new Map(), videos: new Map(), recordings: [], dialogs: [], unexpected: [],
         navigationGuard, navigationContextId,
         ...(this.options.captureNetwork ? { network: new NetworkJournal((text, limit) => this.secretText(text, limit)) } : {}),
       };
@@ -404,6 +411,10 @@ export class BrowserEngine {
     if (existing) return existing[0];
     const id = `t${session.nextTab++}`;
     session.tabs.set(id, page);
+    if (this.options.recordVideo) {
+      const video = page.video();
+      if (video) session.videos.set(id, video);
+    }
     page.setDefaultTimeout(this.timeout);
     page.setDefaultNavigationTimeout(this.timeout);
     page.once('close', () => {
@@ -1370,6 +1381,25 @@ export class BrowserEngine {
     });
   }
   list(): Record<string, unknown>[] { return [...this.sessions.values()].filter(session => !session.closed && !session.page.isClosed()).map(session => ({ session_id: session.id, url: this.secretText(session.page.url(), 4000), snapshot_id: session.snapshot?.id ?? null, tab_id: session.activeTabId, tab_count: session.tabs.size, session_mode: this.options.profileDir ? 'persistent_profile' : session.ownsContext ? 'isolated' : 'attached_profile', ...(this.profileLease ? { profile_id: this.profileLease.id } : {}) })); }
+  recordings(): BrowserRecording[] { return this.completedRecordings.map(recording => ({ ...recording })); }
+  private async collectRecordings(session: Session): Promise<void> {
+    if (!this.options.recordVideo) return;
+    const directory = await realpath(await this.artifacts());
+    for (const [tabId, video] of session.videos) {
+      let path: string;
+      try { path = await realpath(await video.path()); }
+      catch { throw new BrowserError('RECORDING_FAILED', 'A browser video could not be finalized.'); }
+      if (!path.startsWith(`${directory}/`)) throw new BrowserError('RECORDING_FAILED', 'A browser video escaped its private artifact directory.');
+      const metadata = await stat(path);
+      if (!metadata.isFile() || metadata.size === 0) throw new BrowserError('RECORDING_FAILED', 'A browser video is missing or empty.');
+      await chmod(path, 0o600);
+      const digest = createHash('sha256');
+      for await (const chunk of createReadStream(path)) digest.update(chunk);
+      const recording: BrowserRecording = { session_id: session.id, tab_id: tabId, path, bytes: metadata.size, mime_type: 'video/webm', sha256: digest.digest('hex') };
+      session.recordings.push(recording);
+      this.completedRecordings.push(recording);
+    }
+  }
   private cleanup(session: Session): Promise<void> {
     for (const lease of this.bindings) if (lease.sessionId === session.id) lease.invalidate(this.disposed ? 'ENGINE_CLOSED' : 'BINDING_STALE');
     if (!session.cleanup) {
@@ -1378,10 +1408,11 @@ export class BrowserEngine {
         // initiated by our pages before disconnecting, otherwise saveAs may never finish.
         const pending = [...session.downloads.values()].filter(item => item.status === 'pending');
         await Promise.all(pending.map(item => item.download.cancel().catch(() => {})));
-        if (this.disposed && session.ownsContext) await this.ownedBrowserClosing;
+        if (this.disposed && session.ownsContext && !this.options.recordVideo) await this.ownedBrowserClosing;
         if (session.ownsContext) await session.context.close();
         else await Promise.all([...session.tabs.values()].map(page => page.close()));
         await Promise.all([...session.downloads.values()].map(item => item.done));
+        await this.collectRecordings(session);
         await this.releaseRefs(session.snapshot);
       })().catch(error => { this.cleanupFailed = true; throw error; });
       this.resourceCleanup.add(session.cleanup);
@@ -1389,7 +1420,7 @@ export class BrowserEngine {
     }
     return session.cleanup;
   }
-  close(sessionId: string): Promise<Record<string, unknown>> { return this.exclusive(sessionId, async session => { session.closed = true; this.sessions.delete(sessionId); await this.cleanup(session); return { ok: true, session_id: sessionId, closed: true }; }, true); }
+  close(sessionId: string): Promise<Record<string, unknown>> { return this.exclusive(sessionId, async session => { session.closed = true; this.sessions.delete(sessionId); await this.cleanup(session); return { ok: true, session_id: sessionId, closed: true, ...(this.options.recordVideo ? { recordings: session.recordings.map(recording => ({ ...recording })) } : {}) }; }, true); }
   dispose(): Promise<void> {
     if (!this.disposal) {
       this.disposed = true;
@@ -1401,6 +1432,9 @@ export class BrowserEngine {
       const ownedBrowserLaunch = this.ownedBrowserLaunch;
       const alreadyClosing = [...this.resourceCleanup];
       if (!this.options.cdpUrl) this.ownedBrowserClosing = (async () => {
+        // Playwright finalizes video only when its owned context closes. Preserve
+        // that ordering for explicit recording before closing the shared browser.
+        if (this.options.recordVideo && (await Promise.allSettled(sessions.map(session => this.cleanup(session)))).some(result => result.status === 'rejected')) this.cleanupFailed = true;
         // Let close RPCs started by an earlier cancellation settle briefly.
         // Chrome can stall when context.close and browser.close run together.
         // Acquisition promises never gate this grace; it counts in the 2s cap.
@@ -1434,7 +1468,8 @@ export class BrowserEngine {
         if (this.cleanupFailed) throw new BrowserError('CLEANUP_INCOMPLETE', 'Some owned browser resources could not be confirmed closed.');
       })();
       this.disposal = new Promise<void>((resolve, reject) => {
-        const timer = setTimeout(() => reject(new BrowserError('CLEANUP_INCOMPLETE', 'Browser cleanup exceeded 2000 ms. Pending cleanup remains tracked; an attached browser connection stays open until late owned pages can be closed.')), 2000);
+        const graceMs = this.options.recordVideo ? 15000 : 2000;
+        const timer = setTimeout(() => reject(new BrowserError('CLEANUP_INCOMPLETE', `Browser cleanup exceeded ${graceMs} ms. Pending cleanup remains tracked; an attached browser connection stays open until late owned pages can be closed.`)), graceMs);
         void this.disposalWork!.then(() => { clearTimeout(timer); resolve(); }, error => { clearTimeout(timer); reject(error); });
       });
     }

@@ -50,6 +50,8 @@ A [separate order follow-up after the bridge fix](docs/CODEX_TERMINAL_FOLLOWUP.m
 
 Browser Use's default judge is included in its totals. Agent and end-to-end clocks have different starting boundaries. This single follow-up does not replace the original 4/5 result, and these small, visible samples do not establish overall superiority. Both reports retain raw results, source hashes, settings, and limitations.
 
+A [new four-task matched development smoke](docs/CODEX_CURRENT_FOUR_SMOKE.md) tested iframe input, interrupted-response order recovery, a virtual list and a visual canvas. Both engines completed all four with independent business acceptance; Tablaze's iframe sample was slower (83.799 s versus 52.515 s), while its other three whole-run samples were shorter. Each task ran once per engine, so this does not prove stable efficiency or overall superiority.
+
 ## Get started
 
 Requires **Node.js 20+**, npm and Git. This is a developer preview; npm publication is pending, so install from source:
@@ -115,6 +117,8 @@ The [delayed-control development comparison](docs/CODEX_DELAYED_TARGET_SMOKE.md)
 
 The separate [cross-origin authorization-return task](docs/CODEX_AUTH_RETURN_SMOKE.md) also passed once on each engine with one provider authorization and one app submission. Browser Use's 119.515 s whole run was slightly shorter than Tablaze's 123.719 s. This synthetic popup flow does not establish production login parity or an overall ranking.
 
+For debugging an actual run, `--record-video` optionally records each owned isolated tab as a private WebM. `tab_close` returns finalized paths and SHA-256 digests; the standalone `run` report includes them after cleanup. It is off by default and adds no simulated cursor or audio. See [real browser recording and privacy limits](docs/RECORDING.md).
+
 ## A small loop, with useful controls
 
 | Capability | What it gives your agent |
@@ -127,6 +131,7 @@ The separate [cross-origin authorization-return task](docs/CODEX_AUTH_RETURN_SMO
 | **Delayed controls** | After clicking an observed opener, wait for one exact-name visible button or menu item and click it in the same guarded batch. Ambiguous matches stop before input. |
 | **Explicit verification** | Check URL, title, text, field values, visibility and counts. Known same-document outcomes can be checked inside `tab_act` after its batch, with passing evidence available to the Agent in that call. |
 | **Optional response journal** | Use `--capture-network` to inspect bounded responses from owned pages and popups through a seventeenth MCP tool, [`tab_network`](docs/NETWORK.md). Off by default; not a programmable JS/CDP surface. |
+| **Optional real video** | Use `--record-video` for private WebM recordings of owned isolated tabs, finalized with SHA-256 at session close. [Recording scope and limits](docs/RECORDING.md). |
 | **Optional navigation policy** | [Exact-origin allow/deny rules](docs/NAVIGATION_POLICY.md) for HTTP(S) document requests, including redirects, frames and popups, in owned isolated browsers. No external CDP; not a network firewall. |
 
 ### Sixteen tools
@@ -141,7 +146,7 @@ The separate [cross-origin authorization-return task](docs/CODEX_AUTH_RETURN_SMO
 | `tab_extract` | Read text, links or tables. |
 | `tab_capture` | Capture a JPEG screenshot. |
 | `tab_list` | Inspect owned sessions. |
-| `tab_close` | Close a session and release its resources. |
+| `tab_close` | Close a session and release its resources; return finalized WebM artifact metadata when recording was enabled. |
 | `tab_navigate` | Navigate, go back/forward, or reload without losing session state. |
 | `tab_tabs` | Open, switch, and close owned tabs, including popups. |
 | `tab_downloads` | Inspect download status and local artifacts. |
@@ -160,6 +165,7 @@ The separate [cross-origin authorization-return task](docs/CODEX_AUTH_RETURN_SMO
 | [Model providers](docs/PROVIDERS.md) | Codex CLI, native Anthropic/Ollama and compatible HTTP contracts, authentication and usage. |
 | [Navigation policy](docs/NAVIGATION_POLICY.md) | Trusted CLI/SDK configuration, document-only scope, transport-loss limits and checkpoint identity. |
 | [Scoped credentials](docs/SECRETS.md) | Trusted aliases, exact-origin login fills, redaction limits and recovery. |
+| [Real browser recording](docs/RECORDING.md) | Opt-in WebM artifacts, CLI/MCP/SDK access and privacy limits. |
 | [Browser Use variants audit](docs/BROWSER_USE_VARIANTS.md) | Distinguish Agent, MCP, Harness, Pi and cloud comparison targets; source audit, not a benchmark. |
 | [Benchmark](bench/README.md) | Reproduce the local workload and inspect every raw sample. |
 | [Validation evidence](docs/VALIDATION.md) | Real browser, SDK and Codex results, with their measured scope. |

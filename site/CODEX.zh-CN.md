@@ -182,7 +182,7 @@ enabled = true
 {}
 ```
 
-**`tab_close`**：关闭自有会话并使其标识失效。
+**`tab_close`**：关闭自有会话并使其标识失效。可信启动参数 `--record-video` 启用后，响应包含各自有标签页的私有 WebM 路径、字节数及 SHA-256。[录制边界](RECORDING.md)。
 
 ```json
 {"session_id":"<session_id>"}

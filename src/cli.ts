@@ -32,6 +32,7 @@ Options / 选项:
   --headless                Run headless (default) / 无头模式
   --headed                  Show the isolated browser / 显示独立浏览器
   --capture-network         Expose bounded owned-tab response inspection / 观察自有标签页响应
+  --record-video            Record real owned browser tabs to private WebM artifacts / 录制真实浏览器画面
   --page-script             Expose page-origin JavaScript (full page authority) / 开启页面脚本
   --profile-dir <path>       Use a dedicated persistent Chrome profile / 使用专有持久资料目录
   --profile-id <id>          Required identity when reopening that profile / 重开资料时核对身份
@@ -132,7 +133,7 @@ function loadOutputSchema(path: string, flag = "--output-schema"): ExtractionSch
 
 function parseOptions(): { command: string; options: BrowserOptions; run?: RunOptions } {
   const { values, positionals } = parseArgs({
-    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, "capture-network": { type: "boolean" }, "page-script": { type: "boolean" }, "profile-dir": { type: "string" }, "profile-id": { type: "string" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, "secret-config": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "output-schema": { type: "string" }, "partial-schema": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
+    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, "capture-network": { type: "boolean" }, "record-video": { type: "boolean" }, "page-script": { type: "boolean" }, "profile-dir": { type: "string" }, "profile-id": { type: "string" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, "secret-config": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "output-schema": { type: "string" }, "partial-schema": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
     allowPositionals: true, strict: true,
   });
   if (values.help) return { command: "help", options: {} };
@@ -145,6 +146,7 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
   if (values["profile-dir"] !== undefined && !values["profile-dir"].trim()) throw new Error("--profile-dir must name a dedicated directory.");
   if (values["profile-dir"] && cdpUrl) throw new Error("--profile-dir cannot be combined with --cdp-url.");
   if (values["profile-dir"] && values["navigation-policy"]) throw new Error("--profile-dir cannot be combined with --navigation-policy because restored pages can load before the guard starts.");
+  if (values["record-video"] && (values["profile-dir"] || cdpUrl)) throw new Error("--record-video requires isolated owned browser contexts; do not combine it with --profile-dir or --cdp-url.");
   if (values["profile-dir"] && positionals[0] === "setup") throw new Error("--profile-dir applies to MCP, run, or doctor, not setup.");
   if (values["profile-dir"] && (values.checkpoint || values.resume)) throw new Error("Persistent profiles cannot be combined with CLI checkpoints until profile identity is bound into the checkpoint contract.");
   if (values["navigation-policy"] !== undefined && cdpUrl) throw new Error("--navigation-policy cannot be combined with --cdp-url; it requires isolated browser contexts.");
@@ -152,6 +154,7 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
   if (values["secret-config"] !== undefined && cdpUrl) throw new Error("--secret-config cannot be combined with --cdp-url; it requires isolated browser contexts.");
   if (values["secret-config"] !== undefined && positionals[0] === "setup") throw new Error("--secret-config applies to MCP, run, or doctor, not setup.");
   const secrets = values["secret-config"] === undefined ? undefined : loadSecretConfig(values["secret-config"]);
+  if (values["record-video"] && secrets && !secrets.allowSensitiveArtifacts) throw new Error("--record-video with --secret-config requires allowSensitiveArtifacts in the trusted secret configuration.");
   const navigationPolicy = values["navigation-policy"] === undefined ? undefined : loadNavigationPolicy(values["navigation-policy"]);
   const channel = values.channel ?? (cdpUrl ? undefined : process.env.TABLAZE_BROWSER_CHANNEL);
   if (channel && !CHANNELS.has(channel)) throw new Error("Unsupported browser channel. Use chromium, chrome, or a documented Chrome/Edge channel.");
@@ -196,7 +199,7 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
     };
     run = { task: values.task, startUrl: values["start-url"] === undefined ? undefined : normalizeStartUrl(values["start-url"]), provider, model: values.model, endpoint: values.endpoint, apiKey: provider === "codex" ? undefined : process.env[envName] || undefined, codexCommand: values["codex-command"], reasoningEffort, maxOutputTokens, maxSteps: limit("max-steps", 30, 1000), maxToolCalls: limit("max-calls", 100, 10000), ...(values["output-schema"] !== undefined ? { finalOutputSchema: loadOutputSchema(values["output-schema"]) } : {}), ...(values["partial-schema"] !== undefined ? { partialOutputSchema: loadOutputSchema(values["partial-schema"], "--partial-schema") } : {}), timeoutMs: limit("run-timeout-ms", 300000, 86400000), checkpointPath: values.checkpoint ? resolve(values.checkpoint) : undefined, resumePath: values.resume ? resolve(values.resume) : undefined, reconciled: values.reconciled };
   } else if (runKeys.some(key => values[key] !== undefined)) throw new Error("Agent options require the run command.");
-  return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, profileDir: values["profile-dir"] !== undefined ? resolve(values["profile-dir"]) : undefined, expectedProfileId: values["profile-id"], timeoutMs, popupPolicy, navigationPolicy, secrets, captureNetwork: values["capture-network"] ?? false, allowPageScript: values["page-script"] ?? false }, run };
+  return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, profileDir: values["profile-dir"] !== undefined ? resolve(values["profile-dir"]) : undefined, expectedProfileId: values["profile-id"], timeoutMs, popupPolicy, navigationPolicy, secrets, captureNetwork: values["capture-network"] ?? false, recordVideo: values["record-video"] ?? false, allowPageScript: values["page-script"] ?? false }, run };
 }
 
 function channelExecutable(channel: string): string | undefined {
@@ -246,7 +249,7 @@ function doctor(options: BrowserOptions): void {
     tablaze_version: SERVER_VERSION, node_version: process.version, platform: process.platform, architecture: process.arch,
     playwright_version: playwrightPackage.version, mode: options.cdpUrl ? "cdp" : "isolated",
     browser: { source: options.cdpUrl ? "external-cdp" : options.executablePath ? "executable" : options.channel ?? "managed-chromium", executable: executable ?? null, installed, detected_version: detectedBrowserVersion(executable), expected_managed_version: bundled ? managed?.browserVersion ?? null : null, expected_managed_revision: bundled ? managed?.revision ?? null : null },
-    headless: options.cdpUrl ? null : options.headless, timeout_ms: options.timeoutMs, popup_policy: options.popupPolicy ?? "stay",
+    headless: options.cdpUrl ? null : options.headless, timeout_ms: options.timeoutMs, popup_policy: options.popupPolicy ?? "stay", record_video: options.recordVideo ?? false,
     navigation_policy: { enabled: options.navigationPolicy !== undefined, allowed_origin_count: options.navigationPolicy?.allowedOrigins?.length ?? null, blocked_origin_count: options.navigationPolicy?.blockedOrigins?.length ?? 0 },
     secrets: { enabled: options.secrets !== undefined, alias_count: options.secrets?.secrets.length ?? 0, allow_sensitive_artifacts: options.secrets?.allowSensitiveArtifacts ?? false },
     ready: options.cdpUrl ? null : installed,
@@ -377,6 +380,7 @@ async function main(): Promise<void> {
       // final usage. Drain it before serializing the report, including failures.
       try { await codexPlanner?.close(); }
       catch { recordCleanupFailure(undefined, { code: "CODEX_CLEANUP_FAILED", message: "Codex planner cleanup did not complete." }); }
+      if (report && options.recordVideo) report.recordings = engine.recordings();
       if (cleanupFailure) {
         process.exitCode = 1;
         if (report) report = { ...report, agent_status: report.status, agent_reason: report.reason, status: "failed", reason: "Resource cleanup did not complete; inspect the cleanup error.", cleanup: { status: "incomplete", ...cleanupFailure } };

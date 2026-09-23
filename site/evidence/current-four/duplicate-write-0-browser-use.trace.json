@@ -1,0 +1,383 @@
+{
+  "history_path": "/Users/diandian/work/agent/tablaze/artifacts/comparison/broader-current-20260924/duplicate-write-0-browser-use/browser-use-history.json",
+  "history": {
+    "history": [
+      {
+        "model_output": {
+          "evaluation_previous_goal": "Start",
+          "memory": null,
+          "next_goal": "Initial navigation",
+          "action": [
+            {
+              "navigate": {
+                "url": "http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/",
+                "new_tab": false
+              }
+            }
+          ]
+        },
+        "result": [
+          {
+            "is_done": false,
+            "long_term_memory": "Found initial url and automatically loaded it. Navigated to http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/",
+            "extracted_content": "🔗 Navigated to http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/",
+            "include_extracted_content_only_once": false,
+            "include_in_memory": false
+          }
+        ],
+        "state": {
+          "tabs": [],
+          "screenshot_path": null,
+          "interacted_element": [
+            null
+          ],
+          "url": "http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/",
+          "title": "Initial Actions"
+        },
+        "metadata": {
+          "step_start_time": 1790183849.975733,
+          "step_end_time": 1790183849.975733,
+          "step_number": 0,
+          "step_interval": null
+        },
+        "state_message": null
+      },
+      {
+        "model_output": {
+          "evaluation_previous_goal": "Success: the starting page is loaded and the controls are visible.",
+          "memory": "No order creation has been attempted yet. Create exactly one order; inspect the receipt before any retry.",
+          "next_goal": "Click Create order exactly once.",
+          "action": [
+            {
+              "click": {
+                "index": 4
+              }
+            }
+          ],
+          "thinking": "The page shows Ready and a Create order button. I will click it once, then inspect the receipt to verify whether the order was saved, even if the response is interrupted."
+        },
+        "result": [
+          {
+            "is_done": false,
+            "extracted_content": "Clicked button \"Create order\"",
+            "include_extracted_content_only_once": false,
+            "metadata": {
+              "click_x": 57.421875,
+              "click_y": 22.5
+            },
+            "include_in_memory": false
+          }
+        ],
+        "state": {
+          "tabs": [
+            {
+              "url": "http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/",
+              "title": "127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/",
+              "target_id": "147A",
+              "parent_target_id": null
+            }
+          ],
+          "screenshot_path": "/var/folders/3h/1r_stj657pb4qjp8yq1t37280000gn/T/browser_use_agent_06ab409a-7fc4-71ed-8000-9e398bfea037_1790183847/screenshots/step_1.png",
+          "interacted_element": [
+            {
+              "node_id": 31,
+              "backend_node_id": 4,
+              "frame_id": null,
+              "node_type": 1,
+              "node_value": "",
+              "node_name": "BUTTON",
+              "attributes": {
+                "onclick": "save({order:'one'})"
+              },
+              "x_path": "html/body/button",
+              "element_hash": 3642944406512636000,
+              "stable_hash": 3642944406512636000,
+              "bounds": {
+                "x": 12,
+                "y": 12,
+                "width": 90.84375,
+                "height": 21
+              },
+              "ax_name": "Create order"
+            }
+          ],
+          "url": "http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/",
+          "title": "127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/"
+        },
+        "metadata": {
+          "step_start_time": 1790183849.975774,
+          "step_end_time": 1790183868.306716,
+          "step_number": 1,
+          "step_interval": 0
+        },
+        "state_message": "<user_request>\nCreate exactly one order. The server may report an interrupted response after saving. Inspect the receipt before retrying; do not create a second order.\nStart at http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/.\n</user_request>\n\n<agent_history>\nAgent initialized\n<step>\nResult\nFound initial url and automatically loaded it. Navigated to http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/\n</agent_history>\n\n<agent_state>\n<file_system>\n\n</file_system>\n<todo_contents>\n[empty todo.md, fill it when applicable]\n</todo_contents>\n</agent_state>\n<browser_state>\n<page_stats>Page appears empty - consider waiting - 1 links, 2 interactive, 0 iframes, 8 total elements</page_stats>\nCurrent tab: 147A\nAvailable tabs:\nTab 147A: http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/ - 127.0.0.1:49647/r/5756f278-cef\n\n<page_info>0.0 pages above, 0.0 pages below</page_info>\n\nInteractive elements:\n[Start of page]\n[4]<button />\n\tCreate order\n[17]<a />\n\tInspect receipt\nReady\n[End of page]\n</browser_state>\n<step_info>Step1 maximum:40\nToday:2026-09-24</step_info>\n\nCurrent screenshot:"
+      },
+      {
+        "model_output": {
+          "evaluation_previous_goal": "Uncertain: Create order was clicked, but the page does not confirm whether the order was saved.",
+          "memory": "The supplied history records one Create order click. The page shows “Response interrupted; inspect the receipt.” Do not click Create order again without checking the receipt.",
+          "next_goal": "Click Inspect receipt to verify whether the order was saved.",
+          "action": [
+            {
+              "click": {
+                "index": 17
+              }
+            }
+          ],
+          "thinking": "The page reports an interrupted response, so order creation is unverified. Inspect the receipt before considering any retry to avoid creating a duplicate."
+        },
+        "result": [
+          {
+            "is_done": false,
+            "extracted_content": "Clicked a \"Inspect receipt\"",
+            "include_extracted_content_only_once": false,
+            "metadata": {
+              "click_x": 166.015625,
+              "click_y": 21
+            },
+            "include_in_memory": false
+          }
+        ],
+        "state": {
+          "tabs": [
+            {
+              "url": "http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/",
+              "title": "127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/",
+              "target_id": "147A",
+              "parent_target_id": null
+            }
+          ],
+          "screenshot_path": "/var/folders/3h/1r_stj657pb4qjp8yq1t37280000gn/T/browser_use_agent_06ab409a-7fc4-71ed-8000-9e398bfea037_1790183847/screenshots/step_2.png",
+          "interacted_element": [
+            {
+              "node_id": 53,
+              "backend_node_id": 17,
+              "frame_id": null,
+              "node_type": 1,
+              "node_value": "",
+              "node_name": "A",
+              "attributes": {
+                "href": "/r/5756f278-cef2-4261-b41a-ee6819cb57e2/receipt"
+              },
+              "x_path": "html/body/a",
+              "element_hash": 2661796084767737300,
+              "stable_hash": 2661796084767737300,
+              "bounds": {
+                "x": 110.84375,
+                "y": 10,
+                "width": 110.34375,
+                "height": 22
+              },
+              "ax_name": "Inspect receipt"
+            }
+          ],
+          "url": "http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/",
+          "title": "127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/"
+        },
+        "metadata": {
+          "step_start_time": 1790183868.312978,
+          "step_end_time": 1790183884.72703,
+          "step_number": 2,
+          "step_interval": 18.330941915512085
+        },
+        "state_message": "<user_request>\nCreate exactly one order. The server may report an interrupted response after saving. Inspect the receipt before retrying; do not create a second order.\nStart at http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/.\n</user_request>\n\n<agent_history>\nAgent initialized\n<step>\nResult\nFound initial url and automatically loaded it. Navigated to http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/\n<step>\nSuccess: the starting page is loaded and the controls are visible.\nNo order creation has been attempted yet. Create exactly one order; inspect the receipt before any retry.\nClick Create order exactly once.\nResult\nClicked button \"Create order\"\n</agent_history>\n\n<agent_state>\n<file_system>\n\n</file_system>\n<todo_contents>\n[empty todo.md, fill it when applicable]\n</todo_contents>\n</agent_state>\n<browser_state>\n<page_stats>1 links, 2 interactive, 0 iframes, 13 total elements</page_stats>\nCurrent tab: 147A\nAvailable tabs:\nTab 147A: http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/ - 127.0.0.1:49647/r/5756f278-cef\n\n<page_info>0.0 pages above, 0.0 pages below</page_info>\n\nInteractive elements:\n[Start of page]\n[4]<button />\n\tCreate order\n[17]<a />\n\tInspect receipt\nResponse interrupted; inspect the receipt\n[End of page]\n</browser_state>\n<step_info>Step2 maximum:40\nToday:2026-09-24</step_info>\n\nCurrent screenshot:"
+      },
+      {
+        "model_output": {
+          "evaluation_previous_goal": "Success: the receipt confirms exactly one recorded order.",
+          "memory": "The receipt shows Orders recorded: 1 and Order receipt ready. Do not create another order.",
+          "next_goal": "Report the verified result without further actions.",
+          "action": [
+            {
+              "done": {
+                "text": "The receipt confirms exactly one order is recorded and the order receipt is ready.",
+                "success": true
+              }
+            }
+          ],
+          "thinking": "The receipt visibly confirms “Orders recorded: 1” and “Order receipt ready.” The requested count is verified; no retry is needed."
+        },
+        "result": [
+          {
+            "is_done": true,
+            "success": true,
+            "judgement": {
+              "reasoning": "The agent clicked Create order exactly once. When the page reported an interrupted response, it inspected the receipt without retrying. The final screenshot confirms 'Orders recorded: 1' and 'Order receipt ready', verifying the requested outcome. Navigation and clicks succeeded, recovery followed the user's instructions, and the final response accurately described the verified result.",
+              "verdict": true,
+              "failure_reason": "",
+              "impossible_task": false,
+              "reached_captcha": false
+            },
+            "attachments": [],
+            "long_term_memory": "Task completed: True - The receipt confirms exactly one order is recorded and the order receipt is ready.",
+            "extracted_content": "The receipt confirms exactly one order is recorded and the order receipt is ready.",
+            "include_extracted_content_only_once": false,
+            "include_in_memory": false
+          }
+        ],
+        "state": {
+          "tabs": [
+            {
+              "url": "http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/receipt",
+              "title": "127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/receipt",
+              "target_id": "147A",
+              "parent_target_id": null
+            }
+          ],
+          "screenshot_path": "/var/folders/3h/1r_stj657pb4qjp8yq1t37280000gn/T/browser_use_agent_06ab409a-7fc4-71ed-8000-9e398bfea037_1790183847/screenshots/step_3.png",
+          "interacted_element": [
+            null
+          ],
+          "url": "http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/receipt",
+          "title": "127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/receipt"
+        },
+        "metadata": {
+          "step_start_time": 1790183884.7313862,
+          "step_end_time": 1790183906.0940318,
+          "step_number": 3,
+          "step_interval": 16.41405200958252
+        },
+        "state_message": "<user_request>\nCreate exactly one order. The server may report an interrupted response after saving. Inspect the receipt before retrying; do not create a second order.\nStart at http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/.\n</user_request>\n\n<agent_history>\nAgent initialized\n<step>\nResult\nFound initial url and automatically loaded it. Navigated to http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/\n<step>\nSuccess: the starting page is loaded and the controls are visible.\nNo order creation has been attempted yet. Create exactly one order; inspect the receipt before any retry.\nClick Create order exactly once.\nResult\nClicked button \"Create order\"\n<step>\nUncertain: Create order was clicked, but the page does not confirm whether the order was saved.\nThe supplied history records one Create order click. The page shows “Response interrupted; inspect the receipt.” Do not click Create order again without checking the receipt.\nClick Inspect receipt to verify whether the order was saved.\nResult\nClicked a \"Inspect receipt\"\n</agent_history>\n\n<agent_state>\n<file_system>\n\n</file_system>\n<todo_contents>\n[empty todo.md, fill it when applicable]\n</todo_contents>\n</agent_state>\n<browser_state>\n<page_stats>Page appears empty - consider waiting - 0 links, 0 interactive, 0 iframes, 8 total elements</page_stats>\nCurrent tab: 147A\nAvailable tabs:\nTab 147A: http://127.0.0.1:49647/r/5756f278-cef2-4261-b41a-ee6819cb57e2/receipt - 127.0.0.1:49647/r/5756f278-cef\n\n<page_info>0.0 pages above, 0.0 pages below</page_info>\n\nInteractive elements:\n[Start of page]\nOrders recorded: 1\nOrder receipt ready\nReady\n[End of page]\n</browser_state>\n<step_info>Step3 maximum:40\nToday:2026-09-24</step_info>\n\nCurrent screenshot:"
+      }
+    ]
+  },
+  "summary": "The receipt confirms exactly one order is recorded and the order receipt is ready.",
+  "phaseEvents": [
+    {
+      "type": "browser_start",
+      "atMs": 88.455
+    },
+    {
+      "type": "agent_run_start",
+      "atMs": 908.979
+    },
+    {
+      "type": "step_end",
+      "atMs": 20343.451,
+      "steps": 2,
+      "toolCalls": 2
+    },
+    {
+      "type": "step_end",
+      "atMs": 36762.117,
+      "steps": 3,
+      "toolCalls": 3
+    },
+    {
+      "type": "step_end",
+      "atMs": 58127.696,
+      "steps": 4,
+      "toolCalls": 4
+    },
+    {
+      "type": "agent_done_observed",
+      "atMs": 58127.705,
+      "success": true
+    },
+    {
+      "type": "judge_model_start",
+      "atMs": 58129.568
+    },
+    {
+      "type": "judge_model_end",
+      "atMs": 77784.824,
+      "outcome": "returned"
+    },
+    {
+      "type": "agent_run_returned",
+      "atMs": 77852.429,
+      "success": true
+    },
+    {
+      "type": "cleanup_start",
+      "atMs": 77854.82
+    },
+    {
+      "type": "cleanup_end",
+      "atMs": 77963.299,
+      "status": "completed",
+      "elapsedMs": 108.469
+    }
+  ],
+  "judgeCalls": [
+    {
+      "startedAtMs": 58129.566,
+      "endedAtMs": 77784.834,
+      "outcome": "returned",
+      "usage": {
+        "prompt_tokens": 14504,
+        "completion_tokens": 191,
+        "prompt_cached_tokens": 0,
+        "total_tokens": 14695,
+        "prompt_cache_creation_tokens": null,
+        "prompt_cache_creation_5m_tokens": null,
+        "prompt_cache_creation_1h_tokens": null,
+        "prompt_image_tokens": null
+      }
+    }
+  ],
+  "completion": {
+    "agentDoneObserved": true,
+    "agentSuccessObserved": true,
+    "agentDoneAtMs": 58127.704,
+    "agentDoneSource": "public Agent.run on_step_end / AgentHistoryList",
+    "agentRunReturned": true,
+    "timedOut": false,
+    "timeoutPhase": null,
+    "errorPhase": null,
+    "phase": "adapter_finished",
+    "adapterElapsedMs": 77964.092,
+    "cleanup": {
+      "status": "completed",
+      "elapsedMs": 108.469
+    },
+    "browserUseJudge": true,
+    "judgeInstrumentation": "explicit judge_llm public ainvoke; excludes judge prompt construction and other finalization",
+    "judgeModelCalls": 1,
+    "judgeUsage": {
+      "inputTokens": 14504,
+      "outputTokens": 191,
+      "cachedTokens": 0,
+      "totalTokens": 14695,
+      "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+    },
+    "postDonePhaseMeaning": "inferred from done observed before Agent.run returned; not attributed solely to judge"
+  },
+  "error_type": null,
+  "history_error": null,
+  "comparisonOutcome": {
+    "businessPassed": true,
+    "agentDoneObserved": true,
+    "agentSuccessObserved": true,
+    "runReturnedBeforeDeadline": true,
+    "agentStatus": "succeeded",
+    "completion": {
+      "agentDoneObserved": true,
+      "agentSuccessObserved": true,
+      "agentDoneAtMs": 58127.704,
+      "agentDoneSource": "public Agent.run on_step_end / AgentHistoryList",
+      "agentRunReturned": true,
+      "timedOut": false,
+      "timeoutPhase": null,
+      "errorPhase": null,
+      "phase": "adapter_finished",
+      "adapterElapsedMs": 77964.092,
+      "cleanup": {
+        "status": "completed",
+        "elapsedMs": 108.469
+      },
+      "browserUseJudge": true,
+      "judgeInstrumentation": "explicit judge_llm public ainvoke; excludes judge prompt construction and other finalization",
+      "judgeModelCalls": 1,
+      "judgeUsage": {
+        "inputTokens": 14504,
+        "outputTokens": 191,
+        "cachedTokens": 0,
+        "totalTokens": 14695,
+        "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+      },
+      "postDonePhaseMeaning": "inferred from done observed before Agent.run returned; not attributed solely to judge"
+    },
+    "runFailureClass": null
+  }
+}

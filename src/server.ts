@@ -159,7 +159,7 @@ export function createServer(options: BrowserOptions = {}): { server: McpServer;
   }, () => guarded(async () => ({ ok: true, sessions: engine.list() })));
 
   server.registerTool("tab_close", {
-    title: "Close session", description: "Close one session owned by this server and release its resources. Unsaved changes in that session are lost.",
+    title: "Close session", description: "Close one session owned by this server and release its resources. Unsaved changes in that session are lost. With trusted --record-video enabled, the result includes finalized private WebM paths, byte counts and SHA-256 digests for its owned tabs; no video bytes are inlined.",
     inputSchema: z.object({ session_id: sessionId }).strict(), annotations: writeAnnotations,
   }, ({ session_id }) => guarded(() => engine.close(session_id)));
 

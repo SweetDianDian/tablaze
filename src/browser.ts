@@ -11,6 +11,7 @@ import { compileSecretStore, SecretError, type BrowserSecretOptions, type Compil
 import { installSecretBridge, type SecretInputBridge } from './secret-input.js';
 import { projectSecretSnapshot, projectSecretExtraction, projectSecretText, redactSecretMetadata } from './secret-projection.js';
 import { prepareVisualPointer, showVisualPointer, pointForElement } from './visual-pointer.js';
+import { NetworkJournal, NetworkJournalError } from './network-journal.js';
 
 export class BrowserError extends Error {
   constructor(public readonly code: string, message: string) { super(message); this.name = 'BrowserError'; }
@@ -18,7 +19,7 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; visualPointer?: boolean }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; visualPointer?: boolean; captureNetwork?: boolean }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
 export interface FindTextOptions { text: string; frameId?: string; containerRef?: string; snapshotId?: string; maxScrolls?: number; timeoutMs?: number; signal?: AbortSignal }
 type StorageState = Awaited<ReturnType<BrowserContext['storageState']>>;
@@ -60,8 +61,9 @@ interface Session {
   unexpected: string[]; cleanup?: Promise<void>;
   navigationGuard?: NavigationGuard; navigationContextId?: string;
   secretTainted?: boolean;
+  network?: NetworkJournal;
 }
-const errorInfo = (error: unknown, fallback = 'BROWSER_ERROR') => ({ code: error instanceof BrowserError || error instanceof SecretError ? error.code : fallback, message: (error instanceof Error ? error.message : String(error)).split('\nCall log:')[0].slice(0, 2000) });
+const errorInfo = (error: unknown, fallback = 'BROWSER_ERROR') => ({ code: error instanceof BrowserError || error instanceof SecretError || error instanceof NetworkJournalError ? error.code : fallback, message: (error instanceof Error ? error.message : String(error)).split('\nCall log:')[0].slice(0, 2000) });
 const integer = (value: number | undefined, fallback: number, min: number, max: number, name: string) => { const result = value ?? fallback; if (!Number.isInteger(result) || result < min || result > max) throw new BrowserError('INVALID_ARGUMENT', `${name} must be an integer between ${min} and ${max}.`); return result; };
 const validUrl = (url: string) => { let parsed: URL; try { parsed = new URL(url); } catch { throw new BrowserError('INVALID_URL', 'Use an absolute http:// or https:// URL.'); } if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) throw new BrowserError('INVALID_URL', 'Only HTTP(S) URLs without embedded credentials are supported.'); return parsed.href; };
 
@@ -355,6 +357,7 @@ export class BrowserEngine {
         revision: 0, nextRef: 1, nextFrame: 1, activationEpoch: 0, frames: new Map([[page.mainFrame(), 'f0']]), generations: new Map(),
         tabs: new Map(), activeTabId: '', nextTab: 1, downloads: new Map(), dialogs: [], unexpected: [],
         navigationGuard, navigationContextId,
+        ...(this.options.captureNetwork ? { network: new NetworkJournal((text, limit) => this.secretText(text, limit)) } : {}),
       };
       this.openingSessions.add(session);
       session.activeTabId = this.registerPage(session, page);
@@ -397,6 +400,7 @@ export class BrowserEngine {
       this.registerPage(session, popup);
     });
     page.on('download', download => { this.trackDownload(session, download); });
+    if (session.network) page.on('response', response => { try { session.network?.record(response, id); } catch { /* A malformed network event must not stop browser interaction. */ } });
     page.on('dialog', dialog => {
       const policy = session.dialogPolicy;
       session.dialogPolicy = undefined;
@@ -442,6 +446,16 @@ export class BrowserEngine {
   }
   private tabList(session: Session) {
     return [...session.tabs].filter(([, page]) => !page.isClosed()).map(([id, page]) => ({ tab_id: id, url: this.secretText(page.url(), 4000), active: page === session.page }));
+  }
+  network(sessionId: string, options: { afterId?: number; maxItems?: number; responseId?: number } = {}): Promise<Record<string, unknown>> {
+    return this.exclusive(sessionId, async session => {
+      if (!session.network) throw new BrowserError('NETWORK_CAPTURE_DISABLED', 'Start the server with network capture enabled to inspect owned tab responses.');
+      if (options.responseId !== undefined) {
+        this.assertArtifactAllowed(session);
+        return { ok: true, session_id: session.id, response: await session.network.body(options.responseId) };
+      }
+      return { ok: true, session_id: session.id, ...session.network.list(options.afterId, integer(options.maxItems, 50, 1, 100, 'maxItems')) };
+    });
   }
   tabs(sessionId: string, options: { action: 'list' | 'new' | 'switch' | 'close'; tabId?: string; url?: string }): Promise<Record<string, unknown>> {
     return this.exclusive(sessionId, async session => {

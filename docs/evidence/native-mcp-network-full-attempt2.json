@@ -1,0 +1,510 @@
+{
+  "kind": "native-codex-external-mcp-smoke-v1",
+  "generatedAt": "2026-09-23T09:03:14.334Z",
+  "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+  "model": "gpt-6-astra",
+  "reasoningEffort": "ultra",
+  "provider": "model_providers.tablaze-comparison={name=\"OpenAI\",wire_api=\"responses\",requires_openai_auth=true,supports_websockets=false,request_max_retries=0,stream_max_retries=0}",
+  "featureOverrides": [
+    "shell_tool",
+    "unified_exec",
+    "apps",
+    "plugins",
+    "hooks",
+    "memories",
+    "chronicle",
+    "browser_use",
+    "browser_use_external",
+    "computer_use",
+    "in_app_browser",
+    "multi_agent",
+    "multi_agent_v2",
+    "image_generation",
+    "goals",
+    "sleep_tool",
+    "workspace_dependencies",
+    "shell_snapshot"
+  ],
+  "viewImageEnabled": true,
+  "taskId": "network-receipt",
+  "timeoutMs": 900000,
+  "fullToolTimeoutSec": 600,
+  "source": {
+    "tablazeHead": "58a091183e5f612766c1139905a6362c266b4843",
+    "harnessCommit": "afbcc381b963040c19627d788e40c7e7663171ee",
+    "browserUseCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+    "harnessArchiveSha256": "01b608b17a330b61db69cbb8d8232d2c7dd42c98592f5d837573c51cac71c463"
+  },
+  "arms": [
+    {
+      "kind": "browser-use-mcp-full",
+      "taskId": "network-receipt",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "4e0327b2621101eea69261008d8769064a87b024ea61fda5cb6dcb797263d488",
+      "flagsHash": "e997dee6f3607e5c13ebe1591346baa56449330139303828ef5dee017b8c3da9",
+      "command": {
+        "executable": "/private/tmp/tablaze-comparison-env/bin/browser-use",
+        "args": [
+          "--mcp"
+        ]
+      },
+      "run": {
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "timedOut": true,
+        "elapsedMs": 900010,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 40,
+          "item.started": 30
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_list_tabs",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_list_tabs",
+            "status": "completed"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_list_tabs",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_list_tabs",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_switch_tab",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_switch_tab",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_switch_tab",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_switch_tab",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_list_tabs",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_list_tabs",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_navigate",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_switch_tab",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_switch_tab",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_state",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "codex",
+            "tool": "list_mcp_resource_templates",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "codex",
+            "tool": "list_mcp_resources",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "codex",
+            "tool": "list_mcp_resources",
+            "status": "completed"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "codex",
+            "tool": "list_mcp_resource_templates",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_switch_tab",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_switch_tab",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "retry_with_browser_use_agent",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "retry_with_browser_use_agent",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_list_tabs",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_list_tabs",
+            "status": "completed"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_switch_tab",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_switch_tab",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_get_html",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "retry_with_browser_use_agent",
+            "status": "in_progress"
+          }
+        ],
+        "final": "The browser is still working through the retry. I haven’t obtained a valid reference yet, so I haven’t submitted the form.\n",
+        "usage": null,
+        "errors": [],
+        "stderrTail": "dex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T09:05:04.439625Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T09:05:12.069402Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T09:05:40.584808Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T09:06:01.104035Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T09:06:10.065928Z  WARN codex_mcp::binding_clients: Failed to list resource templates for MCP server 'browser': Mcp error: -32601: Method not found(\"resources/templates/list\")\n2026-09-23T09:06:24.816208Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T09:06:29.478110Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T09:07:00.160827Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T09:14:36.134465Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T09:15:16.897817Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": false,
+        "evidence": {
+          "records": [],
+          "writeCount": 0,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 4,
+          "receiptRequests": 4,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "/private/tmp/tablaze-codex-network-receipt-full-v2.json.browser-use-mcp-full.jsonl",
+      "nestedModel": {
+        "provider": "Codex CLI via local comparison gateway",
+        "model": "gpt-6-astra",
+        "reasoningEffort": "ultra",
+        "calls": 20,
+        "failedCalls": 0,
+        "inputTokens": 375362,
+        "outputTokens": 10943,
+        "usageComplete": true,
+        "timeMs": 560635.027627,
+        "errors": []
+      }
+    }
+  ]
+}

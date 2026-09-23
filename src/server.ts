@@ -4,6 +4,7 @@ import { z } from "zod";
 import { BrowserEngine, BrowserError, type BrowserOptions } from "./browser.js";
 import { ExtractionError } from "./extraction.js";
 import { SecretError } from "./secret-store.js";
+import { NetworkJournalError } from "./network-journal.js";
 
 export const SERVER_VERSION = "0.1.0";
 
@@ -67,7 +68,7 @@ function redactErrors(output: Record<string, unknown>, protectedValues: string[]
 }
 
 function safeError(error: unknown, protectedValues: string[]): Record<string, unknown> {
-  const known = error instanceof BrowserError || error instanceof ExtractionError || error instanceof SecretError;
+  const known = error instanceof BrowserError || error instanceof ExtractionError || error instanceof SecretError || error instanceof NetworkJournalError;
   const message = redactErrorMessage(known ? error.message : "Browser operation failed. Re-observe the session and retry.", protectedValues);
   return { ok: false, error: { code: known ? error.code : "INTERNAL_ERROR", message, ...(error instanceof ExtractionError && error.issues ? { issues: error.issues } : {}) } };
 }
@@ -173,6 +174,12 @@ export function createServer(options: BrowserOptions = {}): { server: McpServer;
     title: "Extract schema-validated fields", description: "Read named fields from observed DOM using selectors, validate strict JSON Schema draft-07, and return per-field source URL/selector/quote provenance. Supports text, attributes, current non-sensitive values, typed scalars and arrays. At most 30 fields, 20 matches per field, 100 total. Does not call a model or infer missing facts; hidden/password controls and truncated evidence are rejected.",
     inputSchema: z.object({ session_id: sessionId, schema: z.union([z.record(z.unknown()), z.boolean()]), fields: z.array(z.object({ name: z.string().min(1).max(160), selector, mode: z.enum(["text", "attribute", "value"]), attribute: z.string().min(1).max(100).optional(), type: z.enum(["string", "number", "integer", "boolean"]).optional(), multiple: z.boolean().optional(), required: z.boolean().optional() }).strict()).min(1).max(30) }).strict(), annotations: readAnnotations,
   }, ({ session_id, schema, fields }) => guarded(() => engine.extractStructured(session_id, { schema, fields })));
+
+  if (options.captureNetwork) server.registerTool("tab_network", {
+    title: "Inspect owned tab responses", description: "List bounded HTTP(S) response metadata from this session's owned tabs, including popups. URLs omit query strings and fragments; request bodies and full headers are never returned. Supply response_id to read a completed UTF-8 text body only when Content-Length is declared and at most 128 KiB. Body text may contain private page data. Capture starts when each owned page is registered; early popup navigation responses may be missed.",
+    inputSchema: z.object({ session_id: sessionId, after_id: z.number().int().min(0).optional(), max_items: z.number().int().min(1).max(100).optional(), response_id: z.number().int().min(1).optional() }).strict()
+      .refine(value => value.response_id === undefined || (value.after_id === undefined && value.max_items === undefined), 'response_id cannot be combined with list pagination'), annotations: readAnnotations,
+  }, ({ session_id, after_id, max_items, response_id }) => guarded(() => engine.network(session_id, { afterId: after_id, maxItems: max_items, responseId: response_id })));
 
   let disposal: Promise<void> | undefined;
   const dispose = () => disposal ??= engine.dispose();

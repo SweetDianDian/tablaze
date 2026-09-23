@@ -51,6 +51,25 @@ export function scriptedPlanner(attempt, { initialized = false } = {}) {
         yield* wait('Saved successfully');
         break;
       }
+      case 'network-receipt': {
+        const originalTabId = page.tab_id;
+        yield* click('Connect account');
+        const tabs = (yield call('tab_tabs', { session_id: page.session_id, action: 'list' })).data.tabs;
+        const popup = tabs.find(tab => tab.url === attempt.authUrl);
+        if (!popup) throw new Error('Script fixture authorization popup unavailable');
+        page = (yield call('tab_tabs', { session_id: page.session_id, action: 'switch', tab_id: popup.tab_id })).data;
+        yield* click('Authorize account');
+        page = (yield call('tab_tabs', { session_id: page.session_id, action: 'switch', tab_id: originalTabId })).data;
+        yield* wait('Receipt API returned');
+        const responses = (yield call('tab_network', { session_id: page.session_id })).data.records;
+        const receipt = responses.find(item => item.url.endsWith('/network.json') && item.status === 200);
+        if (!receipt) throw new Error('Script fixture authenticated response unavailable');
+        const body = (yield call('tab_network', { session_id: page.session_id, response_id: receipt.response_id })).data.response.body;
+        const reference = JSON.parse(body).reference;
+        yield* act([{ type: 'fill', ref: find('Receipt reference'), value: reference }, { type: 'click', ref: find('Submit receipt') }]);
+        yield* wait('Saved successfully');
+        break;
+      }
       case 'shadow-form': yield* act([{ type: 'fill', ref: find('Shadow note'), value: 'Orion' }, { type: 'click', ref: find('Save shadow note') }]); break;
       case 'iframe-form':
         page = (yield call('tab_snapshot', { session_id: page.session_id, frame_id: page.frames.find(frame => !frame.is_main).frame_id })).data;
@@ -114,7 +133,7 @@ export async function runTablaze(attempt, config) {
   const completion = { agentDoneObserved: false, agentSuccessObserved: null, agentDoneAtMs: null, agentDoneSource: 'accepted runAgent result, not a proposed finish', agentRunReturned: false, timedOut: false, timeoutPhase: null, cleanup: { status: 'not_started', elapsedMs: null } };
   const { createServer } = await import('../../dist/server.js');
   const { connectAgentTools, createOpenAICompatiblePlanner, runAgent } = await import('../../dist/agent.js');
-  const runtime = createServer({ channel: config.channel, executablePath: config.executablePath, timeoutMs: 5000, popupPolicy: config.tablazePopupPolicy ?? 'stay' });
+  const runtime = createServer({ channel: config.channel, executablePath: config.executablePath, timeoutMs: 5000, popupPolicy: config.tablazePopupPolicy ?? 'stay', captureNetwork: attempt.taskId === 'network-receipt' });
   let connection, result, failure, browserVersion = null, proposedReport;
   const observedEvents = [];
   const retained = [];

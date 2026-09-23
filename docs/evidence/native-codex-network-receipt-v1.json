@@ -1,0 +1,343 @@
+{
+  "kind": "native-codex-network-receipt-smoke-v1",
+  "date": "2026-09-23",
+  "task": "Cross-origin provider popup, authenticated JSON receipt body hidden from DOM, exact reference submitted once in original app; server independently judges authorization and writes.",
+  "developmentVisible": true,
+  "attemptsPerArm": 1,
+  "timingBoundary": "Codex process duration including model and MCP, excluding external Chrome startup, independent judging, and cleanup.",
+  "source": {
+    "baseHead": "58a091183e5f612766c1139905a6362c266b4843",
+    "measuredFilesSha256": {
+      "src/browser.ts": "6789e4eaf237116a8c1cb831117b80b914f3bd1c91fc339e017502b091048d7a",
+      "src/server.ts": "ce052e42eafca6f9b5cacfdcf8bad407f43409d5a16d7b9a87f617d73a4e1a4a",
+      "src/cli.ts": "05ef76e3d17bb27c27a230ffd2da1855bf3f7db097a5f60bc41bed5403dc6045",
+      "src/network-journal.ts": "c1c65549848208ac12cf9835ec279d845fcfc4338aca4a69c4becd3d505c4497",
+      "bench/comparison/fixture.mjs": "45b286a6b7b0b4867edce7e7e60dc4c6f4e8c037047a3a29258d7dda7fb69730",
+      "bench/comparison/codex-mcp-runner.mjs": "46d720de5e238cdfb6daf4917730e3ac6d1e08457d0ab3ca3817141430bbf0b0",
+      "dist/browser.js": "2214549953fa161b32f0773481a638b2d5d4c7cf5940dffe2b1ac643e4f0c2b6",
+      "dist/server.js": "0407f04479b1e7ad77ac47af83d830bc95fea4d4aa92e021f9aa2f5dc10cedb2",
+      "dist/cli.js": "bcf1430e535ee55d393e5b6334f0c1d6d65c22b9d3d798855eff6e188a6faa8c",
+      "dist/network-journal.js": "32dc06367ef8aac2a0d988eda2b2a6a21932923244321d9b6e98387a92e0305f"
+    },
+    "directRunnerSnapshot": "network-receipt-direct-runner-v1.mjs",
+    "directRunnerSha256": "475d79d0cd2d9ab5f49fbb1c719d6de7458741767eb0c7ca7726a70ac719422c",
+    "extendedRunnerSha256": "46d720de5e238cdfb6daf4917730e3ac6d1e08457d0ab3ca3817141430bbf0b0",
+    "browserUseCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+    "harnessCommit": "afbcc381b963040c19627d788e40c7e7663171ee"
+  },
+  "runs": [
+    {
+      "group": "direct",
+      "arm": "tablaze",
+      "taskId": "network-receipt",
+      "chrome": "Chrome/153.0.8010.53",
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "outerTimeoutMs": 300000,
+      "mcpToolTimeoutSec": 60,
+      "promptHash": "3024cb2b75b06501aa46524c3d5b71713b44da3a08ba1d696ce53d5d1f2c5317",
+      "flagsHash": "a564a3544c0c899df4cbbd610dce93c7209f8b3c08336673e7a763e89fc77d1c",
+      "runnerSha256": "475d79d0cd2d9ab5f49fbb1c719d6de7458741767eb0c7ca7726a70ac719422c",
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 149560,
+        "usage": {
+          "input_tokens": 254352,
+          "cached_input_tokens": 227328,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1106,
+          "reasoning_output_tokens": 18
+        },
+        "final": "Connected the account, read `R-1C0E91FE19` from the authenticated network response, and submitted it exactly once in the original tab. Verified the page shows “Saved successfully.”",
+        "errors": []
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "reference": "R-1C0E91FE19"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 1,
+          "receiptRequests": 1,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawTrace": "native-mcp-network-tablaze.jsonl",
+      "rawTraceSha256": "ebd41529b5ae8e0183f93e6d9056e2f13950b927f65026c631ec83d357bea6f3",
+      "rawReport": "native-mcp-network-direct-v1.json",
+      "rawReportSha256": "364d10d6dbdd06bfbbdb936a34148b222f713862cc2858370e2dda1df5b3bad7"
+    },
+    {
+      "group": "direct",
+      "arm": "harness",
+      "taskId": "network-receipt",
+      "chrome": "Chrome/153.0.8010.53",
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "outerTimeoutMs": 300000,
+      "mcpToolTimeoutSec": 60,
+      "promptHash": "1dde2e85ac0362bd68fbb9762877056ae9dd193b3d20b6a0a2f02e98fa45e0b8",
+      "flagsHash": "d9cd902d03c2a25841c58db004d35bec38e37b967c436110470a5069c9e5cb00",
+      "runnerSha256": "475d79d0cd2d9ab5f49fbb1c719d6de7458741767eb0c7ca7726a70ac719422c",
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 190380,
+        "usage": {
+          "input_tokens": 177861,
+          "cached_input_tokens": 140800,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1288,
+          "reasoning_output_tokens": 244
+        },
+        "final": "Connected the account and read `R-1C0E91FE19` from the authenticated response. Submitted it exactly once in the original tab and verified “Saved successfully.”",
+        "errors": []
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "reference": "R-1C0E91FE19"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 1,
+          "receiptRequests": 1,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawTrace": "native-mcp-network-harness.jsonl",
+      "rawTraceSha256": "c8621a0c8d253b3bb4ad30676f0aeadbd9736d9097595a225ec29141e7f2fe81",
+      "rawReport": "native-mcp-network-direct-v1.json",
+      "rawReportSha256": "364d10d6dbdd06bfbbdb936a34148b222f713862cc2858370e2dda1df5b3bad7"
+    },
+    {
+      "group": "direct",
+      "arm": "browser-use-cli-mcp",
+      "taskId": "network-receipt",
+      "chrome": "Chrome/153.0.8010.53",
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "outerTimeoutMs": 300000,
+      "mcpToolTimeoutSec": 60,
+      "promptHash": "71323afaad98f8cb2f81bd8227e7109db6e46500555c7a1ac8e4f1077e3a6fac",
+      "flagsHash": "5a2a78e09c6c9f22b24b099d2e14e9ff3b5387bffe40ffe0d3c7f634d34e95fc",
+      "runnerSha256": "475d79d0cd2d9ab5f49fbb1c719d6de7458741767eb0c7ca7726a70ac719422c",
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 291881,
+        "usage": {
+          "input_tokens": 636350,
+          "cached_input_tokens": 590592,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 2796,
+          "reasoning_output_tokens": 492
+        },
+        "final": "Connected the account, read `R-1C0E91FE19` from the authenticated response, and submitted it exactly once in the original tab. Verified “Saved successfully” on the page.",
+        "errors": []
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "reference": "R-1C0E91FE19"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 1,
+          "receiptRequests": 3,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawTrace": "native-mcp-network-browser-use-cli-mcp.jsonl",
+      "rawTraceSha256": "7bb6af6f03f272d50ee35072460481eaf89a7a717c646d54cf82ec12d82f46ad",
+      "rawReport": "native-mcp-network-direct-v1.json",
+      "rawReportSha256": "364d10d6dbdd06bfbbdb936a34148b222f713862cc2858370e2dda1df5b3bad7"
+    },
+    {
+      "group": "direct",
+      "arm": "browser-use-mcp",
+      "taskId": "network-receipt",
+      "chrome": "Chrome/153.0.8010.53",
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "outerTimeoutMs": 300000,
+      "mcpToolTimeoutSec": 60,
+      "promptHash": "d8063e3d2491c521b17200fddbd851997cb6c611ddde6dbf10b4a093a38d0828",
+      "flagsHash": "6a4dbb506ddb3f162c4e11e95898a9f7c5c830c07c539d5ca63ba21a19559b22",
+      "runnerSha256": "475d79d0cd2d9ab5f49fbb1c719d6de7458741767eb0c7ca7726a70ac719422c",
+      "run": {
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "timedOut": true,
+        "elapsedMs": 300012,
+        "usage": null,
+        "final": "The fallback agent is unavailable because its API key is missing, and the exposed browser tools cannot read network responses. I’ll leave the account connected without submitting a guessed reference.\n",
+        "errors": []
+      },
+      "judge": {
+        "passed": false,
+        "evidence": {
+          "records": [],
+          "writeCount": 0,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 2,
+          "receiptRequests": 1,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawTrace": "native-mcp-network-browser-use-mcp.jsonl",
+      "rawTraceSha256": "6e2b4a9d9d030a1c9f1ebe9f9ac3aedf112807ea5499445f14089d72ce2da0cb",
+      "rawReport": "native-mcp-network-direct-v1.json",
+      "rawReportSha256": "364d10d6dbdd06bfbbdb936a34148b222f713862cc2858370e2dda1df5b3bad7"
+    },
+    {
+      "group": "full-attempt1",
+      "arm": "browser-use-mcp-full",
+      "taskId": "network-receipt",
+      "chrome": "Chrome/153.0.8010.53",
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "outerTimeoutMs": 600000,
+      "mcpToolTimeoutSec": 300,
+      "promptHash": "7b8622f4669a032da6bc4463e61b2c410d812e9586fab9ad4a2d57f1952d7afa",
+      "flagsHash": "a681980f654119653ebfba0294e623ff16dfe37d2218b8008acb901dfc506d17",
+      "runnerSha256": "475d79d0cd2d9ab5f49fbb1c719d6de7458741767eb0c7ca7726a70ac719422c",
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 545626,
+        "usage": {
+          "input_tokens": 621275,
+          "cached_input_tokens": 566912,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 3554,
+          "reasoning_output_tokens": 1393
+        },
+        "final": "Couldn’t complete: the browser fallback timed out retrieving the reference. I checked the original tab; it shows “Receipt API denied” with submission disabled. No saved receipt was verified.",
+        "errors": []
+      },
+      "judge": {
+        "passed": false,
+        "evidence": {
+          "records": [],
+          "writeCount": 0,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 2,
+          "receiptRequests": 3,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "nestedModel": {
+        "provider": "Codex CLI via local comparison gateway",
+        "model": "gpt-6-astra",
+        "reasoningEffort": "ultra",
+        "calls": 11,
+        "failedCalls": 2,
+        "inputTokens": 197826,
+        "outputTokens": 5956,
+        "usageComplete": false,
+        "timeMs": 305069.86812500004,
+        "errors": [
+          {
+            "code": "CODEX_CANCELLED"
+          },
+          {
+            "code": "CODEX_CANCELLED"
+          }
+        ]
+      },
+      "rawTrace": "native-mcp-network-browser-use-mcp-full-attempt1.jsonl",
+      "rawTraceSha256": "9cf95367e7efe56ced4855f311bdd99728b1d698ebd527cc2bfc468c086c7a65",
+      "rawReport": "native-mcp-network-full-attempt1.json",
+      "rawReportSha256": "f597f032921ee6323841e98bfcb4c1ee022e7ef65a252b7f9085e0c85a6fda94"
+    },
+    {
+      "group": "full-attempt2",
+      "arm": "browser-use-mcp-full",
+      "taskId": "network-receipt",
+      "chrome": "Chrome/153.0.8010.53",
+      "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+      "model": "gpt-6-astra",
+      "reasoningEffort": "ultra",
+      "outerTimeoutMs": 900000,
+      "mcpToolTimeoutSec": 600,
+      "promptHash": "4e0327b2621101eea69261008d8769064a87b024ea61fda5cb6dcb797263d488",
+      "flagsHash": "e997dee6f3607e5c13ebe1591346baa56449330139303828ef5dee017b8c3da9",
+      "runnerSha256": "46d720de5e238cdfb6daf4917730e3ac6d1e08457d0ab3ca3817141430bbf0b0",
+      "run": {
+        "exitCode": null,
+        "signal": "SIGTERM",
+        "timedOut": true,
+        "elapsedMs": 900010,
+        "usage": null,
+        "final": "The browser is still working through the retry. I haven’t obtained a valid reference yet, so I haven’t submitted the form.\n",
+        "errors": []
+      },
+      "judge": {
+        "passed": false,
+        "evidence": {
+          "records": [],
+          "writeCount": 0,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 4,
+          "receiptRequests": 4,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "nestedModel": {
+        "provider": "Codex CLI via local comparison gateway",
+        "model": "gpt-6-astra",
+        "reasoningEffort": "ultra",
+        "calls": 20,
+        "failedCalls": 0,
+        "inputTokens": 375362,
+        "outputTokens": 10943,
+        "usageComplete": true,
+        "timeMs": 560635.027627,
+        "errors": []
+      },
+      "rawTrace": "native-mcp-network-browser-use-mcp-full-attempt2.jsonl",
+      "rawTraceSha256": "a874dd3572d75b0da32d39299cfc1d3dc0c1940633b07ddd4103b7a751c63d46",
+      "rawReport": "native-mcp-network-full-attempt2.json",
+      "rawReportSha256": "658f034fa30cc068a1a7709d8c403d4a651a9d000f8b7c7d3184e0093b06eabf"
+    }
+  ],
+  "limits": [
+    "One visible development attempt per arm/configuration; no repeated or held-out estimate.",
+    "The four direct tools have different inherent capabilities. The nested Browser Use Agent is a separate two-Agent route with different deadlines and extra model usage.",
+    "No checked CSV/download artifact or general programmable browser was assessed.",
+    "The base Git HEAD predates uncommitted measured changes; exact measured source file digests and a direct-runner snapshot are retained."
+  ]
+}

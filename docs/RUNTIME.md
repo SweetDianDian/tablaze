@@ -4,7 +4,7 @@
 
 ## English
 
-This reference describes the current source, its 16 MCP tools and optional typed custom-tool SDK. The historical 0.1.0 archive and earlier validation reports cover an earlier capability set; identify the build by its commit and tool catalog. All recorded real Codex comparisons predate the custom-tool SDK and its bound recovery/context-key implementation; those reports do not measure the new SDK's model performance. npm publication remains pending.
+This reference describes the current source, its 16 default MCP tools, one optional network-response tool and typed custom-tool SDK. The historical 0.1.0 archive and earlier validation reports cover an earlier capability set; identify the build by its commit and tool catalog. All recorded real Codex comparisons predate the custom-tool SDK, its bound recovery/context-key implementation and the network journal; those reports do not measure these additions' model performance. npm publication remains pending.
 
 ### Sessions and observations
 
@@ -50,6 +50,8 @@ CDP cleanup closes owned pages and disconnects; it does not intentionally close 
 
 Tools return JSON text and `structuredContent`; failed operations set `isError`. SDK input-validation errors use the SDK's error format. `tab_capture` returns JPEG metadata and an MCP image block. No arbitrary JavaScript execution tool is exposed.
 
+The optional [`tab_network` journal](NETWORK.md) appears only with `--capture-network` / `captureNetwork: true`. It tracks a bounded set of responses from owned pages, can read small declared textual bodies on demand, and does not capture unrelated CDP tabs or provide raw headers, requests, JavaScript or CDP execution.
+
 `tab_pdf` prints the whole active tab to a local PDF artifact, rather than the selected child frame. It accepts A4/Letter, landscape and background options and returns the path, size, SHA-256, URL and tab identity. Output is limited to 50 MiB. Exceeding the configured action timeout closes the owned tab and returns `PDF_TIMEOUT`; print layout can differ from the screenshot.
 
 [`tab_extract_structured`](EXTRACTION.md) applies an explicit field map and JSON Schema to the observed frame. Citations identify the frame URL, selector, match index and raw observed value. Limits are 30 fields, 20 matches per field and 100 elements in total; type, schema, hidden-field and truncation failures are explicit. The separate provider-independent extraction API checks source-bound quotes for every populated leaf. Schema conformance and quote presence establish provenance, not the truth of a source or the correctness of every interpretation.
@@ -94,7 +96,7 @@ CLI checkpoint JSON contains full Agent history and browser storage and is writt
 
 ## 简体中文
 
-本页描述当前源码的 16 个 MCP 工具与可选类型化自定义工具 SDK。历史 0.1.0 归档和早期验证报告覆盖较早的能力范围，请结合提交号与工具目录确认所用构建。已记录的真实 Codex 对照全部早于自定义工具 SDK、恢复绑定与 contextKey，不代表这些新能力的模型表现。npm 尚未发布。
+本页描述当前源码默认的 16 个 MCP 工具、可选的第十七个[网络响应工具](NETWORK.md)与类型化自定义工具 SDK。历史 0.1.0 归档和早期验证报告覆盖较早的能力范围，请结合提交号与工具目录确认所用构建。已记录的真实 Codex 对照全部早于自定义工具 SDK、恢复绑定、contextKey 与网络日志，不代表这些新能力的模型表现。npm 尚未发布。
 
 ### 会话与观察
 

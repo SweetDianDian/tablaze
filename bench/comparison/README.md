@@ -16,12 +16,14 @@ workflows, selectors and canvas coordinates. Results test integration and browse
 functionality; they do not measure model planning or visual reasoning. No model
 requests or paid calls occur in scripted mode.
 
-The 15 tasks are `form`, `pagination`, `dynamic-menu`, `popup`, `auth-return`, `shadow-form`,
+The 16 tasks are `form`, `pagination`, `dynamic-menu`, `popup`, `auth-return`, `network-receipt`, `shadow-form`,
 `iframe-form`, `large-page`, `virtual-list`, `canvas`, `upload`, `download`, `state`,
 `duplicate-write`, and `extraction`. Use `--tasks form,popup --repeat 2 --seed 10`
 for a subset. The `state` task checks storage across navigation, not restart or
 full authentication parity. The `auth-return` fixture uses two local origins: the provider popup must authorize once and notify the original app tab, which must submit once. It is a synthetic return flow, not a production OAuth service. The duplicate-write fixture commits an order before
 returning HTTP 503; the agent must inspect its receipt instead of resubmitting.
+
+The `network-receipt` fixture likewise uses a provider popup, then puts the required reference only in the authenticated JSON network response. Its judge requires one authorization and exactly one correct original-app write. Scripted Tablaze enables `captureNetwork` only for this task; native Codex/MCP comparison uses `--capture-network`. [Measured development smoke and limits](../../docs/CODEX_NETWORK_RECEIPT_SMOKE.md).
 
 Each attempt has isolated server state and a new owned browser. On macOS the
 default executable is Google Chrome; other platforms use Playwright Chromium.

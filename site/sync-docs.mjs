@@ -12,6 +12,8 @@ const publicGuides = new Map([
   ['docs/PROVIDERS.md', 'PROVIDERS.md'],
   ['docs/NAVIGATION_POLICY.md', 'NAVIGATION_POLICY.md'],
   ['docs/NAVIGATION_POLICY_VALIDATION.md', 'NAVIGATION_POLICY_VALIDATION.md'],
+  ['docs/NETWORK.md', 'NETWORK.md'],
+  ['docs/CODEX_NETWORK_RECEIPT_SMOKE.md', 'CODEX_NETWORK_RECEIPT_SMOKE.md'],
   ['docs/CODEX.md', 'CODEX.md'],
   ['docs/CODEX.zh-CN.md', 'CODEX.zh-CN.md'],
   ['SECURITY.md', 'SECURITY.md'],
@@ -44,5 +46,11 @@ for (const name of [
   'native-mcp-v2-virtual-list-browser-use-cli-mcp.jsonl', 'native-mcp-v2-virtual-list-browser-use-mcp-full-attempt1.jsonl',
   'native-mcp-v2-virtual-list-browser-use-mcp-full-attempt2.jsonl', 'native-mcp-v2-virtual-list-browser-use-mcp.jsonl',
   'native-mcp-v2-virtual-list-harness.jsonl', 'native-mcp-v2-virtual-list-tablaze.jsonl',
+  'native-codex-network-receipt-v1.json', 'native-mcp-network-direct-v1.json',
+  'native-mcp-network-full-attempt1.json', 'native-mcp-network-full-attempt2.json',
+  'native-mcp-network-tablaze.jsonl', 'native-mcp-network-harness.jsonl',
+  'native-mcp-network-browser-use-cli-mcp.jsonl', 'native-mcp-network-browser-use-mcp.jsonl',
+  'native-mcp-network-browser-use-mcp-full-attempt1.jsonl', 'native-mcp-network-browser-use-mcp-full-attempt2.jsonl',
+  'network-receipt-direct-runner-v1.mjs', 'development-tests-network-receipt.txt',
 ]) await copyFile(join(root, 'docs/evidence', name), join(site, 'evidence', name));
 console.log('Synchronized public guides, comparison reports, and their fixed evidence files. Historical benchmark.json is unchanged.');

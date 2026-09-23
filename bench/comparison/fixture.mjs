@@ -11,6 +11,7 @@ export const TASKS = Object.freeze([
   { id: 'dynamic-menu', tags: ['dynamic_ui', 'wait'], instruction: 'Open the delayed menu and choose Express delivery.' },
   { id: 'popup', tags: ['tabs'], instruction: 'Open the approval tab and approve request 42 there.' },
   { id: 'auth-return', tags: ['authentication', 'tabs', 'cross_origin', 'state'], instruction: 'Connect the account in the provider popup, return to the original app tab, and finish the connection exactly once.' },
+  { id: 'network-receipt', tags: ['authentication', 'tabs', 'network', 'extraction'], instruction: 'Connect the account in the provider popup, read the receipt reference from the authenticated network response, and submit that reference exactly once in the original app tab.' },
   { id: 'shadow-form', tags: ['shadow_dom', 'forms'], instruction: 'Save shadow-component note Orion.' },
   { id: 'iframe-form', tags: ['iframe', 'forms'], instruction: 'Save frame-component note Vega.' },
   { id: 'large-page', tags: ['large_dom', 'targeting'], instruction: 'Find and activate Final target after the long list of decoy controls.' },
@@ -41,6 +42,13 @@ function page(attempt, route) {
     case 'auth-return': body = `<a href="${attempt.authUrl}" target="_blank" rel="opener">Connect account</a><p id="connection">Not connected</p><button id="finish" disabled>Finish connection</button><script>
       document.querySelector('#finish').onclick=()=>save({token:sessionStorage.getItem(${script('authorized-' + attempt.id)})});
       addEventListener('message',event=>{if(event.origin!==${script(attempt.authOrigin)}||event.data?.kind!=='fixture-authorization'||typeof event.data.token!=='string')return;sessionStorage.setItem(${script('authorized-' + attempt.id)},event.data.token);document.querySelector('#connection').textContent='Account connected';document.querySelector('#finish').disabled=false});</script>`; break;
+    case 'network-receipt': body = `<a href="${attempt.authUrl}" target="_blank" rel="opener">Connect account</a><p id="connection">Not connected</p><label>Receipt reference<input id="reference" autocomplete="off"></label><button id="submit" disabled>Submit receipt</button><script>
+      document.querySelector('#submit').onclick=()=>save({reference:document.querySelector('#reference').value});
+      addEventListener('message',async event=>{if(event.origin!==${script(attempt.authOrigin)}||event.data?.kind!=='fixture-authorization'||typeof event.data.token!=='string')return;
+        document.querySelector('#connection').textContent='Account connected; receipt API loading';
+        const response=await fetch(${script(prefix + '/network.json')},{headers:{'X-Authorization':event.data.token}});
+        if(!response.ok){document.querySelector('#connection').textContent='Receipt API denied';return}
+        await response.json();document.querySelector('#connection').textContent='Receipt API returned. Read its network response for the reference.';document.querySelector('#submit').disabled=false});</script>`; break;
     case 'shadow-form': body = `<section id="component"></section><script>document.querySelector('#component').attachShadow({mode:'open'}).innerHTML='<label>Shadow note<input id="note"></label><button>Save shadow note</button>';const root=document.querySelector('#component').shadowRoot;root.querySelector('button').onclick=()=>save({note:root.querySelector('input').value});</script>`; break;
     case 'iframe-form': body = route === 'frame' ? '<label>Frame note<input id="note"></label><button onclick="save({note:document.querySelector(\'#note\').value})">Save frame note</button>' : `<iframe title="Note editor" src="${prefix}/frame" width="600" height="240"></iframe>`; break;
     case 'large-page': body = Array.from({ length: 520 }, (_, i) => `<button>Decoy ${i + 1}</button>`).join('') + `<section id="final"><button onclick="save({target:'final'})">Final target</button></section>`; break;
@@ -72,7 +80,7 @@ export async function startTaskService() {
     try {
       const match = new URL(request.url, 'http://auth-fixture').pathname.match(/^\/r\/([^/]+)\/(.*)$/);
       const attempt = match && attempts.get(match[1]);
-      if (!attempt || attempt.task.id !== 'auth-return') { response.writeHead(404); response.end('Unknown authorization'); return; }
+      if (!attempt || !['auth-return', 'network-receipt'].includes(attempt.task.id)) { response.writeHead(404); response.end('Unknown authorization'); return; }
       if (match[2] === 'authorize' && request.method === 'POST') {
         attempt.authorizations++;
         response.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
@@ -90,6 +98,13 @@ export async function startTaskService() {
       const attempt = match && attempts.get(match[1]);
       if (!attempt) { response.writeHead(404); response.end('Unknown attempt'); return; }
       const route = match[2];
+      if (route === 'network.json' && attempt.task.id === 'network-receipt') {
+        attempt.receiptRequests++;
+        const authorized = request.headers['x-authorization'] === attempt.token && attempt.authorizations === 1;
+        const body = JSON.stringify(authorized ? { reference: attempt.receiptReference, status: 'ready' } : { error: 'not authorized' });
+        response.writeHead(authorized ? 200 : 401, { 'content-type': 'application/json', 'content-length': Buffer.byteLength(body), 'cache-control': 'no-store' });
+        response.end(body); return;
+      }
       if (route === 'save' && request.method === 'POST') {
         const record = await readBody(request); attempt.records.push(record);
         response.writeHead(attempt.task.id === 'duplicate-write' ? 503 : 200, { 'content-type': 'application/json' });
@@ -116,16 +131,17 @@ export async function startTaskService() {
       if (!task) throw new Error(`Unknown task: ${taskId}`);
       if (!Number.isInteger(seed) || seed < 0 || seed > 1000000) throw new Error('Seed must be an integer from 0 to 1000000');
       const id = randomUUID(), token = hash(`${taskId}:${seed}`).slice(0, 20), price = seed % 10 + 2;
+      const receiptReference = `R-${hash(`receipt:${taskId}:${seed}`).slice(0, 10).toUpperCase()}`;
       const uploadContent = `Comparison document seed=${seed}\n`;
       const uploadPath = join(directory, `${id}.txt`);
       if (taskId === 'upload') await writeFile(uploadPath, uploadContent, { mode: 0o600 });
-      const attempt = { id, task, seed, token, price, records: [], downloadRequests: 0, authorizations: 0, appOrigin: base, authOrigin: authBase, authUrl: `${authBase}/r/${id}/auth`, uploadContent, csv: `quarter,revenue\nQ1,${100 + seed}\n` };
+      const attempt = { id, task, seed, token, price, receiptReference, receiptRequests: 0, records: [], downloadRequests: 0, authorizations: 0, appOrigin: base, authOrigin: authBase, authUrl: `${authBase}/r/${id}/auth`, uploadContent, csv: `quarter,revenue\nQ1,${100 + seed}\n` };
       attempts.set(id, attempt);
       const canonicalPrompt = `${task.instruction}\nStart at {{TASK_URL}}.${taskId === 'upload' ? '\nSupplied document: {{UPLOAD_PATH}}.' : ''}`;
       const url = `${base}/r/${id}/`;
       const prompt = canonicalPrompt.replace('{{TASK_URL}}', url).replace('{{UPLOAD_PATH}}', uploadPath);
       return {
-        id, taskId, seed, tags: task.tags, url, authUrl: taskId === 'auth-return' ? attempt.authUrl : null, prompt, canonicalPrompt,
+        id, taskId, seed, tags: task.tags, url, authUrl: ['auth-return', 'network-receipt'].includes(taskId) ? attempt.authUrl : null, prompt, canonicalPrompt,
         taskHash: hash(JSON.stringify({ task, seed, canonicalPrompt })),
         uploadPath: taskId === 'upload' ? uploadPath : null,
         async judge({ artifactPaths = [] } = {}) {
@@ -139,6 +155,7 @@ export async function startTaskService() {
             case 'dynamic-menu': passed = exactOne && record.delivery === 'Express'; break;
             case 'popup': passed = exactOne && record.approved === 42; break;
             case 'auth-return': passed = exactOne && record.token === token && attempt.authorizations === 1; break;
+            case 'network-receipt': passed = exactOne && record.reference === receiptReference && attempt.authorizations === 1 && attempt.receiptRequests >= 1; break;
             case 'shadow-form': passed = exactOne && record.note === 'Orion'; break;
             case 'iframe-form': passed = exactOne && record.note === 'Vega'; break;
             case 'large-page': passed = exactOne && record.target === 'final'; break;
@@ -155,9 +172,9 @@ export async function startTaskService() {
             case 'duplicate-write': passed = exactOne && record.order === 'one'; break;
             case 'extraction': passed = exactOne && record.total === price * 3 + 14; break;
           }
-          return { passed, evidence: { records, writeCount: records.length, duplicateWrites: Math.max(0, records.length - 1), downloadRequests: attempt.downloadRequests, authorizations: attempt.authorizations, artifactHashes }, judge: 'fixture-server-state-and-artifact-sha256-v1' };
+          return { passed, evidence: { records, writeCount: records.length, duplicateWrites: Math.max(0, records.length - 1), downloadRequests: attempt.downloadRequests, authorizations: attempt.authorizations, receiptRequests: attempt.receiptRequests, artifactHashes }, judge: 'fixture-server-state-and-artifact-sha256-v1' };
         },
-        reset() { attempt.records.length = 0; attempt.downloadRequests = 0; attempt.authorizations = 0; },
+        reset() { attempt.records.length = 0; attempt.downloadRequests = 0; attempt.authorizations = 0; attempt.receiptRequests = 0; },
       };
     },
     async close() { server.closeAllConnections(); authServer.closeAllConnections(); await Promise.all([new Promise(resolve => server.close(resolve)), new Promise(resolve => authServer.close(resolve))]); await rm(directory, { recursive: true, force: true }); },

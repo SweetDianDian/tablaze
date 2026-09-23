@@ -115,6 +115,7 @@ node dist/cli.js run --provider codex --model "<你的Codex模型>" \
 | **顺序批次** | 一次最多提交 20 个操作，分别报告完成、失败和跳过状态。遇错停止，先前操作仍然生效。 |
 | **明确验收** | 核对实际 URL、标题、文字、字段值、可见性与元素数量。 |
 | **可选操作指针** | 默认关闭。需要讲解或录屏时，可用 `--visual-pointer`（或 `visualPointer: true`）在验证过的操作目标处短暂显示不拦截输入的标记。它标示目标，并非真实鼠标轨迹。 |
+| **可选响应日志** | 使用 `--capture-network`，通过第十七个 MCP 工具 [`tab_network`](docs/NETWORK.md) 观察自有页面与弹窗的有界响应；默认关闭，尚非通用 JS/CDP 编程入口。 |
 | **可选导航策略** | 通过[精确来源允许/拒绝规则](docs/NAVIGATION_POLICY.md)限制自有独立浏览器中的 HTTP(S) 文档请求，覆盖重定向、frame 和弹窗。不支持外部 CDP，也不是网络防火墙。 |
 
 ### 十六个工具

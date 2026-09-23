@@ -20,7 +20,6 @@ const output = process.env.TABLAZE_MCP_REPORT || join(root, 'bench', 'comparison
 const taskId = process.argv[2] || 'form';
 const arms = (process.env.TABLAZE_MCP_ARMS || 'tablaze,harness').split(',');
 const timeoutMs = Number(process.env.TABLAZE_MCP_TIMEOUT_MS || 180_000);
-const fullToolTimeoutSec = Number(process.env.TABLAZE_MCP_FULL_TOOL_TIMEOUT_SEC || 300);
 const sha256 = content => createHash('sha256').update(content).digest('hex');
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const localEnv = { NO_PROXY: '127.0.0.1,localhost', no_proxy: '127.0.0.1,localhost' };
@@ -158,7 +157,7 @@ async function runArm(kind, directory, service) {
     '-c', `mcp_servers.browser.command=${tomlString(command)}`,
     '-c', `mcp_servers.browser.args=[${commandArgs.map(tomlString).join(', ')}]`,
     '-c', 'mcp_servers.browser.required=true', '-c', 'mcp_servers.browser.startup_timeout_sec=30',
-    '-c', `mcp_servers.browser.tool_timeout_sec=${kind === 'browser-use-mcp-full' ? fullToolTimeoutSec : 60}`,
+    '-c', `mcp_servers.browser.tool_timeout_sec=${kind === 'browser-use-mcp-full' ? 300 : 60}`,
     '-c', `mcp_servers.browser.env=${tomlTable(kind === 'tablaze' ? localEnv : harnessEnv)}`,
     ...CODEX_DISABLED_FEATURES.filter(feature => feature !== 'view_image').flatMap(feature => ['--disable', feature]),
     '-',
@@ -189,7 +188,6 @@ async function runArm(kind, directory, service) {
 
 async function main() {
   if (!harnessSource) throw new Error('Set TABLAZE_HARNESS_PIN_SOURCE to the verified pinned src directory');
-  if (!Number.isInteger(fullToolTimeoutSec) || fullToolTimeoutSec < 60 || fullToolTimeoutSec > 900) throw new Error('TABLAZE_MCP_FULL_TOOL_TIMEOUT_SEC must be an integer from 60 to 900');
   for (const path of [codex, chromePath, harnessBinary, harnessCli, browserUseCli, join(harnessSource, 'mcp_server.py')]) await access(path);
   const version = spawnSync(codex, ['--version'], { encoding: 'utf8' }).stdout.trim();
   if (version !== `codex-cli ${CODEX_CLI_VERSION}`) throw new Error(`Codex version mismatch: ${version}`);
@@ -198,7 +196,7 @@ async function main() {
   const report = { kind: 'native-codex-external-mcp-smoke-v1', generatedAt: new Date().toISOString(),
     codexVersion: version, model: 'gpt-6-astra', reasoningEffort: 'ultra', provider: CODEX_PROVIDER_CONFIG,
     featureOverrides: CODEX_DISABLED_FEATURES.filter(feature => feature !== 'view_image'),
-    viewImageEnabled: true, taskId, timeoutMs, fullToolTimeoutSec,
+    viewImageEnabled: true, taskId, timeoutMs,
     source: { tablazeHead: spawnSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).stdout.trim(),
       harnessCommit: 'afbcc381b963040c19627d788e40c7e7663171ee',
       browserUseCommit: 'd8110c5ff87ccba887aaa726cdb780f2f84bef8d',

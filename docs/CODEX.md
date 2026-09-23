@@ -138,6 +138,8 @@ Other action shapes:
 
 When the expected result is known before a same-document action, add `post_checks` to `tab_act` rather than making another model decision just to call `tab_verify`. For example, a fill-and-save batch can include `[{"kind":"value","ref":"r1","value":"Ada"},{"kind":"text","contains":"Saved successfully"}]` and `verify_timeout_ms: 5000`. The returned `verification.passed` is explicit evidence; a failed check sets `replan_required` without repeating or rolling back the completed action. A form value is not page text unless it is visibly echoed outside the input. After navigation, use a new snapshot and separate `tab_verify`.
 
+When an observed opener reveals a delayed button or menu item in the same document, one batch can use `[{"type":"click","ref":"<opener_ref>"},{"type":"click_named","name":"Express delivery","timeout_ms":5000}]`. `click_named` is only allowed after a completed activating action in that batch. It requires exactly one visible button or menu item with that exact accessible name; no match, ambiguity, replacement or navigation stops the batch. Use refs for controls already observed. Check the resulting business state separately, or add a post-check that cannot pass merely because the option appeared.
+
 **`tab_extract`** — `kind` is `text`, `links`, or `table`; selectors should identify exactly one root. It uses the most recently observed frame.
 
 ```json

@@ -35,6 +35,7 @@ export interface BrowserWorkspace {
 export type BrowserAction =
   | { type: 'fill_secret'; ref: string; secret: string }
   | { type: 'click'; ref: string } | { type: 'fill'; ref: string; value: string }
+  | { type: 'click_named'; name: string; timeoutMs?: number }
   | { type: 'press'; ref: string; key: string } | { type: 'select'; ref: string; values: string[] }
   | { type: 'check'; ref: string; checked: boolean } | { type: 'scroll'; direction: 'up' | 'down' | 'left' | 'right'; pixels?: number; ref?: string }
   | { type: 'wait'; text: string; timeoutMs?: number }
@@ -937,6 +938,7 @@ export class BrowserEngine {
       let failedActionMayHaveSideEffects = false;
       let outcomeUnknown = false;
       let popupFollowed: { from_tab_id: string; tab_id: string; action_index: number; window_ms: number } | undefined;
+      let activatedInBatch = false;
       const popupWindowMs = 250;
       try {
       for (let index = 0; index < actions.length; index++) {
@@ -945,7 +947,7 @@ export class BrowserEngine {
         let actionStarted = false;
         let popupWindow: { until: number; candidates: Set<Page>; listener: (popup: Page) => void } | undefined;
         const armPopupWindow = () => {
-          if (this.popupPolicy !== 'follow-single' || !['click', 'double_click', 'press', 'click_xy', 'upload_chooser'].includes(action.type)) return;
+          if (this.popupPolicy !== 'follow-single' || !['click', 'click_named', 'double_click', 'press', 'click_xy', 'upload_chooser'].includes(action.type)) return;
           const candidates = new Set<Page>(), until = Math.min(deadline, performance.now() + popupWindowMs);
           const listener = (popup: Page) => {
             // This is a bounded opener/window association, not proof that the
@@ -959,7 +961,38 @@ export class BrowserEngine {
           checkInterruption();
           if (session.unexpected.length) throw new BrowserError('UNSUPPORTED_FLOW', session.unexpected.shift()!);
           if (state.frame.isDetached() || state.generation !== (session.generations.get(state.frame) ?? 0)) throw new BrowserError('STALE_REFERENCE', 'The observed document navigated. Take a fresh snapshot.');
-          if (action.type === 'click_xy') {
+          if (action.type === 'click_named') {
+            if (!activatedInBatch) throw new BrowserError('INVALID_ARGUMENT', 'click_named requires an earlier completed activating action in this batch. Observe existing targets and use their refs.');
+            if (!action.name?.trim() || action.name.length > 200) throw new BrowserError('INVALID_ARGUMENT', 'Supply an exact nonempty accessible name of at most 200 characters.');
+            const waitUntil = performance.now() + integer(action.timeoutMs, 5000, 100, 60000, 'click_named timeoutMs');
+            const named = state.frame.getByRole('button', { name: action.name, exact: true })
+              .or(state.frame.getByRole('menuitem', { name: action.name, exact: true })).filter({ visible: true });
+            let target: ElementHandle<Element> | null = null;
+            while (!target) {
+              checkInterruption();
+              if (state.frame.isDetached() || state.generation !== (session.generations.get(state.frame) ?? 0)) throw new BrowserError('STALE_REFERENCE', 'The observed document changed while waiting for the named target.');
+              const count = await named.count();
+              if (count > 1) throw new BrowserError('AMBIGUOUS_TARGET', 'More than one visible target has that role and exact accessible name. Observe the page and use a ref.');
+              if (count === 1) target = await named.elementHandle({ timeout: remaining(Math.max(1, waitUntil - performance.now())) });
+              else if (performance.now() >= waitUntil) throw new BrowserError('TARGET_NOT_FOUND', 'The named target did not become visible before the wait limit. Observe the page before further input.');
+              else await new Promise(resolve => setTimeout(resolve, Math.min(75, waitUntil - performance.now())));
+            }
+            try {
+              const actionDeadline = performance.now() + this.timeout;
+              actionStarted = true; // Trial may scroll; a later RPC failure has uncertain effects.
+              await target.click({ trial: true, timeout: remaining(Math.max(1, actionDeadline - performance.now())) });
+              checkInterruption();
+              if (state.frame.isDetached() || state.generation !== (session.generations.get(state.frame) ?? 0)) throw new BrowserError('STALE_REFERENCE', 'The observed document changed before input.');
+              if (await named.count() !== 1) throw new BrowserError('AMBIGUOUS_TARGET', 'The named target changed before input. Observe the page and use a ref.');
+              const current = await named.elementHandle({ timeout: remaining(Math.max(1, actionDeadline - performance.now())) });
+              try { if (!current || !await current.evaluate((node, expected) => node === expected, target)) throw new BrowserError('STALE_REFERENCE', 'The named target was replaced before input. Observe the page and use a ref.'); }
+              finally { await current?.dispose(); }
+              checkInterruption();
+              popupWindow = armPopupWindow();
+              await target.click({ timeout: remaining(Math.max(1, actionDeadline - performance.now())) });
+            } finally { await target.dispose(); }
+          }
+          else if (action.type === 'click_xy') {
             if (state.frame !== observedPage.mainFrame()) throw new BrowserError('INVALID_ARGUMENT', 'Coordinate clicks use the main tab viewport; observe the main frame first.');
             const viewport = await observedPage.evaluate(() => ({ width: innerWidth, height: innerHeight }));
             if (!Number.isFinite(action.x) || !Number.isFinite(action.y) || action.x < 0 || action.y < 0 || action.x >= viewport.width || action.y >= viewport.height) throw new BrowserError('INVALID_ARGUMENT', 'Coordinates must be inside the current viewport in CSS pixels.');
@@ -1171,6 +1204,7 @@ export class BrowserEngine {
             }
           }
           completed++; results.push({ index, type: action.type, status: 'completed' });
+          if (['click', 'click_named', 'double_click', 'press', 'hover', 'click_xy', 'upload_chooser'].includes(action.type)) activatedInBatch = true;
         } catch (error) { if (!interruption && performance.now() >= deadline) interrupt('BATCH_TIMEOUT', 'The action batch exceeded its total time budget. This session was closed; completed actions were not rolled back.'); const policyError = this.blockedNavigations(session) > blockedBefore ? new BrowserError('NAVIGATION_BLOCKED', 'A document request was blocked by the configured navigation policy.') : undefined; const info = this.errorInfo(interruption ?? this.navigationGuardFailure(session.navigationGuard) ?? policyError ?? error, 'ACTION_FAILED'); if (action.type === 'fill' && action.value) info.message = info.message.split(action.value).join('[redacted]'); failedActionMayHaveSideEffects = actionStarted; outcomeUnknown = action.type === 'fill_secret' && actionStarted; failed = { index, action: action.type, error: info }; results.push({ index, type: action.type, status: 'failed', error: info }); }
         finally { if (popupWindow) observedPage.off('popup', popupWindow.listener); }
       }

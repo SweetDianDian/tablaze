@@ -18,6 +18,8 @@ const page = (nested = false) => `<!doctype html><meta charset="utf-8"><title>Re
 <button id="late-value">Change value later</button>
 <button id="navigate">Navigate now</button><button id="detach">Detach frame</button><button id="update">Update later</button>
 <button id="long">Set long value</button><p id="status">Ready</p>
+<button id="deferred">Open deferred menu</button><button id="ambiguous">Open ambiguous menu</button>
+<div id="deferred-menu"></div><p id="deferred-status">Deferred count: 0</p>
 ${nested ? '' : '<iframe title="Nested form" src="/frame"></iframe>'}
 <script>
 const field = () => document.querySelector('#name');
@@ -34,6 +36,15 @@ document.querySelector('#navigate').onclick = () => location.href = '/landed';
 document.querySelector('#detach').onclick = () => frameElement?.remove();
 document.querySelector('#update').onclick = () => setTimeout(() => { field().value = 'queued result'; status('Update complete'); }, 120);
 document.querySelector('#long').onclick = () => field().value = 'x'.repeat(100000);
+document.querySelector('#deferred').onclick = () => setTimeout(() => {
+  const button = document.createElement('button'); button.textContent = 'Confirm deferred';
+  button.onclick = () => { window.deferredCount = (window.deferredCount || 0) + 1; document.querySelector('#deferred-status').textContent = 'Deferred count: ' + window.deferredCount; };
+  document.querySelector('#deferred-menu').replaceChildren(button);
+}, 120);
+document.querySelector('#ambiguous').onclick = () => {
+  const buttons = Array.from({ length: 2 }, () => { const button = document.createElement('button'); button.textContent = 'Confirm deferred'; button.onclick = () => { window.deferredCount = (window.deferredCount || 0) + 1; }; return button; });
+  document.querySelector('#deferred-menu').replaceChildren(...buttons);
+};
 </script>`;
 
 before(async () => {
@@ -92,6 +103,31 @@ test('post-checks never certify an action batch that failed before input', async
   assert.equal(result.batch_complete, false);
   assert.equal(result.completed, 0);
   assert.equal(result.verification, undefined, 'An already-visible status cannot certify a failed action');
+});
+
+test('a delayed exact-name button can complete a guarded batch, but ambiguity stops before input', async t => {
+  const initial = await open(t);
+  const alone = data(await call('tab_act', { session_id: initial.session_id, snapshot_id: initial.snapshot_id,
+    actions: [{ type: 'click_named', name: 'Confirm deferred', timeout_ms: 100 }] }));
+  assert.equal(alone.failed.error.code, 'INVALID_ARGUMENT');
+  assert.equal(alone.completed, 0);
+
+  const fresh = await engine().snapshot(initial.session_id);
+  const completed = data(await call('tab_act', { session_id: fresh.session_id, snapshot_id: fresh.snapshot_id,
+    actions: [{ type: 'click', ref: ref(fresh, 'Open deferred menu') }, { type: 'click_named', name: 'Confirm deferred', timeout_ms: 2000 }],
+    post_checks: [{ kind: 'text', contains: 'Deferred count: 1' }], verify_timeout_ms: 1000 }));
+  assert.equal(completed.batch_complete, true, JSON.stringify(completed));
+  assert.equal(completed.completed, 2);
+  assert.equal(completed.verification.passed, true);
+
+  const duplicate = await open(t);
+  const rejected = data(await call('tab_act', { session_id: duplicate.session_id, snapshot_id: duplicate.snapshot_id,
+    actions: [{ type: 'click', ref: ref(duplicate, 'Open ambiguous menu') }, { type: 'click_named', name: 'Confirm deferred', timeout_ms: 200 }],
+    post_checks: [{ kind: 'text', contains: 'Deferred count: 1' }], verify_timeout_ms: 100 }));
+  assert.equal(rejected.completed, 1);
+  assert.equal(rejected.failed.error.code, 'AMBIGUOUS_TARGET');
+  assert.equal(rejected.verification, undefined);
+  assert.equal((await engine().verify(duplicate.session_id, [{ kind: 'text', contains: 'Deferred count: 0' }])).passed, true);
 });
 
 test('read-only ref checks preserve actionability and can read a consumed current revision', async t => {

@@ -8,6 +8,8 @@ The [expanded MCP variants report](CODEX_MCP_VARIANTS_V2.md) adds Browser Use `-
 
 The later [authenticated network-response smoke](CODEX_NETWORK_RECEIPT_SMOKE.md) tests a different gap. Tablaze's opt-in response journal, Harness MCP, and Browser Use CLI-MCP each passed once using native Codex; structured MCP direct tools did not submit before the deadline. Two separately configured nested-Agent attempts also had no successful write. Browser Use's programmable CLI entry passed, so this result is specific to the entry points and attempts. It does not demonstrate general script/CDP parity, CSV handling, or product-wide superiority.
 
+The [2026-09-24 delayed-target study](CODEX_DELAYED_TARGET_SMOKE.md) adds one guarded action for a button or menu item that appears after an observed opener, plus real-model matched development attempts against the pinned Python Agent. It records a wrong-role failure and recovery before the API was corrected, then successful use of the corrected action. This is a narrow local UI result; the Harness JS, Pi, and Cloud tracks below remain unmeasured.
+
 The objective remains stronger overall functionality than Browser Use. A result against Python Agent alone cannot establish that objective. Local agents, tools for an existing agent, and managed services need separate measurements, with unresolved tracks retained in the final claim.
 
 ## Sources fixed for this audit

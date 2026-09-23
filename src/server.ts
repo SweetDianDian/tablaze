@@ -14,6 +14,7 @@ const selector = z.string().min(1).max(1_000);
 const timeout = z.number().int().min(100).max(60_000);
 const actions = z.discriminatedUnion("type", [
   z.object({ type: z.literal("click"), ref }).strict(),
+  z.object({ type: z.literal("click_named"), name: z.string().trim().min(1).max(200), timeout_ms: timeout.optional() }).strict(),
   z.object({ type: z.literal("fill"), ref, value: z.string().max(10_000) }).strict(),
   z.object({ type: z.literal("fill_secret"), ref, secret: z.string().regex(/^[A-Za-z][A-Za-z0-9_]{0,63}$/).describe("Secret alias from snapshot.available_secrets, never a plaintext value. The trusted resolver runs only for the allowed frame and top-level origins.") }).strict(),
   z.object({ type: z.literal("press"), ref, key: z.string().min(1).max(100) }).strict(),
@@ -101,14 +102,14 @@ export function createServer(options: BrowserOptions = {}): { server: McpServer;
   }, ({ session_id, text, frame_id, container_ref, snapshot_id, max_scrolls, timeout_ms }, extra) => guarded(() => engine.findText(session_id, { text, frameId: frame_id, containerRef: container_ref, snapshotId: snapshot_id, maxScrolls: max_scrolls, timeoutMs: timeout_ms, signal: extra.signal })));
 
   server.registerTool("tab_act", {
-    title: "Act on observed elements", description: "Execute 1–20 ordered actions against a current snapshot. Optional post_checks run only after the whole batch completes, using this same snapshot's refs; they poll for asynchronous outcomes and return verification evidence in this call. A failed postcondition keeps completed effects, sets replan_required, and skips later queued tools. Ref checks fail if the document or node changes; use separate tab_verify after navigation. Use fill_secret with an observed ref and a secret alias from snapshot.available_secrets for configured credentials. Includes hover, double_click, explicit local-file upload, and click_xy in main-viewport CSS pixels after visual inspection (coordinates lack DOM identity guards). Default 30s action budget, maximum 60s; verification has a separate timeout. Stops on first action failure. A followed popup returns its snapshot and replan_required without running post_checks. Cancellation closes the session; completed effects remain.",
+    title: "Act on observed elements", description: "Execute 1–20 ordered actions against a current snapshot. After an observed activating action in this batch, click_named can wait for one newly appearing visible button or menuitem by exact accessible name in the same document; ambiguity, replacement and navigation stop input. Use refs for controls already observed. Optional post_checks run only after the whole batch completes, using this same snapshot's refs; they poll for asynchronous outcomes and return verification evidence in this call. A failed postcondition keeps completed effects, sets replan_required, and skips later queued tools. Ref checks fail if the document or node changes; use separate tab_verify after navigation. Use fill_secret with an observed ref and a secret alias from snapshot.available_secrets for configured credentials. Includes hover, double_click, explicit local-file upload, and click_xy in main-viewport CSS pixels after visual inspection (coordinates lack DOM identity guards). Default 30s action budget, maximum 60s; verification has a separate timeout. Stops on first action failure. A followed popup returns its snapshot and replan_required without running post_checks. Cancellation closes the session; completed effects remain.",
     inputSchema: z.object({ session_id: sessionId, snapshot_id: z.string().min(1).max(160), actions: z.array(actions).min(1).max(20), post_checks: z.array(checks).min(1).max(20).optional(), verify_timeout_ms: timeout.optional(), include_snapshot: z.boolean().optional(), timeout_ms: timeout.optional() }).strict(), annotations: writeAnnotations,
   }, ({ session_id, snapshot_id, actions: steps, post_checks, verify_timeout_ms, include_snapshot, timeout_ms }, extra) => {
     const protectedValues = [...steps.flatMap(step => step.type === "fill" ? [step.value] : []), ...(post_checks ?? []).flatMap(check => check.kind === "value" ? [check.value] : [])];
     return guarded(async () => {
       const acted = await engine.act(session_id, snapshot_id, steps.map(step => {
         if (step.type === "drag") { const { target_ref, ...rest } = step; return { ...rest, targetRef: target_ref }; }
-        if (step.type !== "wait") return step;
+        if (step.type !== "wait" && step.type !== "click_named") return step;
         const { timeout_ms, ...rest } = step;
         return { ...rest, timeoutMs: timeout_ms };
       }), { snapshot: post_checks ? false : include_snapshot, signal: extra.signal, timeoutMs: timeout_ms });

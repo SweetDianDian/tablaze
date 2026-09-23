@@ -154,7 +154,10 @@ test('settled initialization survives resume and compaction with unique subseque
   let opens = 0;
   const tools = toolsFor(async () => { opens++; return payload({ ok: true, session_id: 's1', snapshot_id: 's1:1' }); });
   const first = await runAgent({ task, startUrl: url, tools, planner: async () => ask });
-  const next = await runAgent({ task, resume: first.checkpoint, tools, maxHistoryBytes: 6500, historyCompaction: { keepRecentGroups: 1 }, maxSteps: 9,
+  // Leave a fixed amount of room beyond the mandatory system/init history so
+  // this tests compaction rather than depending on the prompt's exact length.
+  const historyLimit = Buffer.byteLength(JSON.stringify(first.history)) + 5000;
+  const next = await runAgent({ task, resume: first.checkpoint, tools, maxHistoryBytes: historyLimit, historyCompaction: { keepRecentGroups: 1 }, maxSteps: 9,
     planner: async ({ step }) => step < 9 ? call('read', { n: step }) : ask,
   });
   assert.equal(next.status, 'needs_input');

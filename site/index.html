@@ -116,6 +116,13 @@
 <a class="text-link" href="CODEX_POSTCHECKS_SMOKE.md" data-zh="完整报告、源码状态与原始轨迹 ↗">Full report, source states, and raw traces ↗</a>
 </article>
 <article class="comparison-card">
+<h3 data-zh="延迟出现的按钮，一次批次完成点击">A delayed target, one action batch</h3>
+<p data-zh="先点已观察到的菜单入口，再等待唯一、准确命名的新按钮或菜单项。真实 Codex 在最后一轮将两步合为一次动作调用；双方业务验收均通过，各只写入一次，重复写入为零。">Click an observed menu opener, then wait for one uniquely named new button or menu item. In the final visible run, Codex combined both steps into one Tablaze action call. Both agents passed the independent business judge with one write and no duplicates.</p>
+<div class="report-table" role="region" aria-label="Delayed target matched development measurements" tabindex="0"><table><thead><tr><th data-zh="seed 37 / 全程">Seed 37 / whole run</th><th>Tablaze</th><th>Browser Use</th></tr></thead><tbody><tr><td data-zh="延迟菜单">Delayed menu</td><td>80.715 s ✓</td><td>77.720 s ✓</td></tr><tr><td data-zh="模型调用">Model calls</td><td>4</td><td>4</td></tr></tbody></table></div>
+<p class="comparison-note" data-zh="2026-09-24，gpt-6-astra / ultra，单次可见开发任务；Browser Use 默认评审计入时间。最初带角色参数的版本曾让模型误猜 menuitem，失败后无重复写入地恢复；最终版本按按钮或菜单项的唯一名称匹配。跨版本数据不能证明稳定提速或整体领先。">2026-09-24, gpt-6-astra / ultra, one visible development task; Browser Use's default judge is included. An earlier role-bearing version led the model to guess menuitem incorrectly, then recover without a duplicate write. The final API matches a unique name across buttons and menu items. Cross-version observations do not prove stable speed or overall superiority.</p>
+<a class="text-link" href="CODEX_DELAYED_TARGET_SMOKE.md" data-zh="完整报告与失败、成功原始轨迹 ↗">Full report and all failure/success traces ↗</a>
+</article>
+<article class="comparison-card">
 <h3 data-zh="跨来源授权返回：双方各成功一次">Cross-origin authorization return: one success each</h3>
 <p data-zh="本地提供方弹窗授权后返回原标签页。双方均完成一次授权、一次正确提交，重复写入为 0；业务验收、Agent 成功和期限内返回均通过。">A local provider popup authorizes the original app tab. Both engines made one authorization and one correct submission with zero duplicates, passing business, Agent, and deadline checks.</p>
 <div class="report-table" role="region" aria-label="Authorization return development smoke measurements" tabindex="0"><table><thead><tr><th data-zh="指标">Measurement</th><th>Tablaze</th><th>Browser Use</th></tr></thead><tbody>

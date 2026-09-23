@@ -111,6 +111,8 @@ The new production Codex path also has a [separate live smoke](docs/CODEX_PROVID
 
 A [new matched virtual-list task](docs/CODEX_VIRTUAL_LIST_SMOKE.md) completed once on each engine with independent acceptance and zero duplicate writes. Under a shared 120,000-token budget, whole-run time was 86.830 s for Tablaze and 141.597 s for Browser Use, including its default judge. This one visible development task does not establish a general performance or success-rate advantage.
 
+The [delayed-control development comparison](docs/CODEX_DELAYED_TARGET_SMOKE.md) records a real Codex run that opened a menu and clicked its newly appearing option in one guarded Tablaze action batch. In the final visible matched attempt, both agents completed with one correct write and zero duplicates; Tablaze took 80.715 s and Browser Use 77.720 s. The report retains an earlier wrong-role failure and recovery. These changing-source samples do not establish a stable speed or overall advantage.
+
 The separate [cross-origin authorization-return task](docs/CODEX_AUTH_RETURN_SMOKE.md) also passed once on each engine with one provider authorization and one app submission. Browser Use's 119.515 s whole run was slightly shorter than Tablaze's 123.719 s. This synthetic popup flow does not establish production login parity or an overall ranking.
 
 ## A small loop, with useful controls
@@ -122,6 +124,7 @@ The separate [cross-origin authorization-return task](docs/CODEX_AUTH_RETURN_SMO
 | **Compact observations** | Full or incremental snapshots with element refs, text budgets and visible truncation. |
 | **Guarded actions** | Check snapshot revisions and DOM targets before input. Re-observe when a target changes. |
 | **Ordered batches** | Send up to 20 actions in one call, with completed, failed and skipped steps. Stops on error; earlier effects remain. |
+| **Delayed controls** | After clicking an observed opener, wait for one exact-name visible button or menu item and click it in the same guarded batch. Ambiguous matches stop before input. |
 | **Explicit verification** | Check URL, title, text, field values, visibility and counts. Known same-document outcomes can be checked inside `tab_act` after its batch, with passing evidence available to the Agent in that call. |
 | **Optional response journal** | Use `--capture-network` to inspect bounded responses from owned pages and popups through a seventeenth MCP tool, [`tab_network`](docs/NETWORK.md). Off by default; not a programmable JS/CDP surface. |
 | **Optional navigation policy** | [Exact-origin allow/deny rules](docs/NAVIGATION_POLICY.md) for HTTP(S) document requests, including redirects, frames and popups, in owned isolated browsers. No external CDP; not a network firewall. |

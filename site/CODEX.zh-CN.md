@@ -138,6 +138,8 @@ enabled = true
 
 如果同一文档内操作的预期结果在执行前已经明确，可在 `tab_act` 中附带 `post_checks`，减少一次仅用于调用 `tab_verify` 的模型决策。例如填写并保存时，加入 `[{"kind":"value","ref":"r1","value":"Ada"},{"kind":"text","contains":"Saved successfully"}]` 和 `verify_timeout_ms: 5000`。返回的 `verification.passed` 是明确的检查证据；检查失败会设置 `replan_required`，但不会重做或回滚已完成操作。输入框里的值不属于页面正文，除非页面在输入框外另有可见回显。导航后应重新观察，再单独使用 `tab_verify`。
 
+已观察到的入口会在同一文档中延迟显示按钮或菜单项时，可一次提交 `[{"type":"click","ref":"<入口ref>"},{"type":"click_named","name":"Express delivery","timeout_ms":5000}]`。`click_named` 只能跟在本批次已完成的触发动作之后；它按准确的无障碍名称寻找唯一可见按钮或菜单项，找不到、重名、目标被替换或文档导航时停止。已有控件仍应使用观察得到的 ref。最后要验收真实业务结果，不能只检查菜单项出现。
+
 **`tab_extract`**：`kind` 可为 `text`、`links` 或 `table`；选择器应匹配唯一根元素，作用于最近观察的 frame。
 
 ```json

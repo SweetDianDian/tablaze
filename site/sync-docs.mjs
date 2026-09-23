@@ -18,6 +18,7 @@ const publicGuides = new Map([
   ['docs/CODEX_NETWORK_RECEIPT_SMOKE.md', 'CODEX_NETWORK_RECEIPT_SMOKE.md'],
   ['docs/CODEX_PAGE_SCRIPT_SMOKE.md', 'CODEX_PAGE_SCRIPT_SMOKE.md'],
   ['docs/CODEX_POSTCHECKS_SMOKE.md', 'CODEX_POSTCHECKS_SMOKE.md'],
+  ['docs/CODEX_DELAYED_TARGET_SMOKE.md', 'CODEX_DELAYED_TARGET_SMOKE.md'],
   ['docs/CODEX.md', 'CODEX.md'],
   ['docs/CODEX.zh-CN.md', 'CODEX.zh-CN.md'],
   ['SECURITY.md', 'SECURITY.md'],
@@ -38,7 +39,7 @@ for (const [source, target] of publicGuides) {
 }
 for (const name of ['CODEX_COMPARISON_RESULTS_V3.md', 'CODEX_TERMINAL_FOLLOWUP.md', 'CODEX_PROVIDER_SMOKE.md', 'CODEX_VIRTUAL_LIST_SMOKE.md', 'CODEX_AUTH_RETURN_SMOKE.md', 'CODEX_NATIVE_MCP_SMOKE.md', 'CODEX_MCP_VARIANTS_V2.md']) await copyFile(join(root, 'docs', name), join(site, name));
 for (const name of [
-  'development-tests.txt', 'development-tests-2026-09-23.txt', 'development-tests-auth-return.txt', 'development-tests-profile.txt', 'development-validation.json',
+  'development-tests.txt', 'development-tests-2026-09-23.txt', 'development-tests-auth-return.txt', 'development-tests-profile.txt', 'development-tests-click-named.txt', 'development-validation.json',
   'navigation-policy-probe-v1.json', 'codex-provider-smoke-v1.json', 'codex-e2e.json', 'codex-matched-smoke-v3.json',
   'codex-matched-smoke-v3-analysis.json', 'codex-terminal-followup-v1.json', 'codex-terminal-followup-v1-analysis.json',
   'codex-virtual-list-smoke-v1.json', 'codex-auth-return-smoke-v1.json', 'native-mcp-preflight-v1.json',
@@ -62,4 +63,5 @@ for (const name of [
 ]) await copyFile(join(root, 'docs/evidence', name), join(site, 'evidence', name));
 // Curated synthetic fixture reports and traces for the post-check comparison.
 await cp(join(root, 'docs/evidence/postchecks'), join(site, 'evidence/postchecks'), { recursive: true, force: true });
+await cp(join(root, 'docs/evidence/click-named'), join(site, 'evidence/click-named'), { recursive: true, force: true });
 console.log('Synchronized public guides, comparison reports, and their fixed evidence files. Historical benchmark.json is unchanged.');

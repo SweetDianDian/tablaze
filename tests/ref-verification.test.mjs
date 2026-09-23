@@ -84,6 +84,16 @@ test('real MCP form fill/save verifies current refs and visible status without a
   assert.equal((await engine().verify(current.session_id, [{ kind: 'text', contains: 'Ada' }], 100)).passed, false, 'Form values are not page text');
 });
 
+test('post-checks never certify an action batch that failed before input', async t => {
+  const initial = await open(t);
+  const result = data(await call('tab_act', { session_id: initial.session_id, snapshot_id: initial.snapshot_id,
+    actions: [{ type: 'click', ref: 'r-does-not-exist' }],
+    post_checks: [{ kind: 'text', contains: 'Ready' }], verify_timeout_ms: 100 }));
+  assert.equal(result.batch_complete, false);
+  assert.equal(result.completed, 0);
+  assert.equal(result.verification, undefined, 'An already-visible status cannot certify a failed action');
+});
+
 test('read-only ref checks preserve actionability and can read a consumed current revision', async t => {
   const initial = await open(t);
   assert.equal((await verifyRef(initial, 'Name', 'initial')).passed, true);

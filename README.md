@@ -122,7 +122,7 @@ The separate [cross-origin authorization-return task](docs/CODEX_AUTH_RETURN_SMO
 | **Compact observations** | Full or incremental snapshots with element refs, text budgets and visible truncation. |
 | **Guarded actions** | Check snapshot revisions and DOM targets before input. Re-observe when a target changes. |
 | **Ordered batches** | Send up to 20 actions in one call, with completed, failed and skipped steps. Stops on error; earlier effects remain. |
-| **Explicit verification** | Check the resulting URL, title, text, field values, visibility and element counts. |
+| **Explicit verification** | Check URL, title, text, field values, visibility and counts. Known same-document outcomes can be checked inside `tab_act` after its batch, with passing evidence available to the Agent in that call. |
 | **Optional response journal** | Use `--capture-network` to inspect bounded responses from owned pages and popups through a seventeenth MCP tool, [`tab_network`](docs/NETWORK.md). Off by default; not a programmable JS/CDP surface. |
 | **Optional navigation policy** | [Exact-origin allow/deny rules](docs/NAVIGATION_POLICY.md) for HTTP(S) document requests, including redirects, frames and popups, in owned isolated browsers. No external CDP; not a network firewall. |
 
@@ -133,7 +133,7 @@ The separate [cross-origin authorization-return task](docs/CODEX_AUTH_RETURN_SMO
 | `tab_open` | Open a page and receive its first snapshot. |
 | `tab_snapshot` | Observe the page, changes or a selected frame. |
 | `tab_find` | Search visible text while scrolling a page or observed virtual-list container; return a fresh actionable snapshot. |
-| `tab_act` | Guarded form input, drag/drop, container scrolling, file selection and coordinate actions. |
+| `tab_act` | Guarded form input, drag/drop, container scrolling, file selection and coordinate actions; optional post-action checks. |
 | `tab_verify` | Test explicit page assertions and guarded form values by ref or CSS selector. |
 | `tab_extract` | Read text, links or tables. |
 | `tab_capture` | Capture a JPEG screenshot. |

@@ -1,4 +1,4 @@
-import { readFile, writeFile, copyFile } from 'node:fs/promises';
+import { readFile, writeFile, copyFile, cp } from 'node:fs/promises';
 import { dirname, join, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -17,6 +17,7 @@ const publicGuides = new Map([
   ['docs/PROFILES.md', 'PROFILES.md'],
   ['docs/CODEX_NETWORK_RECEIPT_SMOKE.md', 'CODEX_NETWORK_RECEIPT_SMOKE.md'],
   ['docs/CODEX_PAGE_SCRIPT_SMOKE.md', 'CODEX_PAGE_SCRIPT_SMOKE.md'],
+  ['docs/CODEX_POSTCHECKS_SMOKE.md', 'CODEX_POSTCHECKS_SMOKE.md'],
   ['docs/CODEX.md', 'CODEX.md'],
   ['docs/CODEX.zh-CN.md', 'CODEX.zh-CN.md'],
   ['SECURITY.md', 'SECURITY.md'],
@@ -59,4 +60,6 @@ for (const name of [
   'native-mcp-page-script-v1.json', 'native-mcp-page-script-v1.json.tablaze.jsonl',
   'native-mcp-page-script-v1.json.browser-use-cli-mcp.jsonl',
 ]) await copyFile(join(root, 'docs/evidence', name), join(site, 'evidence', name));
+// Curated synthetic fixture reports and traces for the post-check comparison.
+await cp(join(root, 'docs/evidence/postchecks'), join(site, 'evidence/postchecks'), { recursive: true, force: true });
 console.log('Synchronized public guides, comparison reports, and their fixed evidence files. Historical benchmark.json is unchanged.');

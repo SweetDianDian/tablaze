@@ -136,6 +136,8 @@ enabled = true
 
 `select.values` 填 option 的 value，不是显示名称；原生 select 的快照包含有界 `options` 列表。填写值最多 10,000 个字符；每次 1–20 个操作。同一会话内串行执行，不同会话可以独立推进。
 
+如果同一文档内操作的预期结果在执行前已经明确，可在 `tab_act` 中附带 `post_checks`，减少一次仅用于调用 `tab_verify` 的模型决策。例如填写并保存时，加入 `[{"kind":"value","ref":"r1","value":"Ada"},{"kind":"text","contains":"Saved successfully"}]` 和 `verify_timeout_ms: 5000`。返回的 `verification.passed` 是明确的检查证据；检查失败会设置 `replan_required`，但不会重做或回滚已完成操作。输入框里的值不属于页面正文，除非页面在输入框外另有可见回显。导航后应重新观察，再单独使用 `tab_verify`。
+
 **`tab_extract`**：`kind` 可为 `text`、`links` 或 `table`；选择器应匹配唯一根元素，作用于最近观察的 frame。
 
 ```json

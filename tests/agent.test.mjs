@@ -61,6 +61,54 @@ test('agent drives real MCP browser tools and requires verified form state befor
   assert.deepEqual(runtime.engine.list(), []);
 });
 
+test('post-action checks wait for an asynchronous receipt and provide completion evidence in one tool call', { timeout: 30_000 }, async t => {
+  const fixture = createHttpServer((_req, response) => {
+    response.writeHead(200, { 'content-type': 'text/html' });
+    response.end('<!doctype html><title>Post-check fixture</title><label>Name<input aria-label="Name"></label><button onclick="window.saveCount=(window.saveCount||0)+1;setTimeout(()=>{document.querySelector(\'#status\').textContent=\'Saved successfully \' + window.saveCount},150)">Save</button><p id="status">Ready</p>');
+  });
+  await new Promise(resolve => fixture.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise(resolve => fixture.close(resolve)));
+  const runtime = createServer({ headless: true, channel: process.env.TABLAZE_BROWSER_CHANNEL || undefined, timeoutMs: 1_000 });
+  const connection = await connectAgentTools(runtime.server);
+  t.after(async () => { await connection.close(); await runtime.dispose(); });
+  const url = `http://127.0.0.1:${fixture.address().port}/`;
+  const run = await runAgent({ task: 'Save Ada and verify the receipt.', startUrl: url, tools: connection.tools, maxSteps: 2, planner: async ({ step, messages }) => {
+    const previous = last(messages);
+    if (step === 1) {
+      const page = previous.result.structuredContent;
+      return tool('tab_act', { session_id: page.session_id, snapshot_id: page.snapshot_id, actions: [
+        { type: 'fill', ref: page.elements.find(el => el.name === 'Name').ref, value: 'Ada' },
+        { type: 'click', ref: page.elements.find(el => el.name === 'Save').ref },
+      ], post_checks: [{ kind: 'value', ref: page.elements.find(el => el.name === 'Name').ref, value: 'Ada' }, { kind: 'text', contains: 'Saved successfully 1' }], verify_timeout_ms: 2_000 });
+    }
+    assert.equal(previous.result.structuredContent.verification.passed, true);
+    return done(previous.toolCallId);
+  }, validateCompletion: ({ evidence }) => evidence.some(item => item.checks.length === 2 && item.checks.every(check => check.pass)) });
+  assert.equal(run.status, 'succeeded', JSON.stringify(run));
+  assert.equal(run.plannerCalls, 2);
+  assert.equal(run.toolCalls, 2, 'initializer plus one act with post-checks');
+  assert.equal(run.evidence[0].toolCallId, results(run.history).at(-1).toolCallId);
+});
+
+test('failed post-action checks require replanning and cannot prove completion', { timeout: 30_000 }, async t => {
+  const fixture = createHttpServer((_req, response) => { response.writeHead(200, { 'content-type': 'text/html' }); response.end('<!doctype html><button id="save" onclick="document.querySelector(\'#status\').textContent=\'Saved\'">Save</button><p id="status">Ready</p>'); });
+  await new Promise(resolve => fixture.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise(resolve => fixture.close(resolve)));
+  const runtime = createServer({ headless: true, channel: process.env.TABLAZE_BROWSER_CHANNEL || undefined, timeoutMs: 1_000 });
+  const connection = await connectAgentTools(runtime.server);
+  t.after(async () => { await connection.close(); await runtime.dispose(); });
+  const run = await runAgent({ task: 'Save and check the receipt.', startUrl: `http://127.0.0.1:${fixture.address().port}/`, tools: connection.tools, maxSteps: 2, planner: async ({ step, messages }) => {
+    const previous = last(messages);
+    if (step === 1) { const page = previous.result.structuredContent; return tool('tab_act', { session_id: page.session_id, snapshot_id: page.snapshot_id, actions: [{ type: 'click', ref: page.elements.find(el => el.name === 'Save').ref }], post_checks: [{ kind: 'text', contains: 'Never appears' }], verify_timeout_ms: 100 }); }
+    assert.equal(previous.result.structuredContent.replan_required, true);
+    assert.equal(previous.result.structuredContent.verification.passed, false);
+    return done(previous.toolCallId);
+  } });
+  assert.equal(run.status, 'limit_reached');
+  assert.ok(run.events.some(event => event.type === 'feedback' && event.code === 'VERIFICATION_REQUIRED'));
+  assert.equal(run.toolCalls, 2);
+});
+
 test('MCP schema rejects malformed arguments before side effects, then planner can recover', async t => {
   const connection = await mockMcp(t);
   const run = await runAgent({ task: 'Change a string.', tools: connection.tools, planner: async ({ step, messages }) => {

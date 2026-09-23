@@ -2,6 +2,7 @@
 
 ## Unreleased / 开发中
 
+- Optional `tab_act.post_checks` runs explicit browser assertions after a complete same-document action batch, allowing one Agent tool call to act and provide completion evidence. Failed checks require replanning without replaying completed actions. [Measured development attempts](docs/CODEX_POSTCHECKS_SMOKE.md) keep matched Browser Use pairs and separate feature-adoption runs distinct; they do not prove overall superiority.
 - Scoped and viewport snapshots can reach controls beyond the element budget; changing scope resets a diff baseline.
 - Snapshot, text verification and extraction share composed DOM traversal, including nested open shadow roots and slots.
 - Owned popup/tab workflows, navigation/history, guarded hover/double-click/uploads, and explicit viewport coordinate clicks.

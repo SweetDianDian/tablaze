@@ -118,6 +118,16 @@
 <p class="comparison-note" data-zh="2026-09-23，gpt-6-astra / ultra，共同 250,000-token 预算，240 秒期限。Browser Use 默认评审计入时间与用量。本次它略快；合成弹窗任务不能证明真实 OAuth 能力或整体排名。">2026-09-23, gpt-6-astra / ultra, shared 250,000-token budget and 240-second deadline. Browser Use's default judge is included in time and usage. It was slightly faster here; a synthetic popup task does not establish real OAuth capability or an overall ranking.</p>
 <a class="text-link" href="CODEX_AUTH_RETURN_SMOKE.md" data-zh="授权返回报告、量化记录和运行条件 ↗">Authorization-return report, measurements, and conditions ↗</a>
 </article>
+<article class="comparison-card">
+<h3 data-zh="同一个 Codex Agent：两种浏览器 MCP">One Codex agent, two browser MCPs</h3>
+<p data-zh="原生 Codex 分别连接 Tablaze 与固定源码的 Browser Harness。填写表单和画布点击两项本地任务，双方各成功一次；服务端均确认恰好一次正确提交。">Native Codex connected separately to Tablaze and pinned Browser Harness. Both passed the local form and canvas tasks once, with exactly one correct server-side submission each.</p>
+<div class="report-table" role="region" aria-label="Native Codex MCP development smoke measurements" tabindex="0"><table><thead><tr><th data-zh="任务 / Codex 进程耗时">Task / Codex process time</th><th>Tablaze MCP</th><th>Browser Harness MCP</th></tr></thead><tbody>
+<tr><td data-zh="填写表单">Form</td><td>69.331 s</td><td>111.232 s</td></tr>
+<tr><td data-zh="视觉画布">Visual canvas</td><td>65.037 s</td><td>77.263 s</td></tr>
+</tbody></table></div>
+<p class="comparison-note" data-zh="2026-09-23，gpt-6-astra / ultra，每侧每项仅一次。计时仅为 Codex 进程，含模型、MCP 和自动审批，不含 Chrome 启动与事后评审；与上表全程时间不可直接比较。首次只读策略阻断双方，失败记录亦保留。Harness 截图以文件路径返回；轨迹无法单独证明 Agent 实际读取像素。尚不能证明整体领先。">2026-09-23, gpt-6-astra / ultra, one attempt per arm and task. Time covers the Codex process, including model, MCP and auto-review, but excludes Chrome startup and independent judging, so it is not directly comparable to the end-to-end times above. An initial read-only policy blocked both arms; those failures are retained. Harness screenshots return file paths, and the transcript alone cannot prove the agent read their pixels. Overall superiority remains unproven.</p>
+<a class="text-link" href="CODEX_NATIVE_MCP_SMOKE.md" data-zh="原生 MCP 报告、预检与轨迹 ↗">Native MCP report, preflight and traces ↗</a>
+</article>
 <p class="boundary-note"><span>↳</span><span data-zh="这些是不同时间的可见开发任务，各次预算与期限以对应报告为准。业务结果、Agent 完成和全程返回分别记录；样本不足以证明整体优越性。">These are separate visible development tasks with budgets and deadlines stated in their own reports. Business outcome, Agent completion, and whole-run return are recorded separately; the samples do not establish overall superiority.</span></p>
 <p class="comparison-note" data-zh="当前 SDK 的新扩展另见 <a href='https://github.com/SweetDianDian/tablaze/blob/main/docs/CUSTOM_TOOLS.md'>类型化自定义工具文档</a>：涵盖输入输出校验、可信应用上下文和浏览器绑定。以上真实模型记录对应当时的源码，不作为新扩展或新模型适配器的成功率证据。">For the current SDK extension, see <a href="https://github.com/SweetDianDian/tablaze/blob/main/docs/CUSTOM_TOOLS.md">typed custom tools</a>: input/output validation, trusted application context, and browser bindings. The real-model records above cover their original source versions, not success rates for the new extension or production provider adapters.</p>
 </section>

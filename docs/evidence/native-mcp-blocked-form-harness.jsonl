@@ -1,0 +1,9 @@
+{"type":"thread.started","thread_id":"01a0ccd7-f936-7780-b082-d31a9be33163"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"I’ll open the page, inspect the screenshot, and save Ada with Lisbon as the city.\n"}}
+{"type":"item.started","item":{"id":"item_1","type":"mcp_tool_call","server":"browser","tool":"browser_goto","arguments":{"url":"http://127.0.0.1:49166/r/7bab27ca-7b3b-40e3-9b25-fe1bf0228e45/"},"result":null,"error":null,"status":"in_progress"}}
+{"type":"item.completed","item":{"id":"item_1","type":"mcp_tool_call","server":"browser","tool":"browser_goto","arguments":{"url":"http://127.0.0.1:49166/r/7bab27ca-7b3b-40e3-9b25-fe1bf0228e45/"},"result":null,"error":{"message":"MCP tool call requires approval, but approval policy is never"},"status":"failed"}}
+{"type":"item.started","item":{"id":"item_2","type":"mcp_tool_call","server":"browser","tool":"browser_screenshot","arguments":{},"result":null,"error":null,"status":"in_progress"}}
+{"type":"item.completed","item":{"id":"item_2","type":"mcp_tool_call","server":"browser","tool":"browser_screenshot","arguments":{},"result":null,"error":{"message":"MCP tool call requires approval, but approval policy is never"},"status":"failed"}}
+{"type":"item.completed","item":{"id":"item_3","type":"agent_message","text":"I couldn’t save Ada: the configured browser requires approval, but this session’s policy disallows approvals. Navigation and screenshots were blocked, so no contact was saved or verified."}}
+{"type":"turn.completed","usage":{"input_tokens":33056,"cached_input_tokens":20864,"cache_write_input_tokens":0,"output_tokens":272,"reasoning_output_tokens":89}}

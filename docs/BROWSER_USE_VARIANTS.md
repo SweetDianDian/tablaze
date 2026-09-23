@@ -2,6 +2,8 @@
 
 Audit date: **2026-09-22**. This supplements [the comparison contract](BROWSER_USE_COMPARISON.md); it does not change its pins, acceptance gates, or any measured report. Source inspection and official documentation establish exposed capabilities, not task reliability. No browser, model, installation, or paid service was started for this audit. The only executed CLI probe was `codex exec --help`.
 
+**2026-09-23 execution follow-up:** the [native Codex/MCP development smoke](CODEX_NATIVE_MCP_SMOKE.md) has now run against the fixed Harness source. Two visible tasks passed on each arm; this adds measured evidence for this tool track without changing the original audit date, the other `not_run` variants, or the broader acceptance gates. The installed `0.1.13` wheel differed from the pinned source in five Python files, including `mcp_server.py`; the follow-up executed the pinned source through `PYTHONPATH` and records its archive hash.
+
 The objective remains stronger overall functionality than Browser Use. A result against Python Agent alone cannot establish that objective. Local agents, tools for an existing agent, and managed services need separate measurements, with unresolved tracks retained in the final claim.
 
 ## Sources fixed for this audit

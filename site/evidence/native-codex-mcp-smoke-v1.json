@@ -1,0 +1,695 @@
+{
+  "kind": "native-codex-external-mcp-smoke-v1",
+  "date": "2026-09-23",
+  "codexVersion": "codex-cli 0.155.0-alpha.9.2",
+  "model": "gpt-6-astra",
+  "reasoningEffort": "ultra",
+  "provider": "model_providers.tablaze-comparison={name=\"OpenAI\",wire_api=\"responses\",requires_openai_auth=true,supports_websockets=false,request_max_retries=0,stream_max_retries=0}",
+  "viewImageEnabled": true,
+  "featureOverrides": [
+    "shell_tool",
+    "unified_exec",
+    "apps",
+    "plugins",
+    "hooks",
+    "memories",
+    "chronicle",
+    "browser_use",
+    "browser_use_external",
+    "computer_use",
+    "in_app_browser",
+    "multi_agent",
+    "multi_agent_v2",
+    "image_generation",
+    "goals",
+    "sleep_tool",
+    "workspace_dependencies",
+    "shell_snapshot"
+  ],
+  "source": {
+    "tablazeHead": "69fb1a70a44358be49b6ba8262caa8efccd440d9",
+    "harnessCommit": "afbcc381b963040c19627d788e40c7e7663171ee",
+    "harnessArchiveSha256": "01b608b17a330b61db69cbb8d8232d2c7dd42c98592f5d837573c51cac71c463"
+  },
+  "preflight": "native-mcp-preflight-v1.json",
+  "setupBlocked": [
+    {
+      "kind": "tablaze",
+      "taskId": "form",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "7c8e6d454a4b6ceac1ca2a92efe59040f2a542415a0d4b3381f7b0db1eb55be1",
+      "flagsHash": "ef176ed312b37ef5a90e879b32c8e28074cc0231b551bc340811c57159d2c7aa",
+      "command": {
+        "executable": "/Users/diandian/macenv/nvm/versions/node/v25.9.0/bin/node",
+        "args": [
+          "/Users/diandian/work/agent/tablaze/dist/cli.js",
+          "--cdp-url",
+          "http://127.0.0.1:49168"
+        ]
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 29363,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 3,
+          "item.started": 1,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_open",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_open",
+            "status": "failed"
+          }
+        ],
+        "final": "I couldn’t open the page because the configured browser MCP requires approval, which this environment disallows. Ada’s contact was not saved.",
+        "usage": {
+          "input_tokens": 38545,
+          "cached_input_tokens": 14208,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 211,
+          "reasoning_output_tokens": 55
+        },
+        "errors": [],
+        "stderrTail": ""
+      },
+      "judge": {
+        "passed": false,
+        "evidence": {
+          "records": [],
+          "writeCount": 0,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-blocked-form-tablaze.jsonl"
+    },
+    {
+      "kind": "harness",
+      "taskId": "form",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "0aaac5438fa32a76de96d34b5e39929eee6de252d9feecd5b581eb4af054981e",
+      "flagsHash": "dbca1b52c2cb03957ac7aab203a852e5397a7cf6d349ed004c53053d57ca3697",
+      "command": {
+        "executable": "/private/tmp/tablaze-comparison-env/bin/browser-harness-mcp",
+        "args": []
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 31877,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 4,
+          "item.started": 2,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_goto",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_goto",
+            "status": "failed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "failed"
+          }
+        ],
+        "final": "I couldn’t save Ada: the configured browser requires approval, but this session’s policy disallows approvals. Navigation and screenshots were blocked, so no contact was saved or verified.",
+        "usage": {
+          "input_tokens": 33056,
+          "cached_input_tokens": 20864,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 272,
+          "reasoning_output_tokens": 89
+        },
+        "errors": [],
+        "stderrTail": ""
+      },
+      "judge": {
+        "passed": false,
+        "evidence": {
+          "records": [],
+          "writeCount": 0,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-blocked-form-harness.jsonl"
+    }
+  ],
+  "runs": [
+    {
+      "kind": "tablaze",
+      "taskId": "form",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "3819d323ada1525c880e520513b3d026fb517b32f97caae61f1fe55ced634aeb",
+      "flagsHash": "31b62510669f5e21239b171b8fd22fd377cffb00191d3171bd13ec28d449dda2",
+      "command": {
+        "executable": "/Users/diandian/macenv/nvm/versions/node/v25.9.0/bin/node",
+        "args": [
+          "/Users/diandian/work/agent/tablaze/dist/cli.js",
+          "--cdp-url",
+          "http://127.0.0.1:49462"
+        ]
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 69331,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 6,
+          "item.started": 4,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_open",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_open",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_capture",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_capture",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_act",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_act",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_verify",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_verify",
+            "status": "completed"
+          }
+        ],
+        "final": "Saved Ada with city Lisbon. The page confirmed “Saved successfully.”",
+        "usage": {
+          "input_tokens": 94089,
+          "cached_input_tokens": 56704,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 444,
+          "reasoning_output_tokens": 18
+        },
+        "errors": [],
+        "stderrTail": "2026-09-23T06:00:20.076259Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:00:47.443939Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "name": "Ada",
+              "city": "Lisbon"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-form-tablaze.jsonl"
+    },
+    {
+      "kind": "harness",
+      "taskId": "form",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "fa758a12da09001753cf15c460917d4da329fc761605e24727ecf57468771870",
+      "flagsHash": "f2d6a4ee0bb651ecdcf91367c4c9cc3c162ac2fa76a345623738c6f8856cd2b2",
+      "command": {
+        "executable": "/private/tmp/tablaze-comparison-env/bin/browser-harness-mcp",
+        "args": []
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 111232,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 10,
+          "item.started": 8,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_goto",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_goto",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_type",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_type",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_type",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_type",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          }
+        ],
+        "final": "Saved Ada with city Lisbon. Verified the page shows “Saved successfully.”",
+        "usage": {
+          "input_tokens": 90466,
+          "cached_input_tokens": 74112,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 438,
+          "reasoning_output_tokens": 0
+        },
+        "errors": [],
+        "stderrTail": "2026-09-23T06:01:54.692249Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:02:00.606216Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:02:33.163388Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:02:40.033537Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:02:46.527871Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:02:52.004005Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:02:56.747085Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:03:03.073467Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "name": "Ada",
+              "city": "Lisbon"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-form-harness.jsonl"
+    },
+    {
+      "kind": "tablaze",
+      "taskId": "canvas",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "528467010984e7479590e63cf530973d226d4b6d23bd52f3d2beacb7e7ba8b92",
+      "flagsHash": "5ca90436e635eaf855d0dd4201c7ac6ca7816719eedd9cd3511820a108018068",
+      "command": {
+        "executable": "/Users/diandian/macenv/nvm/versions/node/v25.9.0/bin/node",
+        "args": [
+          "/Users/diandian/work/agent/tablaze/dist/cli.js",
+          "--cdp-url",
+          "http://127.0.0.1:50307"
+        ]
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 65037,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 6,
+          "item.started": 4,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_open",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_open",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_capture",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_capture",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_act",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_act",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_verify",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "tab_verify",
+            "status": "completed"
+          }
+        ],
+        "final": "Clicked the blue rectangle once and verified “Saved successfully” on the page.",
+        "usage": {
+          "input_tokens": 93352,
+          "cached_input_tokens": 74240,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 394,
+          "reasoning_output_tokens": 0
+        },
+        "errors": [],
+        "stderrTail": "2026-09-23T06:11:07.678069Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:11:30.217698Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "x": 210,
+              "y": 120
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-canvas-tablaze.jsonl"
+    },
+    {
+      "kind": "harness",
+      "taskId": "canvas",
+      "chrome": "Chrome/153.0.8010.53",
+      "promptHash": "943cc298147c27d3e811668baab39ba68eaa2f5c6e1188620d10e8fb347fd1a0",
+      "flagsHash": "cc2ebba3c41ba9b03af609b852d59d2da3a70023eeedb96be3759cc1f55ad834",
+      "command": {
+        "executable": "/private/tmp/tablaze-comparison-env/bin/browser-harness-mcp",
+        "args": []
+      },
+      "run": {
+        "exitCode": 0,
+        "signal": null,
+        "timedOut": false,
+        "elapsedMs": 77263,
+        "eventTypes": {
+          "thread.started": 1,
+          "turn.started": 1,
+          "item.completed": 6,
+          "item.started": 4,
+          "turn.completed": 1
+        },
+        "toolItems": [
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_goto",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_goto",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_click",
+            "status": "completed"
+          },
+          {
+            "event": "item.started",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "in_progress"
+          },
+          {
+            "event": "item.completed",
+            "kind": "mcp_tool_call",
+            "server": "browser",
+            "tool": "browser_screenshot",
+            "status": "completed"
+          }
+        ],
+        "final": "Clicked the blue rectangle once and verified the page shows “Saved successfully.”",
+        "usage": {
+          "input_tokens": 76490,
+          "cached_input_tokens": 60800,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 348,
+          "reasoning_output_tokens": 0
+        },
+        "errors": [],
+        "stderrTail": "2026-09-23T06:12:18.066702Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:12:26.009394Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:12:47.974382Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n2026-09-23T06:12:52.040782Z  WARN codex_core::guardian::review_session: failed to refresh guardian trunk rollout snapshot: Session persistence is disabled; cannot guardian review fork.\n"
+      },
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "x": 210,
+              "y": 120
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "rawEventsPath": "native-mcp-canvas-harness.jsonl"
+    }
+  ],
+  "limitations": [
+    "One visible attempt per task and arm; no confidence interval or held-out result.",
+    "The two MCP catalogs differ; whole Codex time includes model, auto-approval, MCP calls, startup and provider overhead.",
+    "Screenshot-path access is available, but Codex JSONL does not expose a separate image-viewing event; the trace alone cannot prove that the agent read the Harness screenshot pixels.",
+    "The native MCP tool track does not replace the separate Browser Use Python Agent track or cover its cloud/Pi/CLI variants."
+  ],
+  "runnerSha256": "0ee9958ca6b5b15bfa8abba8c489ba437a790ea8a70a7966a58c3b8bd9bc1b69",
+  "preflightSha256": "1b13d1719ba02c0ddd7b9f98d44118afad610b571d0d812d867e6376167c1eaa"
+}

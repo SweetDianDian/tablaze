@@ -4,6 +4,9 @@ import { createServer } from 'node:http';
 import { createServer as createNetServer } from 'node:net';
 import { networkInterfaces } from 'node:os';
 import { test } from 'node:test';
+import { fileURLToPath } from 'node:url';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { BrowserEngine } from '../dist/browser.js';
 import { startFixture } from './fixture.mjs';
 
@@ -88,6 +91,37 @@ test('owned Chrome answers an HTTP proxy challenge without exposing the credenti
   assert.ok(accepted >= 1);
   assert.doesNotMatch(opened.text + JSON.stringify(opened), /proxy-private-sentinel|operator/);
   assert.ok(challenges >= 1, 'The server issued a 407 challenge before accepting the authenticated request.');
+});
+
+test('CLI stdio MCP launches Chrome with its proxy and env-backed credential', { timeout: 30_000 }, async t => {
+  const password = 'cli-proxy-private-sentinel';
+  const expected = `Basic ${Buffer.from(`cli-operator:${password}`).toString('base64')}`;
+  let accepted = 0; let challenged = 0;
+  const proxy = createServer((request, response) => {
+    if (request.headers['proxy-authorization'] !== expected) {
+      challenged++;
+      response.writeHead(407, { 'proxy-authenticate': 'Basic realm="Tablaze CLI fixture"' });
+      response.end();
+      return;
+    }
+    accepted++;
+    response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    response.end('<!doctype html><title>CLI proxy target</title><p>CLI authenticated route</p>');
+  });
+  await new Promise(resolve => proxy.listen(0, '127.0.0.1', resolve));
+  const cli = fileURLToPath(new URL('../dist/cli.js', import.meta.url));
+  const transport = new StdioClientTransport({ command: process.execPath, args: [cli, '--channel', chrome || 'chromium', '--proxy-server', `http://127.0.0.1:${proxy.address().port}`, '--proxy-username', 'cli-operator', '--proxy-password-env', 'TABLAZE_TEST_PROXY_PASSWORD'], env: { ...process.env, TABLAZE_TEST_PROXY_PASSWORD: password }, stderr: 'pipe' });
+  const client = new Client({ name: 'proxy-route-cli-test', version: '1' });
+  let stderr = '';
+  transport.stderr?.on('data', chunk => { stderr += chunk; });
+  t.after(async () => { await client.close(); await new Promise(resolve => proxy.close(resolve)); });
+  await client.connect(transport);
+  const opened = await client.callTool({ name: 'tab_open', arguments: { url: 'http://tablaze-cli-proxy.example.test/through-cli' } });
+  assert.equal(opened.isError, undefined, JSON.stringify(opened.structuredContent));
+  assert.match(JSON.stringify(opened.structuredContent), /CLI authenticated route/);
+  assert.ok(challenged >= 1);
+  assert.ok(accepted >= 1);
+  assert.doesNotMatch(JSON.stringify(opened) + stderr, /cli-proxy-private-sentinel|cli-operator/);
 });
 
 test('owned Chrome proxy bypass sends a non-loopback local destination directly', { timeout: 30_000 }, async t => {

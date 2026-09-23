@@ -17,7 +17,15 @@ tablaze --channel chrome --viewport 390x844 --screen 390x844 \
   --user-agent "$BROWSER_USER_AGENT"
 ```
 
-The SDK options are `screen`, `userAgent`, `locale`, `timezoneId`, `isMobile` and `hasTouch`. `doctor` reports screen/region/mobile/touch settings and only whether a custom user agent is present. A real-Chrome page check confirms `navigator.userAgent`, `navigator.language`, `Intl` time zone, `screen`, pixel ratio and touch capability. Mobile mode and touch are separate so callers can match a specific target device. Tablaze does not supply or validate a cohesive device preset, emulate browser window geometry or override all fingerprint surfaces. A custom user agent can change site behavior but does not guarantee that the whole browser looks like that device.
+The SDK options are `screen`, `userAgent`, `locale`, `timezoneId`, `isMobile` and `hasTouch`. `doctor` reports screen/region/mobile/touch settings and only whether a custom user agent is present. A real-Chrome page check confirms `navigator.userAgent`, `navigator.language`, `Intl` time zone, `screen`, pixel ratio and touch capability. Mobile mode and touch are separate so callers can match a specific target device. A custom user agent can change site behavior but does not guarantee that the whole browser looks like that device.
+
+For common Chromium mobile checks, use one trusted preset instead of six manual flags:
+
+```sh
+tablaze --channel chrome --device-preset pixel-7
+```
+
+The SDK accepts `new BrowserEngine({ devicePreset: 'pixel-7' })`; `pixel-7-pro` is also available. Each preset takes its viewport, screen, scale, user agent, mobile behavior and touch setting from the pinned Playwright device descriptor. `doctor` shows the effective values without printing the user agent. The preset cannot be combined with manual viewport/screen/scale/UA/mobile/touch settings or applied to an external CDP browser. Locale, time zone and permissions remain independent operator choices. Real-Chrome SDK and CLI MCP tests read the resulting page properties, including a meta-viewport page width. The [full Node 24 + Chrome log](evidence/development-tests-device-presets-node24.txt) records **501/501 passed** (SHA-256 `870e7fbce9f0959118c57ee953798f0a0cb0416dbcda17af39937defe3148e73`). A preset emulates selected browser properties; it does not change the host OS, browser engine, complete fingerprint or window geometry. Descriptor UA versions can differ from an installed Chrome channel.
 
 An owned context can also use an HTTP(S) or SOCKS5 proxy:
 
@@ -37,5 +45,7 @@ These options do not emulate full browser/device identity or browser window geom
 中文：`--viewport 宽x高`、`--device-scale-factor` 和 `--permissions` 用来配置新建的自有浏览器上下文，也可用于自有持久 profile；不修改外部 CDP 浏览器。默认视口 1280×800、像素比 1、不主动授予权限。权限由操作者配置，页面获得这些权限后可能读取位置、剪贴板或设备，请只开启任务需要的项目。
 
 移动端与地区测试可另设 `--screen`、`--user-agent`、`--locale`、`--timezone`、`--mobile`、`--touch`。这些参数彼此独立，不是预设的完整手机设备身份；真实 Chrome 回归已验证页面可见的语言、时区、屏幕、像素比和触控状态。
+
+常见移动页面可用 `--device-preset pixel-7` 或 `pixel-7-pro` 一次设置视口、屏幕、像素比、UA、移动端行为和触控。SDK 使用 `devicePreset`；与手动设备参数冲突时直接报错。预设只模拟部分浏览器属性，不会改变宿主系统或提供完整设备指纹。
 
 代理可用 `--proxy-server`、`--proxy-bypass`、`--proxy-username` 与 `--proxy-password-env` 配置；密码只从环境变量读取，不要放进 URL。真实 Chrome 与独立本地服务器已分别验收 HTTP 代理、407 Basic 认证、非回环目标的绕过规则，以及 SOCKS5 传递目标域名并加载 HTTP 页面。另有 CLI stdio MCP 测试证实环境变量密码经过 407 挑战后成功请求页面，输出未泄露凭据。HTTPS CONNECT 与外部代理服务仍需另测。

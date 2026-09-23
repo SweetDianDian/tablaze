@@ -1,6 +1,8 @@
 export { BrowserEngine, BrowserError } from "./browser.js";
 export type { BrowserOptions, BrowserWorkspace, BrowserRecording, BrowserDiagnosticArtifact, PopupPolicy, SnapshotOptions, FindTextOptions, BrowserAction, BrowserCheck, BrowserBinding, BrowserBindingGuard } from "./browser.js";
 export type { NavigationPolicy } from "./navigation-policy.js";
+export { DEVICE_PRESETS } from "./device-presets.js";
+export type { DevicePreset } from "./device-presets.js";
 export type { BrowserSecretDefinition, BrowserSecretOptions } from "./secret-store.js";
 export { createServer, SERVER_VERSION } from "./server.js";
 export { runAgent, connectAgentTools, createMcpToolClient, createOpenAICompatiblePlanner, AgentPlannerError } from "./agent.js";

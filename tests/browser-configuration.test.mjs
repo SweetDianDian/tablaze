@@ -32,6 +32,24 @@ test('owned Chrome context applies mobile, touch, screen and region settings to 
   assert.deepEqual(observed.result, { agent: 'TablazeMobileFixture/1.0', language: 'fr-FR', timezone: 'Europe/Paris', screen: [390, 844], ratio: 3, touchPoints: 1, touchEvent: true });
 });
 
+test('Pixel 7 preset applies a coherent mobile viewport, screen, UA and touch profile', { timeout: 30_000 }, async t => {
+  const http = createServer((_request, response) => {
+    response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    response.end('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>Preset target</title><p>Mobile page</p>');
+  });
+  await new Promise(resolve => http.listen(0, '127.0.0.1', resolve));
+  const engine = new BrowserEngine({ channel: chrome, headless: true, devicePreset: 'pixel-7', allowPageScript: true });
+  t.after(async () => { await engine.dispose(); await new Promise(resolve => http.close(resolve)); });
+  const opened = await engine.open(`http://127.0.0.1:${http.address().port}/`);
+  const observed = await engine.script(opened.session_id, opened.snapshot_id, "return { width: innerWidth, screen: [screen.width, screen.height], ratio: devicePixelRatio, agent: navigator.userAgent, touchPoints: navigator.maxTouchPoints };", null);
+  assert.equal(observed.ok, true, JSON.stringify(observed));
+  assert.equal(observed.result.width, 412);
+  assert.deepEqual(observed.result.screen, [412, 915]);
+  assert.equal(observed.result.ratio, 2.625);
+  assert.match(observed.result.agent, /Pixel 7/);
+  assert.ok(observed.result.touchPoints > 0);
+});
+
 test('browser configuration rejects invalid values and cannot alter an external CDP context', () => {
   for (const options of [
     { viewport: { width: 319, height: 600 } },
@@ -44,11 +62,14 @@ test('browser configuration rejects invalid values and cannot alter an external 
     { timezoneId: 'Moon/Base' },
     { isMobile: 'yes' },
     { hasTouch: 1 },
+    { devicePreset: 'made-up-phone' },
+    { devicePreset: 'pixel-7', viewport: { width: 390, height: 844 } },
     { permissions: ['geolocation', 'geolocation'] },
     { permissions: ['fake-permission'] },
   ]) assert.throws(() => new BrowserEngine(options), { code: 'INVALID_ARGUMENT' });
   assert.throws(() => new BrowserEngine({ cdpUrl: 'http://127.0.0.1:9222', viewport: { width: 900, height: 600 } }), { code: 'BROWSER_CONFIG_CDP_UNSUPPORTED' });
   assert.throws(() => new BrowserEngine({ cdpUrl: 'http://127.0.0.1:9222', isMobile: true }), { code: 'BROWSER_CONFIG_CDP_UNSUPPORTED' });
+  assert.throws(() => new BrowserEngine({ cdpUrl: 'http://127.0.0.1:9222', devicePreset: 'pixel-7' }), { code: 'BROWSER_CONFIG_CDP_UNSUPPORTED' });
   for (const server of ['ftp://127.0.0.1:3000', 'http://user:secret@127.0.0.1:3000', 'http://127.0.0.1:3000/private']) assert.throws(() => new BrowserEngine({ proxy: { server } }), { code: 'PROXY_CONFIG_INVALID' });
   assert.throws(() => new BrowserEngine({ cdpUrl: 'http://127.0.0.1:9222', proxy: { server: 'http://127.0.0.1:3000' } }), { code: 'PROXY_CDP_UNSUPPORTED' });
 });
@@ -205,6 +226,18 @@ test('CLI doctor reports explicit browser configuration and rejects malformed fl
   assert.equal(output.mobile, true);
   assert.equal(output.touch, true);
   assert.deepEqual(output.permissions, ['geolocation', 'notifications']);
+  const preset = JSON.parse(execFileSync(process.execPath, ['dist/cli.js', 'doctor', '--channel', chrome || 'chromium', '--device-preset', 'pixel-7'], { encoding: 'utf8' }));
+  assert.equal(preset.device_preset, 'pixel-7');
+  assert.deepEqual(preset.viewport, { width: 412, height: 839 });
+  assert.deepEqual(preset.screen, { width: 412, height: 915 });
+  assert.equal(preset.device_scale_factor, 2.625);
+  assert.equal(preset.user_agent_configured, true);
+  assert.equal(preset.mobile, true);
+  assert.equal(preset.touch, true);
+  const pro = JSON.parse(execFileSync(process.execPath, ['dist/cli.js', 'doctor', '--channel', chrome || 'chromium', '--device-preset', 'pixel-7-pro'], { encoding: 'utf8' }));
+  assert.deepEqual(pro.viewport, { width: 412, height: 816 });
+  assert.deepEqual(pro.screen, { width: 412, height: 892 });
+  assert.equal(pro.device_scale_factor, 3.5);
   const authenticated = spawnSync(process.execPath, ['dist/cli.js', 'doctor', '--channel', chrome || 'chromium', '--proxy-server', 'http://127.0.0.1:3000', '--proxy-username', 'operator', '--proxy-password-env', 'TABLAZE_TEST_PROXY_PASSWORD'], { encoding: 'utf8', env: { ...process.env, TABLAZE_TEST_PROXY_PASSWORD: 'proxy-private-sentinel' } });
   assert.equal(authenticated.status, 0, authenticated.stderr);
   assert.deepEqual(JSON.parse(authenticated.stdout).proxy, { enabled: true, protocol: 'http', has_credentials: true });
@@ -212,9 +245,11 @@ test('CLI doctor reports explicit browser configuration and rejects malformed fl
   for (const flags of [
     ['--viewport', '900-620'], ['--viewport', '10x10'], ['--screen', '10x10'], ['--screen', '900-620'], ['--device-scale-factor', '5'],
     ['--user-agent', 'bad\nagent'], ['--locale', 'not_a_locale'], ['--timezone', 'Moon/Base'],
+    ['--device-preset', 'unknown-device'], ['--device-preset', 'pixel-7', '--viewport', '390x844'],
     ['--permissions', 'geolocation,geolocation'], ['--permissions', 'unknown'],
     ['--cdp-url', 'http://127.0.0.1:9222', '--viewport', '900x620'],
     ['--cdp-url', 'http://127.0.0.1:9222', '--mobile'],
+    ['--cdp-url', 'http://127.0.0.1:9222', '--device-preset', 'pixel-7'],
     ['--proxy-server', 'http://user:secret@127.0.0.1:3000'], ['--proxy-bypass', 'localhost'],
     ['--cdp-url', 'http://127.0.0.1:9222', '--proxy-server', 'http://127.0.0.1:3000'],
   ]) {
@@ -222,4 +257,26 @@ test('CLI doctor reports explicit browser configuration and rejects malformed fl
     assert.notEqual(result.status, 0, flags.join(' '));
     assert.equal(result.stdout, '');
   }
+});
+
+test('CLI stdio MCP applies the Pixel 7 preset to an actual owned page', { timeout: 30_000 }, async t => {
+  const http = createServer((_request, response) => {
+    response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    response.end('<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><title>CLI preset target</title><p>Mobile page</p>');
+  });
+  await new Promise(resolve => http.listen(0, '127.0.0.1', resolve));
+  const cli = fileURLToPath(new URL('../dist/cli.js', import.meta.url));
+  const transport = new StdioClientTransport({ command: process.execPath, args: [cli, '--channel', chrome || 'chromium', '--device-preset', 'pixel-7', '--page-script'], stderr: 'pipe' });
+  const client = new Client({ name: 'device-preset-cli-test', version: '1' });
+  t.after(async () => { await client.close(); await new Promise(resolve => http.close(resolve)); });
+  await client.connect(transport);
+  const opened = (await client.callTool({ name: 'tab_open', arguments: { url: `http://127.0.0.1:${http.address().port}/` } })).structuredContent;
+  assert.equal(opened.ok, true, JSON.stringify(opened));
+  const observed = (await client.callTool({ name: 'tab_script', arguments: { session_id: opened.session_id, snapshot_id: opened.snapshot_id, source: 'return { width: innerWidth, screen: [screen.width, screen.height], ratio: devicePixelRatio, agent: navigator.userAgent, touchPoints: navigator.maxTouchPoints };' } })).structuredContent;
+  assert.equal(observed.ok, true, JSON.stringify(observed));
+  assert.equal(observed.result.width, 412);
+  assert.deepEqual(observed.result.screen, [412, 915]);
+  assert.equal(observed.result.ratio, 2.625);
+  assert.match(observed.result.agent, /Pixel 7/);
+  assert.ok(observed.result.touchPoints > 0);
 });

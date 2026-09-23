@@ -14,6 +14,7 @@ import { projectSecretSnapshot, projectSecretExtraction, projectSecretText, reda
 import { NetworkJournal, NetworkJournalError } from './network-journal.js';
 import { acquireOwnedProfile, type OwnedProfileLease } from './owned-profile.js';
 import { executePageScript } from './page-script.js';
+import { devicePresetOptions, type DevicePreset } from './device-presets.js';
 
 export class BrowserError extends Error {
   constructor(public readonly code: string, message: string) { super(message); this.name = 'BrowserError'; }
@@ -21,7 +22,7 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; viewport?: { width: number; height: number }; screen?: { width: number; height: number }; deviceScaleFactor?: number; userAgent?: string; locale?: string; timezoneId?: string; isMobile?: boolean; hasTouch?: boolean; permissions?: string[]; proxy?: { server: string; bypass?: string; username?: string; password?: string }; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; captureNetwork?: boolean; recordVideo?: boolean; recordHar?: boolean; recordTrace?: boolean; allowPageScript?: boolean }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; devicePreset?: DevicePreset; viewport?: { width: number; height: number }; screen?: { width: number; height: number }; deviceScaleFactor?: number; userAgent?: string; locale?: string; timezoneId?: string; isMobile?: boolean; hasTouch?: boolean; permissions?: string[]; proxy?: { server: string; bypass?: string; username?: string; password?: string }; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; captureNetwork?: boolean; recordVideo?: boolean; recordHar?: boolean; recordTrace?: boolean; allowPageScript?: boolean }
 export interface BrowserRecording { session_id: string; tab_id: string; path: string; bytes: number; mime_type: 'video/webm'; sha256: string }
 export interface BrowserDiagnosticArtifact { session_id: string; kind: 'har' | 'trace'; path: string; bytes: number; mime_type: 'application/json' | 'application/zip'; sha256: string }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
@@ -102,6 +103,12 @@ export class BrowserEngine {
   private readonly completedRecordings: BrowserRecording[] = [];
   private readonly completedDiagnostics: BrowserDiagnosticArtifact[] = [];
   constructor(private options: BrowserOptions = {}) {
+    if (options.devicePreset !== undefined) {
+      const preset = devicePresetOptions(options.devicePreset);
+      if (!preset) throw new BrowserError('INVALID_ARGUMENT', 'devicePreset must name a supported Chromium preset.');
+      if (options.viewport || options.screen || options.deviceScaleFactor !== undefined || options.userAgent !== undefined || options.isMobile !== undefined || options.hasTouch !== undefined) throw new BrowserError('INVALID_ARGUMENT', 'A device preset cannot be combined with manual device emulation settings.');
+      this.options = { ...options, ...preset };
+    }
     this.timeout = integer(options.timeoutMs, 10000, 100, 60000, 'timeoutMs');
     if (options.viewport && (typeof options.viewport !== 'object' || options.viewport === null || Array.isArray(options.viewport) || !Number.isInteger(options.viewport.width) || !Number.isInteger(options.viewport.height) || options.viewport.width < 320 || options.viewport.width > 3840 || options.viewport.height < 240 || options.viewport.height > 2160)) throw new BrowserError('INVALID_ARGUMENT', 'viewport width must be 320–3840 and height 240–2160.');
     if (options.screen && (typeof options.screen !== 'object' || options.screen === null || Array.isArray(options.screen) || !Number.isInteger(options.screen.width) || !Number.isInteger(options.screen.height) || options.screen.width < 320 || options.screen.width > 3840 || options.screen.height < 240 || options.screen.height > 2160)) throw new BrowserError('INVALID_ARGUMENT', 'screen width must be 320–3840 and height 240–2160.');
@@ -112,7 +119,7 @@ export class BrowserEngine {
     if (options.isMobile !== undefined && typeof options.isMobile !== 'boolean' || options.hasTouch !== undefined && typeof options.hasTouch !== 'boolean') throw new BrowserError('INVALID_ARGUMENT', 'isMobile and hasTouch must be booleans.');
     const allowedPermissions = new Set(['geolocation', 'notifications', 'clipboard-read', 'clipboard-write', 'camera', 'microphone', 'midi', 'midi-sysex', 'background-sync', 'ambient-light-sensor', 'accelerometer', 'gyroscope', 'magnetometer', 'accessibility-events', 'payment-handler']);
     if (options.permissions !== undefined && (!Array.isArray(options.permissions) || options.permissions.length > 15 || options.permissions.some(permission => typeof permission !== 'string' || !allowedPermissions.has(permission)) || new Set(options.permissions).size !== options.permissions.length)) throw new BrowserError('INVALID_ARGUMENT', 'permissions must be a unique list of supported browser permission names.');
-    if (options.cdpUrl && (options.viewport || options.screen || options.deviceScaleFactor !== undefined || options.userAgent !== undefined || options.locale !== undefined || options.timezoneId !== undefined || options.isMobile !== undefined || options.hasTouch !== undefined || options.permissions !== undefined)) throw new BrowserError('BROWSER_CONFIG_CDP_UNSUPPORTED', 'Browser emulation and permissions require a browser context owned by this engine.');
+    if (options.cdpUrl && (options.devicePreset !== undefined || options.viewport || options.screen || options.deviceScaleFactor !== undefined || options.userAgent !== undefined || options.locale !== undefined || options.timezoneId !== undefined || options.isMobile !== undefined || options.hasTouch !== undefined || options.permissions !== undefined)) throw new BrowserError('BROWSER_CONFIG_CDP_UNSUPPORTED', 'Browser emulation and permissions require a browser context owned by this engine.');
     if (options.proxy !== undefined) {
       if (typeof options.proxy !== 'object' || options.proxy === null || Array.isArray(options.proxy) || typeof options.proxy.server !== 'string' || options.proxy.server.length > 2048 || typeof options.proxy.bypass === 'string' && options.proxy.bypass.length > 1024 || options.proxy.bypass !== undefined && typeof options.proxy.bypass !== 'string' || options.proxy.username !== undefined && (typeof options.proxy.username !== 'string' || options.proxy.username.length > 512) || options.proxy.password !== undefined && (typeof options.proxy.password !== 'string' || options.proxy.password.length > 512)) throw new BrowserError('PROXY_CONFIG_INVALID', 'Invalid proxy configuration.');
       let server: URL;

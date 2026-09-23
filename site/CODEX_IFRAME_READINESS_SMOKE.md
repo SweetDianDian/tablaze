@@ -1,0 +1,19 @@
+# Iframe readiness: three matched Codex development attempts
+
+Date: 2026-09-24. The tested source is the clean committed `3ec70692b3f1162289483bb7b41f91141076fc1d` after adding a bounded initial child-frame wait. Both reports have an empty patch SHA-256 (`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`) and source-tree SHA-256 `9a784de26ff743913719a86cf5b913293909ccadfc9a1f8287cca0906b1c2f4e`. Browser Use Python Agent was pinned to 0.13.10, commit `d8110c5ff87ccba887aaa726cdb780f2f84bef8d`. Both used Chrome, the same Codex CLI bridge, `gpt-6-astra / ultra`, 160,000 reported-token ceiling, 40 planning steps, 240-second deadline and fresh local fixtures. Tablaze initialized the caller-supplied URL and used `follow-single`; Browser Use's default post-task judge stayed enabled. The first run used seed 43; a separate run used seeds 44 and 45.
+
+| Seed | Tablaze full run / model calls | Browser Use full run / model calls | Server result |
+| --- | ---: | ---: | --- |
+| 43 | 52.308 s / 3 | 49.108 s / 3, including 1 judge | Both passed, one correct write each, zero duplicates |
+| 44 | 79.699 s / 5 | 57.496 s / 3, including 1 judge | Both passed, one correct write each, zero duplicates |
+| 45 | 85.689 s / 5 | 56.040 s / 3, including 1 judge | Both passed, one correct write each, zero duplicates |
+
+All six attempts completed their Agent run, passed the independent fixture judge and returned before the deadline. Tablaze's `tab_open` returned a populated child-frame URL on all three attempts, and the model then selected that frame with one `tab_snapshot`. Seed 43 proceeded directly to a checked action. On seeds 44 and 45, the model also asked for the entered string `Vega` as visible page text. The value check and actual `Saved successfully` text passed, but this redundant text check failed because raw input values are excluded from page text. Tablaze kept the successful write, then made an additional child-frame snapshot and verification; no duplicate submission occurred. The two extra model rounds account for much of those runs' cost. This is a concrete planning/tool-feedback inefficiency, not evidence that the business action failed.
+
+Median whole-run time of these **three visible pairs** was 79.699 s for Tablaze and 56.040 s for Browser Use (ratio 1.42). It exceeds the provisional 1.25× efficiency target in the [capability audit](BROWSER_USE_2026_AUDIT.md). Browser Use's Agent reported done at 33.355, 37.191 and 38.660 s; its default judging and other post-done work are included in the displayed whole-run times. Tablaze reported done at 52.144, 79.537 and 85.530 s. Thus near-equal total time on seed 43 does not imply equal task-completion latency. The earlier seed-41 iframe pair (83.799 vs 52.515 s) was a different source state and attempt, so it cannot be subtracted from these numbers as a controlled before/after speedup.
+
+The model bridge still has unverified temperature and per-call output controls, and the frameworks have different tool-call ceilings and post-task judging. Three visible local fixture pairs cannot establish a production median, p95, reliability parity or overall superiority. They do show that the readiness mechanism works and that efficiency remains an active problem. A subsequent source change, if any, must receive its own matched measurement.
+
+The unchanged [seed-43 report](evidence/iframe-readiness/seed43.json) has SHA-256 `706a501643d95d9d7f20f893ca72883d3060c98f851c4c9229249003742ee663`; the [seeds-44–45 report](evidence/iframe-readiness/seeds44-45.json) has SHA-256 `b7f9f5f340521381d5d3b4412f0c684020a11b9890d18ad65e811c086018635c`. [Trace index](evidence/iframe-readiness/README.md) links all six raw trajectories.
+
+中文结论：三组 iframe 同模型对照双方业务均通过、零重复写入，但 Tablaze 全程中位数为 79.699 秒，对方为 56.040 秒。后两组模型把输入值误作为页面文本检查，导致多两轮观察和验证；因此目前不能声称效率接近或超过 Browser Use。

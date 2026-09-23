@@ -20,6 +20,7 @@ const publicGuides = new Map([
   ['docs/CODEX_POSTCHECKS_SMOKE.md', 'CODEX_POSTCHECKS_SMOKE.md'],
   ['docs/CODEX_DELAYED_TARGET_SMOKE.md', 'CODEX_DELAYED_TARGET_SMOKE.md'],
   ['docs/CODEX_CURRENT_FOUR_SMOKE.md', 'CODEX_CURRENT_FOUR_SMOKE.md'],
+  ['docs/CODEX_IFRAME_READINESS_SMOKE.md', 'CODEX_IFRAME_READINESS_SMOKE.md'],
   ['docs/RECORDING.md', 'RECORDING.md'],
   ['docs/BROWSER_USE_2026_AUDIT.md', 'BROWSER_USE_2026_AUDIT.md'],
   ['docs/BROWSER_CONFIGURATION.md', 'BROWSER_CONFIGURATION.md'],
@@ -69,4 +70,5 @@ for (const name of [
 await cp(join(root, 'docs/evidence/postchecks'), join(site, 'evidence/postchecks'), { recursive: true, force: true });
 await cp(join(root, 'docs/evidence/click-named'), join(site, 'evidence/click-named'), { recursive: true, force: true });
 await cp(join(root, 'docs/evidence/current-four'), join(site, 'evidence/current-four'), { recursive: true, force: true });
+await cp(join(root, 'docs/evidence/iframe-readiness'), join(site, 'evidence/iframe-readiness'), { recursive: true, force: true });
 console.log('Synchronized public guides, comparison reports, and their fixed evidence files. Historical benchmark.json is unchanged.');

@@ -2,6 +2,7 @@
 
 ## Unreleased / 开发中
 
+- [Three-pair post-fix iframe comparison](docs/CODEX_IFRAME_READINESS_SMOKE.md): all six Agent runs and independent business checks passed, with zero duplicate writes. Tablaze's visible three-run median whole time was 79.699 s versus Browser Use's 56.040 s, including its default judge; extra model rounds after an erroneous input-as-text check remain. No speed parity claim is made.
 - Initial `tab_open` briefly waits for child frames still at an empty/about:blank URL before its first snapshot, with a total 800 ms cap. A delayed real-Chrome iframe test verifies the frame's controls are available without another model round; no end-to-end speed improvement is claimed until a new paired run.
 - Owned contexts can use a trusted HTTP(S)/SOCKS5 proxy. The CLI accepts server/bypass/username plus a password environment-variable name; external CDP is rejected and doctor omits credentials. A local real-Chrome HTTP proxy receipt verifies routing, while authentication, bypass and SOCKS5 remain unverified. [Configuration guide](docs/BROWSER_CONFIGURATION.md).
 - Owned browser contexts now accept trusted viewport, device-scale and permission settings from CLI/SDK; `doctor` reports them and external CDP contexts reject them. A real-Chrome check verifies live dimensions, pixel ratio and geolocation grant. [Configuration guide](docs/BROWSER_CONFIGURATION.md).

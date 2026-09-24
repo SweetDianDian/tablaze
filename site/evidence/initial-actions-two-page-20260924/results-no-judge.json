@@ -1,0 +1,2143 @@
+{
+  "schemaVersion": 2,
+  "suite": "development-smoke-v1",
+  "purpose": "Executable harness validation; not a superiority experiment",
+  "superiorityProven": false,
+  "baselineManifestUnchanged": true,
+  "preflight": {
+    "status": "ready",
+    "missing": [],
+    "executablePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "browserUse": {
+      "status": "ready",
+      "version": "0.13.10",
+      "commit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+      "source": {
+        "kind": "official_archive",
+        "commit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+        "url": "https://github.com/browser-use/browser-use/archive/d8110c5ff87ccba887aaa726cdb780f2f84bef8d.zip",
+        "sha256": "bd48c9cee82a1bd1980171bd28dbcc04e948c09bee36294db3a55e8302dcb426"
+      }
+    },
+    "codex": {
+      "status": "ready",
+      "version": "0.155.0-alpha.9.2",
+      "expectedVersion": "0.155.0-alpha.9.2",
+      "authenticated": true,
+      "authentication": "ChatGPT"
+    },
+    "credentialsPresent": false,
+    "anonymousExplicit": false
+  },
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "os": "25.5.0",
+    "node": "v24.19.0",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "browserExecutable": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "modelConfiguration": {
+      "model": "gpt-6-astra",
+      "transport": "codex-cli",
+      "endpoint": null,
+      "temperature": null,
+      "reasoningEffort": "ultra",
+      "maxOutputTokens": null,
+      "tokenBudget": 150000,
+      "transportRetries": 0,
+      "codexVersion": "0.155.0-alpha.9.2",
+      "providerHTTPOverride": true,
+      "provider": "tablaze-comparison",
+      "providerConfiguredRequestRetries": 0,
+      "providerConfiguredStreamRetries": 0,
+      "disabledFeatures": [
+        "shell_tool",
+        "unified_exec",
+        "apps",
+        "plugins",
+        "hooks",
+        "memories",
+        "chronicle",
+        "browser_use",
+        "browser_use_external",
+        "computer_use",
+        "in_app_browser",
+        "multi_agent",
+        "multi_agent_v2",
+        "image_generation",
+        "view_image",
+        "goals",
+        "sleep_tool",
+        "workspace_dependencies",
+        "shell_snapshot"
+      ],
+      "limitations": [
+        "Codex CLI is an inference bridge with its own fixed system instructions, not a raw model API.",
+        "The CLI has no verified per-call output token or temperature control in this transport.",
+        "The CLI provider disables request and stream retries; unobservable retries remain unknown."
+      ]
+    },
+    "browserUseJudge": false,
+    "engineOptions": {
+      "tablaze": {
+        "initializeUrl": false,
+        "directOpenTaskUrl": false,
+        "pairedInitialActions": true,
+        "popupPolicy": "stay"
+      },
+      "browserUse": {
+        "useJudge": false,
+        "pairedInitialActions": true
+      }
+    },
+    "deadlineScope": "schema v2: common absolute deadline begins before gateway and adapter startup; adapter return and owned cleanup, final independent business judging and gateway teardown all count in runReturnedBeforeDeadline wall time; cancellation and cleanup may use bounded grace after deadline",
+    "historicalTimingComparable": false
+  },
+  "source": {
+    "commit": "2d431178e2bb1515c03c3acf54e868ff206a0a6c",
+    "patchSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sourceTreeSha256": "41f9e2e17f0c6b9186208442346907adafe1c2a7fba8804c36ee5cb0abf59cac",
+    "sources": [
+      [
+        "src/agent-control.ts",
+        "cf902cab76a8db3c69774c21196bc82f48f3fd5899c9ba380be45c71d1bfe583"
+      ],
+      [
+        "src/agent.ts",
+        "8adfeedac542ecfa795f8965e5d33004367af26cb5bb6d5bcbec7013a1a92b22"
+      ],
+      [
+        "src/browser.ts",
+        "8f57d41c0a18940b6161c5abd31a98e675e6c98b378eeb36462770d0cfd50970"
+      ],
+      [
+        "src/checkpoint.ts",
+        "43df0f606c744b8747f9ef48336e67e57252dd3e18123353df04ae0deae6a8b4"
+      ],
+      [
+        "src/cli.ts",
+        "145232b822ba8f6a3563828ec18a19d59317d093dea83f86453a3098e229885c"
+      ],
+      [
+        "src/codex.ts",
+        "45687511d26c9e734fa6e02d5576af623d8cd98b6a6c0ca3650c77ea00eba33e"
+      ],
+      [
+        "src/custom-tools.ts",
+        "d9244e369b874436b2e26d0057b9821d0ba400b7cd86e9af20b8090fc78fa71f"
+      ],
+      [
+        "src/device-presets.ts",
+        "fe8ac6c3958b322c9479c690620fc85459c7ff43b580cea25f074569e9016a22"
+      ],
+      [
+        "src/extract-cli.ts",
+        "4cd5a26c319e9042a47f4577fa81c98265105e5962614eb9ce2d74d1a50c20bf"
+      ],
+      [
+        "src/extraction.ts",
+        "718668cd68e39c02e7f01f31c7699625b8483658aee3c0f4cd7ba1f7b64fbd84"
+      ],
+      [
+        "src/final-output.ts",
+        "cf251c7e267173884f824f816f43743971522edb7ab7cd255e3761a105ce5a73"
+      ],
+      [
+        "src/index.ts",
+        "53548e789bbe5d1422a8b465d4152292065875f827490e46dc76fd9461ac9141"
+      ],
+      [
+        "src/model-extraction.ts",
+        "7e91ed2b58121d84a3719d251d940e1621a7f8ec4eb9a59f3c3b856cec423e95"
+      ],
+      [
+        "src/navigation-guard.ts",
+        "5c67fe7243b27dc0257d8eae7110aefaf97f761652badb5e11d47852e0903ef4"
+      ],
+      [
+        "src/navigation-policy.ts",
+        "5f96625778d05598f53f58751df74125e59db3f5c0a26b489c1167df68ba2470"
+      ],
+      [
+        "src/network-journal.ts",
+        "c1c65549848208ac12cf9835ec279d845fcfc4338aca4a69c4becd3d505c4497"
+      ],
+      [
+        "src/owned-profile.ts",
+        "e803b21ed98201775224c079477fe6d911ce2f48529f7d6346f12e9ca9ba3e12"
+      ],
+      [
+        "src/page-script.ts",
+        "c2b69111b6b214e52be7c3c06af103f41a7267b851f736ed88dc1429eaa5bdf4"
+      ],
+      [
+        "src/providers.ts",
+        "3b09a9532f54475cce74c916d1692eb00a026b26cf2cada45bc660276e898a01"
+      ],
+      [
+        "src/secret-config.ts",
+        "6fe2476f11a1c6aa84c3a7f9e9888c4859bb65e0e9887f5b0f9cfc31a89cf146"
+      ],
+      [
+        "src/secret-input.ts",
+        "716429522d69090208c348d3106c2fa70ccbf8e43b50ec671da45468dfa18fb2"
+      ],
+      [
+        "src/secret-projection.ts",
+        "2031d7455a2fe499226ed3e5958dd4ca6fbaa7959195ead316a9758fb78e9c72"
+      ],
+      [
+        "src/secret-store.ts",
+        "d7e7e77b28bc45baa1177a86eda47aacd2fc4a5409375ba3de71ade07069b581"
+      ],
+      [
+        "src/server.ts",
+        "57a4c01b7256ab13a14e0b94d14b82fa4947181547ac1ff04e4e10496a4ab5b6"
+      ],
+      [
+        "src/snapshot.ts",
+        "d1642213e616a4a5d2c86c2da4b5131933ef595572bfd727d171891923a6e472"
+      ],
+      [
+        "dist/agent-control.d.ts",
+        "7fea2037fa4c0150607bba53ff5724872e7f3373f42b7bd5976a94ad4cb6daaa"
+      ],
+      [
+        "dist/agent-control.js",
+        "88856064a81ae76d6149de767bb39fde24c47eee95139f4fe692a5677dd06f69"
+      ],
+      [
+        "dist/agent.d.ts",
+        "ccfa752c70c886de520ad3980c6c1aad27fed78a367de186398e4efddaa3cdd8"
+      ],
+      [
+        "dist/agent.js",
+        "bf9a58fef24e4c690a09fcd95df962b5f12b4baaefa1f631574243a89da838c3"
+      ],
+      [
+        "dist/browser.d.ts",
+        "efc88b7e5c461de2c61ae836bf1f308e0087cf12cc05c2c77406adbdc0e803c2"
+      ],
+      [
+        "dist/browser.js",
+        "3eb55d5c04afb8818218114ec08b4138d7774097352eb58a714b3126fffa9e0a"
+      ],
+      [
+        "dist/checkpoint.d.ts",
+        "b60435abc31bac82ea32676912d7b6c0737d353d507bd034e994612dcb4f9185"
+      ],
+      [
+        "dist/checkpoint.js",
+        "a1c1ed73c1bbd97bb11c7056711a5e6dd1d0982a9e8b3559379373ccec704609"
+      ],
+      [
+        "dist/cli.d.ts",
+        "43e818adf60173644896298637f47b01d5819b17eda46eaa32d0c7d64724d012"
+      ],
+      [
+        "dist/cli.js",
+        "07cdb76a8943db56e254314a49a628436bf9cb047b069ab5451b54719bd7a7f9"
+      ],
+      [
+        "dist/codex.d.ts",
+        "661068f76a8abf6befbf96107271597b99bc73bffcfbd1e1fe8c1fee3a25a06f"
+      ],
+      [
+        "dist/codex.js",
+        "6d5039d7b0998882fc5eba3dac03b23a2e7b0eea4427a5b81acc98da2969c37f"
+      ],
+      [
+        "dist/custom-tools.d.ts",
+        "ce5a41f212dabb5f9928ac3fabac167f03d68b6fa4b81fec20abbad22824c05b"
+      ],
+      [
+        "dist/custom-tools.js",
+        "414246ad8b92567d0a7ffeba51f073d13c1ff2f9b03abf9afb65e488edd44841"
+      ],
+      [
+        "dist/device-presets.d.ts",
+        "74a64b41794a038c93bfd4a92e81d38aa3d33f8baf2882e169bd5ce97a13677c"
+      ],
+      [
+        "dist/device-presets.js",
+        "bbdcc3243008202dae61eacd429160759ff009b4b031471fc5fc7e3ce3dfde0d"
+      ],
+      [
+        "dist/extract-cli.d.ts",
+        "43e818adf60173644896298637f47b01d5819b17eda46eaa32d0c7d64724d012"
+      ],
+      [
+        "dist/extract-cli.js",
+        "218d6bf6f83a5a07bf727bae4cacdba4d7c9cc59264c047beda18363eca3f8f3"
+      ],
+      [
+        "dist/extraction.d.ts",
+        "27e2c54f988d281c310f1e49f8e7397c0f018b4343bf5db1fcc0df5f7f98f34f"
+      ],
+      [
+        "dist/extraction.js",
+        "dc90ccafa7da5487d740da93f4e6f670e22ae808de5477df9dc3b2ee59527f40"
+      ],
+      [
+        "dist/final-output.d.ts",
+        "48ec65232f16c7f93854a4a607320a315d67baab6e69883544715b4a5af21ee0"
+      ],
+      [
+        "dist/final-output.js",
+        "b0d1e818dbfff234bdc2c34764873512a578caaae6698b5288c49bd7c0b9cd41"
+      ],
+      [
+        "dist/index.d.ts",
+        "53548e789bbe5d1422a8b465d4152292065875f827490e46dc76fd9461ac9141"
+      ],
+      [
+        "dist/index.js",
+        "264743ac218f760733108f7df3bda2372b890f34d89d388a40cf12bd2b7ef2c6"
+      ],
+      [
+        "dist/model-extraction.d.ts",
+        "f6f795022c7f9b573e93d3fa7b14a88118bc05311b76978ba40414c80d87e04f"
+      ],
+      [
+        "dist/model-extraction.js",
+        "41b0bfebf665570f5f26000ae8cf9964fa0ceb6e3590d0a86d9599fa9dd25efc"
+      ],
+      [
+        "dist/navigation-guard.d.ts",
+        "fab5f90fdf974fb6db341f4b18d978f9e72a3f0c1e763d36f9b252128f9fdfe8"
+      ],
+      [
+        "dist/navigation-guard.js",
+        "46ecca43e1f93800337c65dc85fe86d77bacc89d30632c849261a00b2681e88d"
+      ],
+      [
+        "dist/navigation-policy.d.ts",
+        "b7e938fa386683d52d166f11c84b9c9bcb8cc8b7c4327bd83dc30219f744697f"
+      ],
+      [
+        "dist/navigation-policy.js",
+        "20c0fa2be5889a828934ca5b2c75918cd5264bb5c72d0fa504480fb2e7a5d47f"
+      ],
+      [
+        "dist/network-journal.d.ts",
+        "8faafc18765af809c674df43f9eba28056bc602cf619d7e783875259726d768b"
+      ],
+      [
+        "dist/network-journal.js",
+        "32dc06367ef8aac2a0d988eda2b2a6a21932923244321d9b6e98387a92e0305f"
+      ],
+      [
+        "dist/owned-profile.d.ts",
+        "b7c5fa4908e377fb09af0c5f700b69dac16b85e04e0c16c2ab79cd7f516baa8c"
+      ],
+      [
+        "dist/owned-profile.js",
+        "14337b9803995ab53f2b5b3018d3865f7f840d3894aad77e23c8361029dd6669"
+      ],
+      [
+        "dist/page-script.d.ts",
+        "4b874de38314ce36bbd63d707c24e98312eaf32176befcbc3c6357f84ba119dd"
+      ],
+      [
+        "dist/page-script.js",
+        "68eacf387f1315f34cc9aa34302bdb0756a79c9e767ea73e1b0b04ce69223878"
+      ],
+      [
+        "dist/providers.d.ts",
+        "4d1fd472724c9b43d84ce2732d2a793ae62dc25a13792471e0d58b45e38fd339"
+      ],
+      [
+        "dist/providers.js",
+        "316d182ebd152e07049f38d858e24aee189dadc0010eeb3d35443bd8023f1b4c"
+      ],
+      [
+        "dist/secret-config.d.ts",
+        "ef5a87e5f0dc1a9de4d7729dea55662fbaa165c801053db0058130bf1e92193f"
+      ],
+      [
+        "dist/secret-config.js",
+        "d731e935d98bfaa1da7954e19c6e88e77712513bbda68fb52c312a92c3bf4a36"
+      ],
+      [
+        "dist/secret-input.d.ts",
+        "902e726b6650570343e77a6e6fec2d8909f5b60082ad78436b2cb33e0393755c"
+      ],
+      [
+        "dist/secret-input.js",
+        "765c93ed8907a7c22e46b2897ebd8114d10d224a0a79a7129abfc9492fcc2f77"
+      ],
+      [
+        "dist/secret-projection.d.ts",
+        "fa821da2725b1997f34030aaa43618a24c97bc64bb0c8a9ebacd5fa3f75d889b"
+      ],
+      [
+        "dist/secret-projection.js",
+        "43753b011029baf47d1986e68baa840b4e08772ecf36bf332d02d42279302783"
+      ],
+      [
+        "dist/secret-store.d.ts",
+        "5694dbee5f3ac934e9fd11517cce4e4923e3ed0a6474d1f01e97d906b0851c93"
+      ],
+      [
+        "dist/secret-store.js",
+        "d0ba277951811af61dd527b19ad20f9aa00ee6e16c4570fd42c7220377940cb6"
+      ],
+      [
+        "dist/server.d.ts",
+        "16162652b632823808704b0bd39d2138c4243e6e814f3a91defea007c2c7b9ea"
+      ],
+      [
+        "dist/server.js",
+        "156b96d3d3e6bc853fc3127947861c0498a0b96281b1c89539dfab8a3ada6aee"
+      ],
+      [
+        "dist/snapshot.d.ts",
+        "0f7580a71e8a2ed01161f3cd39210720208869f2db2c7f346a8201941f440144"
+      ],
+      [
+        "dist/snapshot.js",
+        "3f7eb55e0334f1f7c7ca93e5d1eda9f8483633b9035bb906de87048c3cbb7633"
+      ],
+      [
+        "bench/comparison/baseline.json",
+        "847a32420f5db5f3ce3ea1bae9d4714da4d4b9fc28ba5f1b3de738b4269799fb"
+      ],
+      [
+        "bench/comparison/browser-use-adapter.py",
+        "020efb3333679c566e067fa98cf2043690c0e17b28ec7ba2f1633af6af3012a0"
+      ],
+      [
+        "bench/comparison/codex-mcp-runner.mjs",
+        "bf6745c7bcd931548ecd2395ee35e92ee16e206b58708503e48258bf073b6889"
+      ],
+      [
+        "bench/comparison/codex-transport.mjs",
+        "4169a3639e690e65807aa50720304c90cfbd71aca29e359048542374a0caa3dd"
+      ],
+      [
+        "bench/comparison/fixture.mjs",
+        "6e8a5afe499e676f54ca1622001dfd00ca699b84d4634b82a7c0e615c9ecc7ba"
+      ],
+      [
+        "bench/comparison/mcp-preflight.mjs",
+        "9482aeff797207494fa7c1109bfeab52d67ee0acc22f30954566ac4862f52503"
+      ],
+      [
+        "bench/comparison/model-gateway.mjs",
+        "5a05af193230350ac6e16137280f658e37aea86bcae7cee20e4c6984cd45097a"
+      ],
+      [
+        "bench/comparison/runner.mjs",
+        "32ee92e4f16247d874b54dfe08564a7348e92502648c5dcacea9cb29fde243b1"
+      ],
+      [
+        "bench/comparison/tablaze-adapter.mjs",
+        "679afea9a3df4add6f86be5fb270bb04d26af26f540ab4b0c599b2d6b01b7224"
+      ]
+    ],
+    "lockSha256": "0defcc13cd2deeff5b4a90e7d678ab8bec1d5144e13287cf629524ffafb17971",
+    "judgeSha256": "6e8a5afe499e676f54ca1622001dfd00ca699b84d4634b82a7c0e615c9ecc7ba"
+  },
+  "attempts": [
+    {
+      "runId": "12c86ec0-f5b6-4256-af77-c663215b5ec9",
+      "taskId": "two-page",
+      "taskHash": "9a1822395bfd554a2ae75d979c6700bdba8ca681264c6767d274cbe26614e79f",
+      "canonicalPrompt": "Read the source code from the source page, then enter it on the destination page and submit exactly once.\nSource page: {{SOURCE_URL}}.\nDestination page: {{DESTINATION_URL}}.",
+      "taskSeed": 120,
+      "repeatIndex": 0,
+      "capabilityTags": [
+        "tabs",
+        "initial_actions",
+        "cross_page"
+      ],
+      "engine": "tablaze",
+      "engineOrder": 0,
+      "executionMode": "model",
+      "engineOptions": {
+        "initializeUrl": false,
+        "directOpenTaskUrl": false,
+        "pairedInitialActions": true,
+        "popupPolicy": "stay"
+      },
+      "engineCommit": "2d431178e2bb1515c03c3acf54e868ff206a0a6c",
+      "stateResetId": "12c86ec0-f5b6-4256-af77-c663215b5ec9",
+      "startedAt": "2026-09-24T07:50:38.085Z",
+      "endedAt": "2026-09-24T07:51:57.222Z",
+      "deadlineMs": 180000,
+      "stepBudget": 40,
+      "toolBudget": 150,
+      "outcome": "passed",
+      "failureClass": null,
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "code": "S-8071EE0DFFE6"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "receiptRequests": 0,
+          "sourceViews": 1,
+          "destinationViews": 1,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "wallTimeMs": 79133.300083,
+      "llmTimeMs": 77742.344126,
+      "toolTimeMs": 986.5889160000036,
+      "toolCalls": 5,
+      "steps": 4,
+      "inputTokens": 69677,
+      "outputTokens": 873,
+      "cachedTokens": 0,
+      "modelCalls": 4,
+      "cost": null,
+      "retries": null,
+      "browserVersion": "153.0.8010.53",
+      "falseSuccess": false,
+      "tracePath": "/private/tmp/tablaze-two-page-nojudge-20260924-r3/two-page-0-tablaze/trace.json",
+      "businessPassed": true,
+      "agentDoneObserved": true,
+      "agentSuccessObserved": true,
+      "agentRunReturned": true,
+      "runReturnedBeforeDeadline": true,
+      "completion": {
+        "agentDoneObserved": true,
+        "agentSuccessObserved": true,
+        "agentDoneAtMs": 78969.529959,
+        "agentDoneSource": "accepted runAgent result, not a proposed finish",
+        "agentRunReturned": true,
+        "timedOut": false,
+        "timeoutPhase": null,
+        "cleanup": {
+          "status": "completed",
+          "elapsedMs": 162.53279199999815
+        },
+        "proposedReport": {
+          "type": "finish",
+          "atMs": 78968.355042
+        },
+        "adapterElapsedMs": 79132.15625
+      },
+      "limits": [
+        "Codex CLI is an inference bridge with its own fixed system instructions, not a raw model API.",
+        "The CLI has no verified per-call output token or temperature control in this transport.",
+        "The CLI provider disables request and stream retries; unobservable retries remain unknown."
+      ],
+      "agentStatus": "succeeded",
+      "artifactPaths": [],
+      "providerFailures": 0,
+      "transportRequests": [
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "86c9720537653b3f96f55f1531d69dcc8eb1ecb3d37cfe365bf49d5dd7b86cc1",
+          "schemaSha256": "22a12300d45b74c14bd8f148abf3c102b27106a95a4d1fff3efa59d0ef6cc4a1",
+          "images": [],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 16378,
+              "output_tokens": 274,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 143
+            }
+          ],
+          "stdoutBytes": 728,
+          "stderrBytes": 0
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "5893782e8638ffdc5c3480b2ef22f0a6fa6fb480221b9678895a8970adb0838d",
+          "schemaSha256": "22a12300d45b74c14bd8f148abf3c102b27106a95a4d1fff3efa59d0ef6cc4a1",
+          "images": [],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 17248,
+              "output_tokens": 304,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 242
+            }
+          ],
+          "stdoutBytes": 504,
+          "stderrBytes": 0
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "b7d407c957f995d489560742ff4bd2b0ac9aa57ec38d1878811d2c65ea5027d3",
+          "schemaSha256": "22a12300d45b74c14bd8f148abf3c102b27106a95a4d1fff3efa59d0ef6cc4a1",
+          "images": [],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 17845,
+              "output_tokens": 165,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 39
+            }
+          ],
+          "stdoutBytes": 720,
+          "stderrBytes": 0
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "2d2ac9a201d4d4611662d1c6b874d5226254949431b71f821d7c1b4c3fcb0a27",
+          "schemaSha256": "22a12300d45b74c14bd8f148abf3c102b27106a95a4d1fff3efa59d0ef6cc4a1",
+          "images": [],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 18206,
+              "output_tokens": 130,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 33
+            }
+          ],
+          "stdoutBytes": 665,
+          "stderrBytes": 0
+        }
+      ],
+      "transportErrors": [],
+      "agentFailure": null,
+      "runFailureClass": null,
+      "judgeModelCalls": 0,
+      "judgeUsage": null
+    },
+    {
+      "runId": "9c47803f-d2d0-44e0-9db9-931807e38318",
+      "taskId": "two-page",
+      "taskHash": "9a1822395bfd554a2ae75d979c6700bdba8ca681264c6767d274cbe26614e79f",
+      "canonicalPrompt": "Read the source code from the source page, then enter it on the destination page and submit exactly once.\nSource page: {{SOURCE_URL}}.\nDestination page: {{DESTINATION_URL}}.",
+      "taskSeed": 120,
+      "repeatIndex": 0,
+      "capabilityTags": [
+        "tabs",
+        "initial_actions",
+        "cross_page"
+      ],
+      "engine": "browser-use",
+      "engineOrder": 1,
+      "executionMode": "model",
+      "engineOptions": {
+        "useJudge": false,
+        "pairedInitialActions": true
+      },
+      "engineCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+      "stateResetId": "9c47803f-d2d0-44e0-9db9-931807e38318",
+      "startedAt": "2026-09-24T07:51:57.225Z",
+      "endedAt": "2026-09-24T07:53:17.537Z",
+      "deadlineMs": 180000,
+      "stepBudget": 40,
+      "toolBudget": null,
+      "outcome": "passed",
+      "failureClass": null,
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "code": "S-8071EE0DFFE6"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "receiptRequests": 0,
+          "sourceViews": 1,
+          "destinationViews": 1,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "wallTimeMs": 80311.725083,
+      "llmTimeMs": 74999.19400099998,
+      "toolTimeMs": null,
+      "toolCalls": 5,
+      "steps": 4,
+      "inputTokens": 56554,
+      "outputTokens": 905,
+      "cachedTokens": 0,
+      "modelCalls": 3,
+      "cost": null,
+      "retries": null,
+      "browserVersion": "153.0.8010.53",
+      "falseSuccess": false,
+      "tracePath": "/private/tmp/tablaze-two-page-nojudge-20260924-r3/two-page-0-browser-use/trace.json",
+      "businessPassed": true,
+      "agentDoneObserved": true,
+      "agentSuccessObserved": true,
+      "agentRunReturned": true,
+      "runReturnedBeforeDeadline": true,
+      "completion": {
+        "agentDoneObserved": true,
+        "agentSuccessObserved": true,
+        "agentDoneAtMs": 79518.263,
+        "agentDoneSource": "public Agent.run on_step_end / AgentHistoryList",
+        "agentRunReturned": true,
+        "timedOut": false,
+        "timeoutPhase": null,
+        "errorPhase": null,
+        "phase": "adapter_finished",
+        "adapterElapsedMs": 79678.116,
+        "cleanup": {
+          "status": "completed",
+          "elapsedMs": 108.28
+        },
+        "browserUseJudge": false,
+        "judgeInstrumentation": "explicit judge_llm public ainvoke; excludes judge prompt construction and other finalization",
+        "judgeModelCalls": 0,
+        "judgeUsage": {
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "cachedTokens": 0,
+          "totalTokens": 0,
+          "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+        },
+        "postDonePhaseMeaning": "inferred from done observed before Agent.run returned; not attributed solely to judge"
+      },
+      "limits": [
+        "Browser Use adapter currently bounds steps and deadline, not an identical tool-call ceiling.",
+        "Codex CLI is an inference bridge with its own fixed system instructions, not a raw model API.",
+        "The CLI has no verified per-call output token or temperature control in this transport.",
+        "The CLI provider disables request and stream retries; unobservable retries remain unknown."
+      ],
+      "agentStatus": "succeeded",
+      "artifactPaths": [],
+      "providerFailures": 0,
+      "transportRequests": [
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "6d58a791213922e59a942c7bfb1835418f9de89ee1bcc30b5f7546ba569d1ab0",
+          "schemaSha256": "911b8e88c5ff75f655fd6079bc8f15a41a6db88c1b2e52c6df87857e582a326d",
+          "images": [
+            {
+              "sha256": "efdc6556404b555099d53f5cee8bbe23c28f01dd51484dab5c99938d9fdc20af",
+              "mimeType": "image/png",
+              "requestedDetail": "auto",
+              "appliedDetail": "cli-default"
+            }
+          ],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 18760,
+              "output_tokens": 178,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 63
+            }
+          ],
+          "stdoutBytes": 794,
+          "stderrBytes": 29
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "44f602df581815b6b50362d8c202beb5ab5a03fab67e36ae3e4a0468f66c2775",
+          "schemaSha256": "911b8e88c5ff75f655fd6079bc8f15a41a6db88c1b2e52c6df87857e582a326d",
+          "images": [
+            {
+              "sha256": "3b8d2b499495ea3e68a454279ac905d976fc28f6e162dcf57babfc8a6fb98006",
+              "mimeType": "image/png",
+              "requestedDetail": "auto",
+              "appliedDetail": "cli-default"
+            }
+          ],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 18853,
+              "output_tokens": 417,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 205
+            }
+          ],
+          "stdoutBytes": 1166,
+          "stderrBytes": 29
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "7ed0d0855bfe84c660da113d86121f8ffba86db186dc42497a3c21235fece593",
+          "schemaSha256": "911b8e88c5ff75f655fd6079bc8f15a41a6db88c1b2e52c6df87857e582a326d",
+          "images": [
+            {
+              "sha256": "7a6b523dd80a687cdc180c5b4487511cf6ab9b86e21fcd7c54bffcd459deaba0",
+              "mimeType": "image/png",
+              "requestedDetail": "auto",
+              "appliedDetail": "cli-default"
+            }
+          ],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 18941,
+              "output_tokens": 310,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 174
+            }
+          ],
+          "stdoutBytes": 977,
+          "stderrBytes": 29
+        }
+      ],
+      "transportErrors": [],
+      "agentFailure": null,
+      "runFailureClass": null,
+      "judgeModelCalls": 0,
+      "judgeUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedTokens": 0,
+        "totalTokens": 0,
+        "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+      }
+    },
+    {
+      "runId": "45d4c004-2a8d-4fc6-9eee-f1d0944ae001",
+      "taskId": "two-page",
+      "taskHash": "2652e270f31902a5daf3c1adcc615415387c2ae73264dba29855665d7f10a205",
+      "canonicalPrompt": "Read the source code from the source page, then enter it on the destination page and submit exactly once.\nSource page: {{SOURCE_URL}}.\nDestination page: {{DESTINATION_URL}}.",
+      "taskSeed": 121,
+      "repeatIndex": 1,
+      "capabilityTags": [
+        "tabs",
+        "initial_actions",
+        "cross_page"
+      ],
+      "engine": "browser-use",
+      "engineOrder": 0,
+      "executionMode": "model",
+      "engineOptions": {
+        "useJudge": false,
+        "pairedInitialActions": true
+      },
+      "engineCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+      "stateResetId": "45d4c004-2a8d-4fc6-9eee-f1d0944ae001",
+      "startedAt": "2026-09-24T07:53:17.537Z",
+      "endedAt": "2026-09-24T07:54:31.980Z",
+      "deadlineMs": 180000,
+      "stepBudget": 40,
+      "toolBudget": null,
+      "outcome": "passed",
+      "failureClass": null,
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "code": "S-710291D6CBD0"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "receiptRequests": 0,
+          "sourceViews": 1,
+          "destinationViews": 1,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "wallTimeMs": 74442.59529200001,
+      "llmTimeMs": 69266.70912499996,
+      "toolTimeMs": null,
+      "toolCalls": 5,
+      "steps": 4,
+      "inputTokens": 56576,
+      "outputTokens": 1008,
+      "cachedTokens": 9600,
+      "modelCalls": 3,
+      "cost": null,
+      "retries": null,
+      "browserVersion": "153.0.8010.53",
+      "falseSuccess": false,
+      "tracePath": "/private/tmp/tablaze-two-page-nojudge-20260924-r3/two-page-1-browser-use/trace.json",
+      "businessPassed": true,
+      "agentDoneObserved": true,
+      "agentSuccessObserved": true,
+      "agentRunReturned": true,
+      "runReturnedBeforeDeadline": true,
+      "completion": {
+        "agentDoneObserved": true,
+        "agentSuccessObserved": true,
+        "agentDoneAtMs": 73682.705,
+        "agentDoneSource": "public Agent.run on_step_end / AgentHistoryList",
+        "agentRunReturned": true,
+        "timedOut": false,
+        "timeoutPhase": null,
+        "errorPhase": null,
+        "phase": "adapter_finished",
+        "adapterElapsedMs": 73838.832,
+        "cleanup": {
+          "status": "completed",
+          "elapsedMs": 108.22
+        },
+        "browserUseJudge": false,
+        "judgeInstrumentation": "explicit judge_llm public ainvoke; excludes judge prompt construction and other finalization",
+        "judgeModelCalls": 0,
+        "judgeUsage": {
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "cachedTokens": 0,
+          "totalTokens": 0,
+          "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+        },
+        "postDonePhaseMeaning": "inferred from done observed before Agent.run returned; not attributed solely to judge"
+      },
+      "limits": [
+        "Browser Use adapter currently bounds steps and deadline, not an identical tool-call ceiling.",
+        "Codex CLI is an inference bridge with its own fixed system instructions, not a raw model API.",
+        "The CLI has no verified per-call output token or temperature control in this transport.",
+        "The CLI provider disables request and stream retries; unobservable retries remain unknown."
+      ],
+      "agentStatus": "succeeded",
+      "artifactPaths": [],
+      "providerFailures": 0,
+      "transportRequests": [
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "f17819675ca0c6db625e49e79348ddb88175c7e4a19f13a8e2fff3d5fc2df63b",
+          "schemaSha256": "911b8e88c5ff75f655fd6079bc8f15a41a6db88c1b2e52c6df87857e582a326d",
+          "images": [
+            {
+              "sha256": "4b4207f18362782bc4d0ea4b331f020d1ac7eb65d3bfc4073afc9e33f425b36d",
+              "mimeType": "image/png",
+              "requestedDetail": "auto",
+              "appliedDetail": "cli-default"
+            }
+          ],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 18766,
+              "output_tokens": 202,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 85
+            }
+          ],
+          "stdoutBytes": 813,
+          "stderrBytes": 172
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "b24a3e56f4728e0812062a5aea8cabc3c1a2be59768e866756c6b75fb80db4c9",
+          "schemaSha256": "911b8e88c5ff75f655fd6079bc8f15a41a6db88c1b2e52c6df87857e582a326d",
+          "images": [
+            {
+              "sha256": "3b8d2b499495ea3e68a454279ac905d976fc28f6e162dcf57babfc8a6fb98006",
+              "mimeType": "image/png",
+              "requestedDetail": "auto",
+              "appliedDetail": "cli-default"
+            }
+          ],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 18859,
+              "output_tokens": 418,
+              "cached_input_tokens": 9600,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 210
+            }
+          ],
+          "stdoutBytes": 1182,
+          "stderrBytes": 29
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "396c92415d8316ee2c2b616d068769dd4539d1b9d314f7e9f6704dbc6b22ce34",
+          "schemaSha256": "911b8e88c5ff75f655fd6079bc8f15a41a6db88c1b2e52c6df87857e582a326d",
+          "images": [
+            {
+              "sha256": "3a1542979dbebafb70b799a9ea110215d552953cd83c9bd10a72ba848af3a874",
+              "mimeType": "image/png",
+              "requestedDetail": "auto",
+              "appliedDetail": "cli-default"
+            }
+          ],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 18951,
+              "output_tokens": 388,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 240
+            }
+          ],
+          "stdoutBytes": 1034,
+          "stderrBytes": 29
+        }
+      ],
+      "transportErrors": [],
+      "agentFailure": null,
+      "runFailureClass": null,
+      "judgeModelCalls": 0,
+      "judgeUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedTokens": 0,
+        "totalTokens": 0,
+        "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+      }
+    },
+    {
+      "runId": "eac86715-ae08-43d2-9279-f27895b68ad0",
+      "taskId": "two-page",
+      "taskHash": "2652e270f31902a5daf3c1adcc615415387c2ae73264dba29855665d7f10a205",
+      "canonicalPrompt": "Read the source code from the source page, then enter it on the destination page and submit exactly once.\nSource page: {{SOURCE_URL}}.\nDestination page: {{DESTINATION_URL}}.",
+      "taskSeed": 121,
+      "repeatIndex": 1,
+      "capabilityTags": [
+        "tabs",
+        "initial_actions",
+        "cross_page"
+      ],
+      "engine": "tablaze",
+      "engineOrder": 1,
+      "executionMode": "model",
+      "engineOptions": {
+        "initializeUrl": false,
+        "directOpenTaskUrl": false,
+        "pairedInitialActions": true,
+        "popupPolicy": "stay"
+      },
+      "engineCommit": "2d431178e2bb1515c03c3acf54e868ff206a0a6c",
+      "stateResetId": "eac86715-ae08-43d2-9279-f27895b68ad0",
+      "startedAt": "2026-09-24T07:54:31.981Z",
+      "endedAt": "2026-09-24T07:55:39.000Z",
+      "deadlineMs": 180000,
+      "stepBudget": 40,
+      "toolBudget": 150,
+      "outcome": "passed",
+      "failureClass": null,
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "code": "S-710291D6CBD0"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "receiptRequests": 0,
+          "sourceViews": 1,
+          "destinationViews": 1,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "wallTimeMs": 67019.261875,
+      "llmTimeMs": 66097.78195800004,
+      "toolTimeMs": 737.0479989999731,
+      "toolCalls": 5,
+      "steps": 4,
+      "inputTokens": 69256,
+      "outputTokens": 845,
+      "cachedTokens": 20736,
+      "modelCalls": 4,
+      "cost": null,
+      "retries": null,
+      "browserVersion": "153.0.8010.53",
+      "falseSuccess": false,
+      "tracePath": "/private/tmp/tablaze-two-page-nojudge-20260924-r3/two-page-1-tablaze/trace.json",
+      "businessPassed": true,
+      "agentDoneObserved": true,
+      "agentSuccessObserved": true,
+      "agentRunReturned": true,
+      "runReturnedBeforeDeadline": true,
+      "completion": {
+        "agentDoneObserved": true,
+        "agentSuccessObserved": true,
+        "agentDoneAtMs": 66856.87075,
+        "agentDoneSource": "accepted runAgent result, not a proposed finish",
+        "agentRunReturned": true,
+        "timedOut": false,
+        "timeoutPhase": null,
+        "cleanup": {
+          "status": "completed",
+          "elapsedMs": 161.64066600002116
+        },
+        "proposedReport": {
+          "type": "finish",
+          "atMs": 66856.40112499997
+        },
+        "adapterElapsedMs": 67018.52558299998
+      },
+      "limits": [
+        "Codex CLI is an inference bridge with its own fixed system instructions, not a raw model API.",
+        "The CLI has no verified per-call output token or temperature control in this transport.",
+        "The CLI provider disables request and stream retries; unobservable retries remain unknown."
+      ],
+      "agentStatus": "succeeded",
+      "artifactPaths": [],
+      "providerFailures": 0,
+      "transportRequests": [
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "040be5f73437bf64c180fcc19d97996f30c4ebb471dcd95f73c98e356651c1fc",
+          "schemaSha256": "22a12300d45b74c14bd8f148abf3c102b27106a95a4d1fff3efa59d0ef6cc4a1",
+          "images": [],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 16327,
+              "output_tokens": 256,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 136
+            }
+          ],
+          "stdoutBytes": 728,
+          "stderrBytes": 0
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "0b895e29a209405f9b76865e4deff2aa1fba10117ac67df8c2d555a32d2f48d2",
+          "schemaSha256": "22a12300d45b74c14bd8f148abf3c102b27106a95a4d1fff3efa59d0ef6cc4a1",
+          "images": [],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 17154,
+              "output_tokens": 304,
+              "cached_input_tokens": 6912,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 247
+            }
+          ],
+          "stdoutBytes": 507,
+          "stderrBytes": 0
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "2f9a54bbec6fd2dc104b498c22a6132be0848d437de8570a321a46348b3238e8",
+          "schemaSha256": "22a12300d45b74c14bd8f148abf3c102b27106a95a4d1fff3efa59d0ef6cc4a1",
+          "images": [],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 17719,
+              "output_tokens": 145,
+              "cached_input_tokens": 6912,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 30
+            }
+          ],
+          "stdoutBytes": 723,
+          "stderrBytes": 0
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "200a64fc5aa793cfcd1b0e1142382990689f6e00abf78b769b44d1fb09ee7b8c",
+          "schemaSha256": "22a12300d45b74c14bd8f148abf3c102b27106a95a4d1fff3efa59d0ef6cc4a1",
+          "images": [],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 18056,
+              "output_tokens": 140,
+              "cached_input_tokens": 6912,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 49
+            }
+          ],
+          "stdoutBytes": 647,
+          "stderrBytes": 0
+        }
+      ],
+      "transportErrors": [],
+      "agentFailure": null,
+      "runFailureClass": null,
+      "judgeModelCalls": 0,
+      "judgeUsage": null
+    },
+    {
+      "runId": "526ba187-c8dd-45b0-9951-2b3db658c314",
+      "taskId": "two-page",
+      "taskHash": "eebeaed6db62d5ddf535484ad7472939383ef9a1641f61714101fca601e90ef7",
+      "canonicalPrompt": "Read the source code from the source page, then enter it on the destination page and submit exactly once.\nSource page: {{SOURCE_URL}}.\nDestination page: {{DESTINATION_URL}}.",
+      "taskSeed": 122,
+      "repeatIndex": 2,
+      "capabilityTags": [
+        "tabs",
+        "initial_actions",
+        "cross_page"
+      ],
+      "engine": "tablaze",
+      "engineOrder": 0,
+      "executionMode": "model",
+      "engineOptions": {
+        "initializeUrl": false,
+        "directOpenTaskUrl": false,
+        "pairedInitialActions": true,
+        "popupPolicy": "stay"
+      },
+      "engineCommit": "2d431178e2bb1515c03c3acf54e868ff206a0a6c",
+      "stateResetId": "526ba187-c8dd-45b0-9951-2b3db658c314",
+      "startedAt": "2026-09-24T07:55:39.001Z",
+      "endedAt": "2026-09-24T07:56:53.348Z",
+      "deadlineMs": 180000,
+      "stepBudget": 40,
+      "toolBudget": 150,
+      "outcome": "passed",
+      "failureClass": null,
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "code": "S-E8706C696F31"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "receiptRequests": 0,
+          "sourceViews": 1,
+          "destinationViews": 1,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "wallTimeMs": 74346.89208399999,
+      "llmTimeMs": 73294.11770899995,
+      "toolTimeMs": 875.8335419999785,
+      "toolCalls": 5,
+      "steps": 4,
+      "inputTokens": 69581,
+      "outputTokens": 761,
+      "cachedTokens": 6912,
+      "modelCalls": 4,
+      "cost": null,
+      "retries": null,
+      "browserVersion": "153.0.8010.53",
+      "falseSuccess": false,
+      "tracePath": "/private/tmp/tablaze-two-page-nojudge-20260924-r3/two-page-2-tablaze/trace.json",
+      "businessPassed": true,
+      "agentDoneObserved": true,
+      "agentSuccessObserved": true,
+      "agentRunReturned": true,
+      "runReturnedBeforeDeadline": true,
+      "completion": {
+        "agentDoneObserved": true,
+        "agentSuccessObserved": true,
+        "agentDoneAtMs": 74189.173625,
+        "agentDoneSource": "accepted runAgent result, not a proposed finish",
+        "agentRunReturned": true,
+        "timedOut": false,
+        "timeoutPhase": null,
+        "cleanup": {
+          "status": "completed",
+          "elapsedMs": 157.0007920000353
+        },
+        "proposedReport": {
+          "type": "finish",
+          "atMs": 74188.229375
+        },
+        "adapterElapsedMs": 74346.196833
+      },
+      "limits": [
+        "Codex CLI is an inference bridge with its own fixed system instructions, not a raw model API.",
+        "The CLI has no verified per-call output token or temperature control in this transport.",
+        "The CLI provider disables request and stream retries; unobservable retries remain unknown."
+      ],
+      "agentStatus": "succeeded",
+      "artifactPaths": [],
+      "providerFailures": 0,
+      "transportRequests": [
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "b29c3d6ba4cdbefd10eaaa16f5d77a7d64674bf57973c3398e7918e75e3c2bcf",
+          "schemaSha256": "22a12300d45b74c14bd8f148abf3c102b27106a95a4d1fff3efa59d0ef6cc4a1",
+          "images": [],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 16365,
+              "output_tokens": 257,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 127
+            }
+          ],
+          "stdoutBytes": 728,
+          "stderrBytes": 0
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "0fc3bd1c8114326d443dd82dce279cb7576ebd27f45d0ed7ad9683e7e243e58d",
+          "schemaSha256": "22a12300d45b74c14bd8f148abf3c102b27106a95a4d1fff3efa59d0ef6cc4a1",
+          "images": [],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 17229,
+              "output_tokens": 192,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 130
+            }
+          ],
+          "stdoutBytes": 504,
+          "stderrBytes": 0
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "83d27e43c2c0a7dc9b752a0384f6a4f7000a3e5f98f69ac63dc6fad22e1db1a5",
+          "schemaSha256": "22a12300d45b74c14bd8f148abf3c102b27106a95a4d1fff3efa59d0ef6cc4a1",
+          "images": [],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 17816,
+              "output_tokens": 180,
+              "cached_input_tokens": 6912,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 55
+            }
+          ],
+          "stdoutBytes": 723,
+          "stderrBytes": 0
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "39af1d4085aa7d713bb4f0112f092815990425ab139f6b31a889b6c2e7542ea6",
+          "schemaSha256": "22a12300d45b74c14bd8f148abf3c102b27106a95a4d1fff3efa59d0ef6cc4a1",
+          "images": [],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 18171,
+              "output_tokens": 132,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 39
+            }
+          ],
+          "stdoutBytes": 656,
+          "stderrBytes": 0
+        }
+      ],
+      "transportErrors": [],
+      "agentFailure": null,
+      "runFailureClass": null,
+      "judgeModelCalls": 0,
+      "judgeUsage": null
+    },
+    {
+      "runId": "27b0daed-fd8b-4c1d-900b-b0e1b848942c",
+      "taskId": "two-page",
+      "taskHash": "eebeaed6db62d5ddf535484ad7472939383ef9a1641f61714101fca601e90ef7",
+      "canonicalPrompt": "Read the source code from the source page, then enter it on the destination page and submit exactly once.\nSource page: {{SOURCE_URL}}.\nDestination page: {{DESTINATION_URL}}.",
+      "taskSeed": 122,
+      "repeatIndex": 2,
+      "capabilityTags": [
+        "tabs",
+        "initial_actions",
+        "cross_page"
+      ],
+      "engine": "browser-use",
+      "engineOrder": 1,
+      "executionMode": "model",
+      "engineOptions": {
+        "useJudge": false,
+        "pairedInitialActions": true
+      },
+      "engineCommit": "d8110c5ff87ccba887aaa726cdb780f2f84bef8d",
+      "stateResetId": "27b0daed-fd8b-4c1d-900b-b0e1b848942c",
+      "startedAt": "2026-09-24T07:56:53.350Z",
+      "endedAt": "2026-09-24T07:58:05.231Z",
+      "deadlineMs": 180000,
+      "stepBudget": 40,
+      "toolBudget": null,
+      "outcome": "passed",
+      "failureClass": null,
+      "judge": {
+        "passed": true,
+        "evidence": {
+          "records": [
+            {
+              "code": "S-E8706C696F31"
+            }
+          ],
+          "writeCount": 1,
+          "duplicateWrites": 0,
+          "downloadRequests": 0,
+          "authorizations": 0,
+          "receiptRequests": 0,
+          "sourceViews": 1,
+          "destinationViews": 1,
+          "artifactHashes": []
+        },
+        "judge": "fixture-server-state-and-artifact-sha256-v1"
+      },
+      "wallTimeMs": 71881.200541,
+      "llmTimeMs": 66965.76358299999,
+      "toolTimeMs": null,
+      "toolCalls": 5,
+      "steps": 4,
+      "inputTokens": 56574,
+      "outputTokens": 907,
+      "cachedTokens": 19200,
+      "modelCalls": 3,
+      "cost": null,
+      "retries": null,
+      "browserVersion": "153.0.8010.53",
+      "falseSuccess": false,
+      "tracePath": "/private/tmp/tablaze-two-page-nojudge-20260924-r3/two-page-2-browser-use/trace.json",
+      "businessPassed": true,
+      "agentDoneObserved": true,
+      "agentSuccessObserved": true,
+      "agentRunReturned": true,
+      "runReturnedBeforeDeadline": true,
+      "completion": {
+        "agentDoneObserved": true,
+        "agentSuccessObserved": true,
+        "agentDoneAtMs": 71089.011,
+        "agentDoneSource": "public Agent.run on_step_end / AgentHistoryList",
+        "agentRunReturned": true,
+        "timedOut": false,
+        "timeoutPhase": null,
+        "errorPhase": null,
+        "phase": "adapter_finished",
+        "adapterElapsedMs": 71253.047,
+        "cleanup": {
+          "status": "completed",
+          "elapsedMs": 108.54
+        },
+        "browserUseJudge": false,
+        "judgeInstrumentation": "explicit judge_llm public ainvoke; excludes judge prompt construction and other finalization",
+        "judgeModelCalls": 0,
+        "judgeUsage": {
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "cachedTokens": 0,
+          "totalTokens": 0,
+          "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+        },
+        "postDonePhaseMeaning": "inferred from done observed before Agent.run returned; not attributed solely to judge"
+      },
+      "limits": [
+        "Browser Use adapter currently bounds steps and deadline, not an identical tool-call ceiling.",
+        "Codex CLI is an inference bridge with its own fixed system instructions, not a raw model API.",
+        "The CLI has no verified per-call output token or temperature control in this transport.",
+        "The CLI provider disables request and stream retries; unobservable retries remain unknown."
+      ],
+      "agentStatus": "succeeded",
+      "artifactPaths": [],
+      "providerFailures": 0,
+      "transportRequests": [
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "d767f8a06a4013ba14e6ac3c7af6b9fa0adfdb9b74be915c64b0cb19b1123499",
+          "schemaSha256": "911b8e88c5ff75f655fd6079bc8f15a41a6db88c1b2e52c6df87857e582a326d",
+          "images": [
+            {
+              "sha256": "db5b95d25717c7039b742300b07a7d54dc0637e5109572a34c1ad9022507bc5c",
+              "mimeType": "image/png",
+              "requestedDetail": "auto",
+              "appliedDetail": "cli-default"
+            }
+          ],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 18767,
+              "output_tokens": 203,
+              "cached_input_tokens": 9600,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 87
+            }
+          ],
+          "stdoutBytes": 815,
+          "stderrBytes": 29
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "56786f95860ea196032e8e81c93c3ebfc533e18da83ba0877e5156cbabbab485",
+          "schemaSha256": "911b8e88c5ff75f655fd6079bc8f15a41a6db88c1b2e52c6df87857e582a326d",
+          "images": [
+            {
+              "sha256": "3b8d2b499495ea3e68a454279ac905d976fc28f6e162dcf57babfc8a6fb98006",
+              "mimeType": "image/png",
+              "requestedDetail": "auto",
+              "appliedDetail": "cli-default"
+            }
+          ],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 18860,
+              "output_tokens": 347,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 142
+            }
+          ],
+          "stdoutBytes": 1149,
+          "stderrBytes": 29
+        },
+        {
+          "kind": "codex-cli",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "ultra",
+          "provider": "tablaze-comparison",
+          "providerHTTPOverride": true,
+          "providerConfiguredRequestRetries": 0,
+          "providerConfiguredStreamRetries": 0,
+          "promptSha256": "9e62d12f20b76c36ae57481543efc78986deaccf72c725f7cfe79ac651080eb2",
+          "schemaSha256": "911b8e88c5ff75f655fd6079bc8f15a41a6db88c1b2e52c6df87857e582a326d",
+          "images": [
+            {
+              "sha256": "525f521160099a899385d77e52ceb03a3db50aa2340b72bc0217d61680668e26",
+              "mimeType": "image/png",
+              "requestedDetail": "auto",
+              "appliedDetail": "cli-default"
+            }
+          ],
+          "exitCode": 0,
+          "exitSignal": null,
+          "processErrorCode": null,
+          "terminalEvent": "turn.completed",
+          "bridgeFailureCode": null,
+          "events": [
+            {
+              "type": "thread.started"
+            },
+            {
+              "type": "turn.started"
+            },
+            {
+              "type": "item.completed",
+              "itemType": "agent_message"
+            },
+            {
+              "type": "turn.completed"
+            }
+          ],
+          "diagnostics": [],
+          "diagnosticsDropped": 0,
+          "usages": [
+            {
+              "input_tokens": 18947,
+              "output_tokens": 357,
+              "cached_input_tokens": 9600,
+              "cache_write_input_tokens": 0,
+              "reasoning_output_tokens": 216
+            }
+          ],
+          "stdoutBytes": 1001,
+          "stderrBytes": 29
+        }
+      ],
+      "transportErrors": [],
+      "agentFailure": null,
+      "runFailureClass": null,
+      "judgeModelCalls": 0,
+      "judgeUsage": {
+        "inputTokens": 0,
+        "outputTokens": 0,
+        "cachedTokens": 0,
+        "totalTokens": 0,
+        "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+      }
+    }
+  ],
+  "summary": {
+    "tablaze": {
+      "passed": 3,
+      "completedAndPassed": 3,
+      "unfinishedWithPassedOutcome": 0,
+      "businessPassed": 3,
+      "agentDoneObserved": 3,
+      "agentSuccessObserved": 3,
+      "runReturnedBeforeDeadline": 3,
+      "allAxesPassed": 3,
+      "failed": 0,
+      "notRun": 0,
+      "falseSuccess": 0
+    },
+    "browser-use": {
+      "passed": 3,
+      "completedAndPassed": 3,
+      "unfinishedWithPassedOutcome": 0,
+      "businessPassed": 3,
+      "agentDoneObserved": 3,
+      "agentSuccessObserved": 3,
+      "runReturnedBeforeDeadline": 3,
+      "allAxesPassed": 3,
+      "failed": 0,
+      "notRun": 0,
+      "falseSuccess": 0
+    }
+  },
+  "comparableForSuperiority": false,
+  "comparisonLimitations": [
+    "Development smoke tasks are visible to the scripted adapter.",
+    "No frozen full task set or statistical superiority run has been completed.",
+    "Tool counts and cost timing differ by framework; missing metrics remain null.",
+    "The shared external-agent MCP comparison track is not implemented here."
+  ]
+}

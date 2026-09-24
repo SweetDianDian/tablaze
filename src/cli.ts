@@ -13,7 +13,7 @@ import { createServer, SERVER_VERSION } from "./server.js";
 import { connectAgentTools, createOpenAICompatiblePlanner, runAgent, type AgentModelUsage } from "./agent.js";
 import { createCodexPlanner, type CodexReasoningEffort } from "./codex.js";
 import { createAnthropicPlanner, createOllamaPlanner } from "./providers.js";
-import { normalizeInitialActions, normalizeStartUrl, uniqueTaskStartUrl, parseAgentCheckpoint, type AgentCheckpoint, type InitialNavigationAction } from "./checkpoint.js";
+import { normalizeInitialActions, normalizeStartUrl, uniqueTaskStartUrl, parseAgentCheckpoint, type AgentCheckpoint, type InitialAction } from "./checkpoint.js";
 import { compileNavigationPolicy, type NavigationPolicy } from "./navigation-policy.js";
 import { loadSecretConfig } from "./secret-config.js";
 import { compileFinalOutput } from "./final-output.js";
@@ -74,7 +74,7 @@ Options / 选项:
 Agent run options / 任务执行选项:
   --task <text>             Requested task / 任务描述
   --start-url <url>         Open this explicit URL once before planning / 首次规划前打开指定网址
-  --initial-actions <file>  JSON array of trusted URLs; newTab opens another tab before planning
+  --initial-actions <file>  Trusted pre-model URL and exact-name click actions from JSON
   --direct-open-task-url    Open one unambiguous URL in the task before planning
   --model <id>              Model supporting tools / 支持工具的模型
   --provider <name>         openai-compatible (default), codex, anthropic, ollama
@@ -117,7 +117,7 @@ const CHANNELS = new Set(["chromium", "chrome", "chrome-beta", "chrome-dev", "ch
 
 type RunProvider = "openai-compatible" | "codex" | "anthropic" | "ollama";
 interface RunOptions {
-  task?: string; startUrl?: string; directOpenTaskUrl?: boolean; initialActions?: InitialNavigationAction[]; provider: RunProvider; model: string; endpoint?: string; apiKey?: string;
+  task?: string; startUrl?: string; directOpenTaskUrl?: boolean; initialActions?: InitialAction[]; provider: RunProvider; model: string; endpoint?: string; apiKey?: string;
   codexCommand?: string; reasoningEffort?: CodexReasoningEffort; maxOutputTokens?: number;
   maxSteps?: number; maxToolCalls?: number; timeoutMs?: number; checkpointPath?: string; resumePath?: string; reconciled?: string;
   finalOutputSchema?: ExtractionSchema;
@@ -177,7 +177,7 @@ function loadOutputSchema(path: string, flag = "--output-schema"): ExtractionSch
   }
 }
 
-function loadInitialActions(path: string): InitialNavigationAction[] {
+function loadInitialActions(path: string): InitialAction[] {
   let descriptor: number | undefined;
   try {
     descriptor = openSync(path, constants.O_RDONLY | constants.O_NONBLOCK);
@@ -193,7 +193,7 @@ function loadInitialActions(path: string): InitialNavigationAction[] {
     if (length > 64 * 1024) throw new Error();
     return normalizeInitialActions(JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(buffer.subarray(0, length))));
   } catch {
-    throw new Error("--initial-actions must reference a readable regular UTF-8 JSON file of at most 64 KiB with 1–20 HTTP(S) navigation actions.");
+    throw new Error("--initial-actions must reference a readable regular UTF-8 JSON file of at most 64 KiB with 1–20 trusted actions beginning with an HTTP(S) navigation.");
   } finally {
     if (descriptor !== undefined) closeSync(descriptor);
   }

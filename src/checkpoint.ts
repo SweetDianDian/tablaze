@@ -2,7 +2,7 @@ import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import type { AgentMessage, AgentPartial, AgentToolCall, AgentToolExecutionIdentity } from "./agent.js";
 
-export const AGENT_CHECKPOINT_VERSION = 6 as const;
+export const AGENT_CHECKPOINT_VERSION = 7 as const;
 
 export const executionIdentitySchema = z.object({ registryHash: z.string().regex(/^[a-f0-9]{64}$/), contextHash: z.string().regex(/^[a-f0-9]{64}$/) }).strict();
 
@@ -36,22 +36,31 @@ const initializationSchema = z.discriminatedUnion("state", [
 ]);
 
 const initialNavigationSchema = z.object({ url: startUrlSchema, newTab: z.boolean().optional() }).strict();
+const initialClickSchema = z.object({ click: z.object({ name: z.string().trim().min(1).max(200), role: z.enum(["button", "link", "menuitem", "tab", "checkbox", "radio"]).optional() }).strict() }).strict();
+const initialActionSchema = z.union([initialNavigationSchema, initialClickSchema]);
 const initialActionsSchema = z.object({
-  actions: z.array(initialNavigationSchema).min(1).max(20),
+  actions: z.array(initialActionSchema).min(1).max(20),
   attempts: z.array(z.object({
     toolCallId: z.string().min(1).max(200),
     state: z.enum(["attempted", "succeeded", "failed"]),
     sessionId: z.string().min(1).max(160).optional(),
   }).strict()).max(20),
 }).strict();
+export type InitialAction = z.infer<typeof initialActionSchema>;
+/** Navigation-only subtype retained for existing SDK consumers. */
 export type InitialNavigationAction = z.infer<typeof initialNavigationSchema>;
 
-/** A trusted, bounded sequence of model-free navigations in one owned session. */
-export function normalizeInitialActions(value: unknown): InitialNavigationAction[] {
-  if (!Array.isArray(value) || value.length < 1 || value.length > 20) throw new Error("initialActions must contain 1–20 navigation actions.");
+/** A trusted, bounded sequence of model-free browser actions in one owned session. */
+export function normalizeInitialActions(value: unknown): InitialAction[] {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 20) throw new Error("initialActions must contain 1–20 actions starting with a navigation.");
   return value.map((item, index) => {
-    if (typeof item !== "object" || item === null || Array.isArray(item)) throw new Error(`initialActions[${index}] must contain an HTTP(S) url and optional boolean newTab.`);
+    if (typeof item !== "object" || item === null || Array.isArray(item)) throw new Error(`initialActions[${index}] must contain a navigation or exact-name click.`);
     const action = item as Record<string, unknown>;
+    if ("click" in action) {
+      if (index === 0 || !initialClickSchema.safeParse(action).success) throw new Error(`initialActions[${index}] must contain a valid exact-name click after a navigation.`);
+      const click = action.click as { name: string; role?: "button" | "link" | "menuitem" | "tab" | "checkbox" | "radio" };
+      return { click: { name: click.name.trim(), ...(click.role ? { role: click.role } : {}) } };
+    }
     if (Object.keys(action).some(key => key !== "url" && key !== "newTab") || typeof action.url !== "string" || action.newTab !== undefined && typeof action.newTab !== "boolean") throw new Error(`initialActions[${index}] must contain an HTTP(S) url and optional boolean newTab.`);
     return { url: normalizeStartUrl(action.url), ...(action.newTab === true ? { newTab: true } : {}) };
   });
@@ -106,6 +115,10 @@ const versionFiveCheckpointSchema = versionFourCheckpointSchema.extend({
   partialSchemaHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
   requiresPartialPolicy: z.boolean().optional(),
   partials: z.array(partialSchema).max(100),
+}).strict();
+const versionSixCheckpointSchema = versionFiveCheckpointSchema.extend({
+  schemaVersion: z.literal(6),
+  initialActions: initialActionsSchema.extend({ actions: z.array(initialNavigationSchema).min(1).max(20) }).optional(),
 }).strict();
 const checkpointSchema = versionFiveCheckpointSchema.extend({
   schemaVersion: z.literal(AGENT_CHECKPOINT_VERSION),
@@ -178,6 +191,11 @@ export function parseAgentCheckpoint(value: unknown, options: { maxBytes?: numbe
   if (raw?.schemaVersion === 5) {
     const legacy = versionFiveCheckpointSchema.safeParse(raw);
     if (!legacy.success) throw new Error("Invalid version 5 agent checkpoint.");
+    raw = { ...legacy.data, schemaVersion: 6 };
+  }
+  if (raw?.schemaVersion === 6) {
+    const legacy = versionSixCheckpointSchema.safeParse(raw);
+    if (!legacy.success) throw new Error("Invalid version 6 agent checkpoint.");
     raw = { ...legacy.data, schemaVersion: AGENT_CHECKPOINT_VERSION };
   }
   const parsed = checkpointSchema.safeParse(raw);
@@ -231,6 +249,7 @@ export function parseAgentCheckpoint(value: unknown, options: { maxBytes?: numbe
   }
   if (checkpoint.initialActions) {
     const { actions, attempts } = checkpoint.initialActions;
+    if (!("url" in actions[0])) throw new Error("Initial actions must begin with a navigation.");
     if (!attempts.length && (checkpoint.steps || checkpoint.toolCalls || checkpoint.plannerCalls || checkpoint.nextCallSequence !== 1 || ids.size || checkpoint.pendingTool || checkpoint.ambiguousCalls.length)) throw new Error("Unstarted initialActions cannot have execution history or consumed counters.");
     if (attempts.length > actions.length || attempts.some((attempt, index) => index < attempts.length - 1 && attempt.state !== "succeeded")) throw new Error("Initial actions contain an impossible attempt sequence.");
     const groups = checkpoint.history.filter(message => message.role === "assistant" && message.toolCalls);
@@ -238,15 +257,18 @@ export function parseAgentCheckpoint(value: unknown, options: { maxBytes?: numbe
       const call = ids.get(attempt.toolCallId);
       const group = groups[index];
       const action = actions[index];
-      const expectedName = index === 0 ? "tab_open" : action.newTab ? "tab_tabs" : "tab_navigate";
-      const validArguments = index === 0
+      const navigation = "url" in action;
+      const expectedName = index === 0 ? "tab_open" : navigation ? action.newTab ? "tab_tabs" : "tab_navigate" : "tab_click_named";
+      const validArguments = index === 0 && navigation
         ? call?.arguments.url === action.url && Object.keys(call.arguments).length === 1
-        : call?.arguments.url === action.url && call.arguments.action === (action.newTab ? "new" : "goto") && typeof call.arguments.session_id === "string" && !!call.arguments.session_id && Object.keys(call.arguments).length === 3;
-      if (attempt.toolCallId !== `${checkpoint.runId}_call_${index + 1}` || !call || call.name !== expectedName || !validArguments || group?.role !== "assistant" || group.toolCalls?.length !== 1 || group.toolCalls[0].id !== call.id) throw new Error("Initial action history does not match its saved navigation manifest.");
+        : navigation
+          ? call?.arguments.url === action.url && call.arguments.action === (action.newTab ? "new" : "goto") && typeof call.arguments.session_id === "string" && !!call.arguments.session_id && Object.keys(call.arguments).length === 3
+          : call?.arguments.name === action.click.name && call.arguments.role === action.click.role && typeof call.arguments.session_id === "string" && !!call.arguments.session_id && Object.keys(call.arguments).length === (action.click.role ? 3 : 2);
+      if (attempt.toolCallId !== `${checkpoint.runId}_call_${index + 1}` || !call || call.name !== expectedName || !validArguments || group?.role !== "assistant" || group.toolCalls?.length !== 1 || group.toolCalls[0].id !== call.id) throw new Error("Initial action history does not match its saved manifest.");
       const result = checkpoint.history.find(message => message.role === "tool" && message.toolCallId === call.id);
       const data = result?.role === "tool" ? result.result.structuredContent : undefined;
       if (attempt.state === "succeeded") {
-        if (result?.role !== "tool" || result.result.isError === true || data?.ok !== true || data.session_id !== attempt.sessionId || !attempt.sessionId) throw new Error("Successful initial action lacks a matching browser receipt.");
+        if (result?.role !== "tool" || result.result.isError === true || data?.ok !== true || data.session_id !== attempt.sessionId || !attempt.sessionId || !navigation && (data.batch_complete !== true || data.completed !== 1)) throw new Error("Successful initial action lacks a matching browser receipt.");
       } else if (attempt.sessionId !== undefined || result?.role !== "tool" || attempt.state === "failed" && result.result.isError !== true && data?.ok !== false || attempt.state === "attempted" && result.result.isError !== true && data?.ok === true) throw new Error("An unsettled initial action cannot claim success or a session.");
     }
     if (attempts.length < actions.length && attempts.at(-1)?.state === "succeeded" && checkpoint.plannerCalls > 0) throw new Error("The planner cannot run before the trusted initial action sequence completes.");

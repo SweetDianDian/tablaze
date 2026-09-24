@@ -4,7 +4,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CallToolResultSchema, type CallToolResult, type Tool } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { createHash, randomUUID } from "node:crypto";
-import { AGENT_CHECKPOINT_VERSION, PARTIAL_HISTORY_PREFIX, checkpointHistory, compactAgentHistory, executionIdentitySchema, normalizeInitialActions, normalizeStartUrl, uniqueTaskStartUrl, parseAgentCheckpoint, type AgentCheckpoint, type InitialNavigationAction } from "./checkpoint.js";
+import { AGENT_CHECKPOINT_VERSION, PARTIAL_HISTORY_PREFIX, checkpointHistory, compactAgentHistory, executionIdentitySchema, normalizeInitialActions, normalizeStartUrl, uniqueTaskStartUrl, parseAgentCheckpoint, type AgentCheckpoint, type InitialAction } from "./checkpoint.js";
 import { compileFinalOutput } from "./final-output.js";
 import { ExtractionError, type ExtractionSchema, type JSONValue } from "./extraction.js";
 import type { AgentControl } from "./agent-control.js";
@@ -113,8 +113,8 @@ export interface AgentOptions {
   startUrl?: string;
   /** Opt in to opening a single unambiguous HTTP(S) URL in the trusted task before model planning. */
   directOpenTaskUrl?: boolean;
-  /** Trusted model-free navigation sequence. The first URL opens a session; later URLs navigate its active tab or open a new tab. */
-  initialActions?: InitialNavigationAction[];
+  /** Trusted model-free sequence. First open a session; later navigate or click a uniquely named current-page control. */
+  initialActions?: InitialAction[];
   planner: AgentPlanner;
   tools: AgentToolClient;
   maxSteps?: number;
@@ -518,11 +518,11 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
         let args: Record<string, unknown>;
         if (initialIndex !== undefined) {
           const action = initialActions!.actions[initialIndex];
-          name = initialIndex === 0 ? "tab_open" : action.newTab ? "tab_tabs" : "tab_navigate";
+          name = initialIndex === 0 ? "tab_open" : "url" in action ? action.newTab ? "tab_tabs" : "tab_navigate" : "tab_click_named";
           const priorSession = initialActions!.attempts.at(-1)?.sessionId;
           const sessionId = priorSession ? sessionMap[priorSession] ?? priorSession : undefined;
           if (initialIndex > 0 && !sessionId) throw new Error("A successful initial action must retain its browser session.");
-          args = initialIndex === 0 ? { url: action.url } : { session_id: sessionId, action: action.newTab ? "new" : "goto", url: action.url };
+          args = initialIndex === 0 && "url" in action ? { url: action.url } : "url" in action ? { session_id: sessionId, action: action.newTab ? "new" : "goto", url: action.url } : { session_id: sessionId, name: action.click.name, ...(action.click.role ? { role: action.click.role } : {}) };
         } else { name = "tab_open"; args = { url: initialization!.url }; }
         if (!tools.has(name)) { recordFailure({ phase: "catalog", code: "INITIALIZATION_TOOL_MISSING", retryable: false }); return await finish("failed", `initialActions require a ${name} tool in the catalog.`); }
         decision = { type: "tools", calls: [{ name, arguments: args }] };
@@ -697,7 +697,7 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
         const data = output(result);
         if (initialIndex !== undefined) {
           const attempt = initialActions!.attempts[initialIndex];
-          const validReceipt = !toolFailed(result) && data?.ok === true && typeof data.session_id === "string" && data.session_id.length > 0 && data.session_id.length <= 160 && (initialIndex === 0 || data.session_id === call.arguments.session_id);
+          const validReceipt = !toolFailed(result) && data?.ok === true && typeof data.session_id === "string" && data.session_id.length > 0 && data.session_id.length <= 160 && (initialIndex === 0 || data.session_id === call.arguments.session_id) && (call.name !== "tab_click_named" || data.batch_complete === true && data.completed === 1);
           if (validReceipt) { attempt.state = "succeeded"; attempt.sessionId = data.session_id as string; }
           else if (toolFailed(result) && !ambiguous.has(call.id)) attempt.state = "failed";
           else {

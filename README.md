@@ -17,7 +17,7 @@
   <a href="package.json"><img src="https://img.shields.io/badge/node-%E2%89%A520-80b7ff?style=flat-square" alt="Node.js 20 or later"></a>
 </p>
 
-**Give your agent a browser it can work with.** Tablaze connects Codex and other MCP clients to Chromium through sixteen focused tools. Inspect a page, fill a form, extract a result, and check that the task actually succeeded.
+**Give your agent a browser it can work with.** Tablaze connects Codex and other MCP clients to Chromium through seventeen focused tools. Inspect a page, fill a form, extract a result, and check that the task actually succeeded.
 
 Built with Playwright. Browser sessions stay running between calls; your MCP client supplies the reasoning. The MCP browser tools require no additional model API key. The optional standalone Agent loop uses an explicitly configured planner.
 
@@ -99,7 +99,7 @@ Then ask Codex:
 
 [Complete Codex setup](docs/CODEX.md) covers desktop configuration, browser selection and troubleshooting. Other MCP clients can launch the same `node /absolute/path/to/tablaze/dist/cli.js` command over stdio.
 
-For workflows that need page-origin JavaScript, `--page-script` adds an opt-in `tab_script` tool. It has the page's full authority, including account data and network requests; it is unavailable with configured secrets, external CDP or a navigation policy. Scripts require a current main-frame snapshot and return a fresh one. See [the page-script contract and recovery limits](docs/PAGE_SCRIPT.md). The default catalog remains sixteen tools.
+For workflows that need page-origin JavaScript, `--page-script` adds an opt-in `tab_script` tool. It has the page's full authority, including account data and network requests; it is unavailable with configured secrets, external CDP or a navigation policy. Scripts require a current main-frame snapshot and return a fresh one. See [the page-script contract and recovery limits](docs/PAGE_SCRIPT.md). The default catalog remains seventeen tools.
 
 A [separate native-Codex page-script smoke](docs/CODEX_PAGE_SCRIPT_SMOKE.md) passed the independent authenticated-response judge once for both Tablaze and Browser Use CLI-MCP, with one correct write and no duplicates per arm. Codex-process samples were 198.359 s and 239.400 s respectively; browser setup differed, so this is not a controlled speed ranking or overall win.
 
@@ -114,7 +114,7 @@ node dist/cli.js run --provider codex --model "<your-codex-model>" \
 
 For a task with exactly one intended starting URL, add `--direct-open-task-url` to open it before the first model call. This is opt-in; `--start-url <url>` remains available when the caller already knows the exact page. See [initialization and resume behavior](docs/AGENT.md).
 
-For several trusted starting pages, `--initial-actions ./initial-actions.json` opens them before the first model call. Each JSON entry contains an HTTP(S) `url` and optional `newTab: true`; later entries without `newTab` navigate the active tab. The SDK exposes the same sequence as `initialActions`. Each attempted navigation is checkpointed and never replayed automatically after an uncertain outcome. See [the format and recovery rules](docs/AGENT.md).
+For trusted setup before the first model call, `--initial-actions ./initial-actions.json` accepts an HTTP(S) starting `url`, then more URLs or `{"click":{"name":"Open details","role":"button"}}`. A click requires one uniquely named current-page control; ambiguity or truncated observation stops input. The SDK exposes the same sequence as `initialActions`. Each attempted action is checkpointed and never replayed automatically after an uncertain outcome. See [the format and recovery rules](docs/AGENT.md).
 
 In the [same-source Codex task-URL follow-up](docs/CODEX_DIRECT_TASK_URL_20260924.md), all 18 form/iframe attempts across Tablaze on/off and Browser Use passed the independent business judge once. On the form task, Tablaze's median Agent-done time was 30.378 s with direct-open versus 55.583 s without it; Browser Use took 37.647 s before its default judge. On the iframe task, Tablaze still took 56.317 s versus Browser Use's 40.495 s because all three Tablaze runs added an invalid input-as-page-text check. These visible tasks do not prove a general speed lead.
 
@@ -152,11 +152,11 @@ Owned contexts also accept `--proxy-server` with optional bypass rules and crede
 | **Ordered batches** | Send up to 20 actions in one call, with completed, failed and skipped steps. Stops on error; earlier effects remain. |
 | **Delayed controls** | After clicking an observed opener, wait for one exact-name visible button or menu item and click it in the same guarded batch. Ambiguous matches stop before input. |
 | **Explicit verification** | Check URL, title, text, field values, visibility and counts. Known same-document outcomes can be checked inside `tab_act` after its batch, with passing evidence available to the Agent in that call. |
-| **Optional response journal** | Use `--capture-network` to inspect bounded responses from owned pages and popups through a seventeenth MCP tool, [`tab_network`](docs/NETWORK.md). Off by default; not a programmable JS/CDP surface. |
+| **Optional response journal** | Use `--capture-network` to inspect bounded responses from owned pages and popups through an eighteenth MCP tool, [`tab_network`](docs/NETWORK.md). Off by default; not a programmable JS/CDP surface. |
 | **Optional real video** | Use `--record-video` for private WebM recordings of owned isolated tabs, finalized with SHA-256 at session close. [Recording scope and limits](docs/RECORDING.md). |
 | **Optional navigation policy** | [Exact-origin allow/deny rules](docs/NAVIGATION_POLICY.md) for HTTP(S) document requests, including redirects, frames and popups, in owned isolated browsers. No external CDP; not a network firewall. |
 
-### Sixteen tools
+### Seventeen tools
 
 | Tool | Use it to |
 | --- | --- |
@@ -164,6 +164,7 @@ Owned contexts also accept `--proxy-server` with optional bypass rules and crede
 | `tab_snapshot` | Observe the page, changes or a selected frame. |
 | `tab_find` | Search visible text while scrolling a page or observed virtual-list container; return a fresh actionable snapshot. |
 | `tab_act` | Guarded form input, explicit readonly-input/native-listbox selection, drag/drop, container scrolling, file selection and coordinate actions; optional post-action checks. |
+| `tab_click_named` | Click exactly one actionable main-document control by accessible name after a fresh bounded observation; refuse ambiguous matches. |
 | `tab_verify` | Test explicit page assertions and guarded form values by ref or CSS selector. |
 | `tab_extract` | Read text, links or tables. |
 | `tab_capture` | Capture a JPEG screenshot. |

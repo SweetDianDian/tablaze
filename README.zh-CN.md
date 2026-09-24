@@ -17,7 +17,7 @@
   <a href="package.json"><img src="https://img.shields.io/badge/node-%E2%89%A520-80b7ff?style=flat-square" alt="Node.js 20 及以上"></a>
 </p>
 
-**让 Agent 真正操作浏览器。** Tablaze / 闪页通过十六个 MCP 工具，让 Codex 等客户端连接 Chromium：观察页面、填写表单、提取结果，再检查任务是否完成。
+**让 Agent 真正操作浏览器。** Tablaze / 闪页通过十七个 MCP 工具，让 Codex 等客户端连接 Chromium：观察页面、填写表单、提取结果，再检查任务是否完成。
 
 基于 Playwright，浏览器会话在调用之间持续运行，推理由你的 MCP 客户端完成。MCP 浏览器工具无需额外模型 API Key；可选独立 Agent 循环使用显式配置的规划器。
 
@@ -99,7 +99,7 @@ codex mcp get tablaze
 
 [完整接入指南](docs/CODEX.zh-CN.md)包含桌面配置、浏览器选择和排错。其他 MCP 客户端也可以通过 stdio 启动同一个 `node /绝对路径/tablaze/dist/cli.js` 命令。
 
-需要页面内 JavaScript 时，可显式加 `--page-script`，启用 `tab_script`。它拥有页面同源权限，包括读取登录后的数据和发起网络请求；不能与密钥配置、外部 CDP 或导航策略同时使用。每次执行需要当前主框架快照，并返回新快照。详见[页面脚本权限与恢复边界](docs/PAGE_SCRIPT.md)。默认仍为十六个工具。
+需要页面内 JavaScript 时，可显式加 `--page-script`，启用 `tab_script`。它拥有页面同源权限，包括读取登录后的数据和发起网络请求；不能与密钥配置、外部 CDP 或导航策略同时使用。每次执行需要当前主框架快照，并返回新快照。详见[页面脚本权限与恢复边界](docs/PAGE_SCRIPT.md)。默认仍为十七个工具。
 
 [独立的原生 Codex 页面脚本复测](docs/CODEX_PAGE_SCRIPT_SMOKE.md)中，Tablaze 与 Browser Use CLI-MCP 各一次通过认证响应任务的服务端验收：每侧恰好一次正确提交、零重复写入。Codex 进程样本分别为 198.359 秒和 239.400 秒；浏览器启动方式不同，不构成受控的速度排名或整体胜出结论。
 
@@ -114,7 +114,7 @@ node dist/cli.js run --provider codex --model "<你的Codex模型>" \
 
 当任务文本里只有一个、且确实是起始页面的网址时，可加 `--direct-open-task-url`，让首次模型规划前就完成打开和观察。此功能默认关闭；已知准确地址时也可显式指定 `--start-url <网址>`。多网址或含账号密码的网址不会自动打开。详见 [Agent 初始化与恢复说明](docs/AGENT.md)。
 
-如果有多个可信起始页面，可用 `--initial-actions ./initial-actions.json` 在首次模型规划前依次打开。JSON 数组中的每项包含 HTTP(S) `url`，可用 `newTab: true` 在同一会话中新建标签页；未指定时导航当前标签页。SDK 对应 `initialActions`。每次尝试都写入检查点，结果不明时不会自动重放。[格式与恢复规则](docs/AGENT.md)。
+可信预设可用 `--initial-actions ./initial-actions.json` 在首次模型规划前执行：第一项必须是 HTTP(S) `url`，后续可继续导航、用 `newTab: true` 新建标签页，或指定 `{"click":{"name":"打开详情","role":"button"}}` 点击唯一同名控件。缺失、重名或观察不完整时不会输入。SDK 对应 `initialActions`；每次尝试都写入检查点，结果不明时不会自动重放。[格式与恢复规则](docs/AGENT.md)。
 
 [同版本 Codex 任务网址直开对照](docs/CODEX_DIRECT_TASK_URL_20260924.md)的表单与 iframe 共 18 次运行均通过独立业务验收、每次一次正确写入。表单中 Tablaze 直开后的 Agent 完成中位数为 30.378 秒，关闭时为 55.583 秒；Browser Use 默认评审前为 37.647 秒。iframe 中 Tablaze 仍需 56.317 秒，而 Browser Use 为 40.495 秒：Tablaze 三次均额外检查了输入值是否出现在页面正文。少量可见任务不能证明普遍速度领先。
 
@@ -156,11 +156,11 @@ SDK 调用方可用 `createAgentControl()` 在安全边界暂停、加入可信�
 | **顺序批次** | 一次最多提交 20 个操作，分别报告完成、失败和跳过状态。遇错停止，先前操作仍然生效。 |
 | **延迟控件** | 点击已观察到的入口后，在同一受保护批次中等待并点击唯一、准确命名的可见按钮或菜单项；重名时输入前停止。 |
 | **明确验收** | 核对实际 URL、标题、文字、字段值、可见性与元素数量。已知的同文档结果可在 `tab_act` 批次结束后直接检查，并在同一次调用中形成 Agent 可引用的证据。 |
-| **可选响应日志** | 使用 `--capture-network`，通过第十七个 MCP 工具 [`tab_network`](docs/NETWORK.md) 观察自有页面与弹窗的有界响应；默认关闭，尚非通用 JS/CDP 编程入口。 |
+| **可选响应日志** | 使用 `--capture-network`，通过第十八个 MCP 工具 [`tab_network`](docs/NETWORK.md) 观察自有页面与弹窗的有界响应；默认关闭，尚非通用 JS/CDP 编程入口。 |
 | **可选真实录像** | 使用 `--record-video` 录制自有独立标签页，关闭会话后返回私有 WebM 路径及 SHA-256。[录制范围与限制](docs/RECORDING.md)。 |
 | **可选导航策略** | 通过[精确来源允许/拒绝规则](docs/NAVIGATION_POLICY.md)限制自有独立浏览器中的 HTTP(S) 文档请求，覆盖重定向、frame 和弹窗。不支持外部 CDP，也不是网络防火墙。 |
 
-### 十六个工具
+### 十七个工具
 
 | 工具 | 用途 |
 | --- | --- |
@@ -168,6 +168,7 @@ SDK 调用方可用 `createAgentControl()` 在安全边界暂停、加入可信�
 | `tab_snapshot` | 观察页面、变化或指定 frame。 |
 | `tab_find` | 在页面或已观察的虚拟列表容器中滚动查找文字，返回可操作的新快照。 |
 | `tab_act` | 受保护的表单操作、显式关联的只读输入框与原生列表选择、拖拽、容器滚动、文件选择与坐标操作；可选动作后检查。 |
+| `tab_click_named` | 重新观察后，按可访问名称点击主文档中唯一匹配的可操作控件；重名时拒绝输入。 |
 | `tab_verify` | 执行页面断言，通过受保护的 ref 或 CSS 选择器验收表单值。 |
 | `tab_extract` | 读取文字、链接或表格。 |
 | `tab_capture` | 获取 JPEG 截图。 |

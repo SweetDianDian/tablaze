@@ -4,7 +4,7 @@
 
 本指南把本地构建的 Tablaze stdio 服务接入 Codex。依据当前源码、本机 `codex-cli 0.154.0` 的帮助输出，以及 2026-09-22 查阅的 OpenAI 官方文档编写。注册命令成功与浏览器实际可用是两回事，最后还需要完成下方的冒烟任务。
 
-当前开发分支默认提供 16 个 MCP 工具；可信操作者添加 `--capture-network` 后增加第十七个[自有页面响应观察工具](NETWORK.md)。已记录的 0.1.0 发布和 Codex 验收证据来自较早构建，不能用于证明所有新增功能；识别构建时应同时核对 checkout 的提交和工具列表。
+当前开发分支默认提供 17 个 MCP 工具；可信操作者添加 `--capture-network` 后增加第十八个[自有页面响应观察工具](NETWORK.md)。已记录的 0.1.0 发布和 Codex 验收证据来自较早构建，不能用于证明所有新增功能；识别构建时应同时核对 checkout 的提交和工具列表。
 
 ## 1. 构建与选择浏览器
 
@@ -259,7 +259,7 @@ Tablaze 跟踪自己创建的页面及其弹出页面；清理时只关闭这些
 
 ## 当前开发分支：复杂工作流
 
-下列功能尚未包含在已记录的 0.1.0 发布证据中。服务现在提供 16 个工具：`tab_open`、`tab_snapshot`、`tab_find`、`tab_act`、`tab_extract`、`tab_verify`、`tab_capture`、`tab_list`、`tab_close`、`tab_navigate`、`tab_tabs`、`tab_downloads`、`tab_dialog`、`tab_state`、`tab_pdf`、`tab_extract_structured`。
+下列功能尚未包含在已记录的 0.1.0 发布证据中。服务现在提供 17 个工具：`tab_open`、`tab_snapshot`、`tab_find`、`tab_act`、`tab_click_named`、`tab_extract`、`tab_verify`、`tab_capture`、`tab_list`、`tab_close`、`tab_navigate`、`tab_tabs`、`tab_downloads`、`tab_dialog`、`tab_state`、`tab_pdf`、`tab_extract_structured`。
 
 长页面被截断时，用唯一容器 `selector` 定向观察，或滚动后用 `viewport_only` 读取当前视口。不同范围的增量基线会重置；新的 snapshot_id 会使旧快照失效。
 

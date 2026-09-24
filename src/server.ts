@@ -202,6 +202,19 @@ export function createServer(options: BrowserOptions = {}): { server: McpServer;
     inputSchema: z.object({ session_id: sessionId, action: z.enum(["list", "new", "switch", "close"]), tab_id: z.string().min(1).max(160).optional(), url: z.string().url().max(8192).optional() }).strict(), annotations: writeAnnotations,
   }, ({ session_id, action, tab_id, url }) => guarded(() => engine.tabs(session_id, { action, tabId: tab_id, url })));
 
+  server.registerTool("tab_click_named", {
+    title: "Click one uniquely named control", description: "Take a fresh bounded snapshot of the active tab's main document, then click exactly one visible button, link, menuitem, tab, checkbox or radio with this exact accessible name. Optional role narrows the match. Refuse missing, ambiguous or truncated observations; the guarded click refuses a changed target. Returns a fresh snapshot. Useful for trusted pre-model setup without a brittle index; it can still have side effects and is never automatically replayed after an uncertain outcome.",
+    inputSchema: z.object({ session_id: sessionId, name: z.string().trim().min(1).max(200), role: z.enum(["button", "link", "menuitem", "tab", "checkbox", "radio"]).optional() }).strict(), annotations: writeAnnotations,
+  }, ({ session_id, name, role }, extra) => guarded(async () => {
+    const snapshot = await engine.snapshot(session_id, { maxElements: 500 });
+    const truncation = snapshot.truncation as Record<string, unknown> | undefined;
+    if (truncation?.elements === true || truncation?.metadata === true) throw new BrowserError("SNAPSHOT_TRUNCATED", "The current page observation is incomplete; use a targeted snapshot and an observed reference.");
+    const actionable = new Set(["button", "link", "menuitem", "tab", "checkbox", "radio"]);
+    const matches = (snapshot.elements as Array<Record<string, unknown>>).filter(item => item.name === name && typeof item.role === "string" && actionable.has(item.role) && (!role || item.role === role));
+    if (matches.length !== 1 || typeof matches[0].ref !== "string") throw new BrowserError(matches.length ? "AMBIGUOUS_TARGET" : "TARGET_NOT_FOUND", "The accessible name must identify exactly one current actionable control.");
+    return engine.act(session_id, snapshot.snapshot_id as string, [{ type: "click", ref: matches[0].ref }], { snapshot: true, signal: extra.signal });
+  }));
+
   server.registerTool("tab_downloads", {
     title: "Inspect downloads", description: "List downloads created by this session. Supply download_id to wait up to timeout_ms for completion. Completed results include an owned local artifact path. Pending is not completed; failed downloads set isError. Files remain after closing the session.",
     inputSchema: z.object({ session_id: sessionId, download_id: z.string().min(1).max(160).optional(), timeout_ms: timeout.optional() }).strict(), annotations: readAnnotations,

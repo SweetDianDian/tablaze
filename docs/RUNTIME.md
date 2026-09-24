@@ -101,7 +101,7 @@ CLI checkpoint JSON contains full Agent history and browser storage and is writt
 
 ## 简体中文
 
-本页描述当前源码默认的 16 个 MCP 工具、可选的第十七个[网络响应工具](NETWORK.md)、自有持久 profile 与类型化自定义工具 SDK。历史 0.1.0 归档和早期验证报告覆盖较早的能力范围，请结合提交号与工具目录确认所用构建。已记录的真实 Codex 对照全部早于持久 profile 增量，不代表该功能的模型表现。npm 尚未发布。
+本页描述当前源码默认的 17 个 MCP 工具、可选的第十八个[网络响应工具](NETWORK.md)、自有持久 profile 与类型化自定义工具 SDK。历史 0.1.0 归档和早期验证报告覆盖较早的能力范围，请结合提交号与工具目录确认所用构建。已记录的真实 Codex 对照全部早于持久 profile 增量，不代表该功能的模型表现。npm 尚未发布。
 
 ### 会话与观察
 

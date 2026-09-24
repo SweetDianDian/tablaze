@@ -259,7 +259,7 @@ A subsequent actual model-driven acceptance run passed `tab_list â†’ tab_open â†
 
 ## Development branch: extended workflows
 
-These additions are not covered by the historical 0.1.0 release evidence. The server now exposes 16 tools: `tab_open`, `tab_snapshot`, `tab_find`, `tab_act`, `tab_extract`, `tab_verify`, `tab_capture`, `tab_list`, `tab_close`, `tab_navigate`, `tab_tabs`, `tab_downloads`, `tab_dialog`, `tab_state`, `tab_pdf`, and `tab_extract_structured`.
+These additions are not covered by the historical 0.1.0 release evidence. The server now exposes 17 tools: `tab_open`, `tab_snapshot`, `tab_find`, `tab_act`, `tab_click_named`, `tab_extract`, `tab_verify`, `tab_capture`, `tab_list`, `tab_close`, `tab_navigate`, `tab_tabs`, `tab_downloads`, `tab_dialog`, `tab_state`, `tab_pdf`, and `tab_extract_structured`.
 
 For truncated pages, scope `tab_snapshot` to exactly one CSS root, or scroll and observe only the viewport. Changing scope resets the diff baseline. A new snapshot invalidates earlier revisions.
 

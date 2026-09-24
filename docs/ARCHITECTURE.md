@@ -15,7 +15,7 @@ flowchart TB
     LOOP["任务循环<br/>观察 → 规划 → 执行 → 验收"]
     MODEL["显式配置的规划模型<br/>Codex CLI / Anthropic / Ollama / 兼容接口"]
     CONTROL["预算、暂停与恢复<br/>检查点、重试与备用模型"]
-    INIT["可信预设导航<br/>打开页面 / 新标签页"]
+    INIT["可信预设动作<br/>打开页面 / 新标签页 / 唯一名称点击"]
     EXTRACT["可选独立模型提取<br/>页面来源 → Schema / 原文引用校验"]
   end
 

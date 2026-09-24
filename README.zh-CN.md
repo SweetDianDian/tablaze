@@ -114,6 +114,8 @@ node dist/cli.js run --provider codex --model "<你的Codex模型>" \
 
 当任务文本里只有一个、且确实是起始页面的网址时，可加 `--direct-open-task-url`，让首次模型规划前就完成打开和观察。此功能默认关闭；已知准确地址时也可显式指定 `--start-url <网址>`。多网址或含账号密码的网址不会自动打开。详见 [Agent 初始化与恢复说明](docs/AGENT.md)。
 
+[同版本 Codex 任务网址直开对照](docs/CODEX_DIRECT_TASK_URL_20260924.md)的表单与 iframe 共 18 次运行均通过独立业务验收、每次一次正确写入。表单中 Tablaze 直开后的 Agent 完成中位数为 30.378 秒，关闭时为 55.583 秒；Browser Use 默认评审前为 37.647 秒。iframe 中 Tablaze 仍需 56.317 秒，而 Browser Use 为 40.495 秒：Tablaze 三次均额外检查了输入值是否出现在页面正文。少量可见任务不能证明普遍速度领先。
+
 使用 `--output-schema ./result.schema.json` 可要求 Agent 结束前返回符合 JSON Schema 的结构化结果；业务正确性仍需应用验收。恢复运行时须提供相同 Schema。详见 [Agent 约定](docs/AGENT.md)。
 
 使用 `--extraction-model <模型名>` 可让 Agent 在真实页面上调用独立提取模型：`tab_extract_model` 自行读取当前浏览器正文和 URL，拒绝截断证据，并逐字段校验 Schema 与原文引用；完成任务仍需页面核验。提供方可通过 `--extraction-provider` 单独选择。用法与边界见[提取说明](docs/EXTRACTION.md)。

@@ -114,6 +114,8 @@ node dist/cli.js run --provider codex --model "<your-codex-model>" \
 
 For a task with exactly one intended starting URL, add `--direct-open-task-url` to open it before the first model call. This is opt-in; `--start-url <url>` remains available when the caller already knows the exact page. See [initialization and resume behavior](docs/AGENT.md).
 
+In the [same-source Codex task-URL follow-up](docs/CODEX_DIRECT_TASK_URL_20260924.md), all 18 form/iframe attempts across Tablaze on/off and Browser Use passed the independent business judge once. On the form task, Tablaze's median Agent-done time was 30.378 s with direct-open versus 55.583 s without it; Browser Use took 37.647 s before its default judge. On the iframe task, Tablaze still took 56.317 s versus Browser Use's 40.495 s because all three Tablaze runs added an invalid input-as-page-text check. These visible tasks do not prove a general speed lead.
+
 Use `--output-schema ./result.schema.json` to require a schema-valid JSON deliverable before the Agent can finish; the application should still check business correctness. The same schema is required on resume. See [the Agent contract](docs/AGENT.md).
 
 SDK callers can use `createAgentControl()` to pause at a safe boundary, add trusted steering, and resume with a fresh plan; queued writes are skipped and prior verification must be repeated. See [live operator intervention](docs/AGENT.md#live-operator-intervention-sdk).

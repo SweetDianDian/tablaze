@@ -109,6 +109,7 @@ For an explicitly configured initialization/popup experiment, append
 `--tablaze-initialize-url true --tablaze-popup-policy follow-single --browser-use-judge true`.
 These options do not silently change the defaults used by historical runs. The
 scripted adapter also supports them for integration checks, without model calls.
+The [clean-source direct-task-URL development report](../../docs/CODEX_DIRECT_TASK_URL_20260924.md) records three form and three iframe seeds with the option on/off and a matched Browser Use on batch, including all raw trajectories.
 
 ## Same Codex CLI transport for both agents
 

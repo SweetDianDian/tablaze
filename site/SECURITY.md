@@ -46,7 +46,7 @@ Browser guards and private context keys detect changes to the owned active main 
 
 CLI checkpoints contain full Agent messages, tool arguments/results and browser storage, including cookies and possible localStorage/IndexedDB credentials. They are plaintext JSON, written through a temporary file with mode `0600` and atomic rename; they are not encrypted or signed. The checkpoint parser validates structure and limits, not authorship. Use checkpoints you trust and protect their containing directory and copies. Custom library persistence callbacks are responsible for their own file permissions and storage policy.
 
-Workspace restoration recreates isolated contexts and owned tab URLs in a new empty engine, using new session IDs. It reloads pages instead of preserving their live DOM, drafts, sessionStorage, JavaScript memory, scroll positions, pending downloads or transactions. It cannot import into an external CDP profile. Previous refs and completion evidence are invalidated; fresh observations and checks are required. Reopening saved URLs may itself trigger website behavior. See [runtime restoration boundaries](https://github.com/SweetDianDian/tablaze/blob/main/docs/RUNTIME.md#checkpoints-and-restoration).
+Workspace restoration recreates isolated contexts and owned tab URLs in a new empty engine, using new session IDs. It reloads pages instead of preserving their live DOM, drafts, sessionStorage, JavaScript memory, scroll positions, pending downloads or transactions. It cannot import into an external CDP profile. Previous refs and completion evidence are invalidated; fresh observations and checks are required. Reopening saved URLs may itself trigger website behavior. See [runtime restoration boundaries](RUNTIME.md#checkpoints-and-restoration).
 
 A crash or cancellation after a mutating tool starts can leave an unknown outcome. Resume does not automatically retry that call. The CLI reports `needs_input` before browser/model startup until the operator checks the business state and supplies an explicit `--reconciled` note; library callers supply reconciliation. That note is not proof of success or permission to repeat a submission. A checkpoint that requires an application `validateCompletion` policy must be resumed through the library with that policy, rather than through the CLI.
 
@@ -56,7 +56,7 @@ Version-3 bound checkpoints require the same complete registry contract and trus
 
 CLI 检查点包含完整 Agent 消息、工具参数与结果、浏览器存储，以及 cookies 和可能存在于 localStorage/IndexedDB 中的凭据。文件是明文 JSON，通过权限为 `0600` 的临时文件与原子重命名保存，没有加密或签名。解析器检查结构和范围，不验证作者身份；只使用可信检查点，并保护所在目录与副本。自定义库持久化回调需要自行落实文件权限和保存策略。
 
-工作区恢复在新的空引擎中重建隔离上下文及自有标签页 URL，并分配新的 session ID。它重新加载页面，不保存实时 DOM、草稿、sessionStorage、JavaScript 内存、滚动位置、待完成下载或事务，也不能导入外部 CDP profile。旧引用和验收证据失效，必须重新观察和检查；重新打开 URL 本身也可能触发网页逻辑。详见[运行机制的恢复边界](https://github.com/SweetDianDian/tablaze/blob/main/docs/RUNTIME.md#检查点与恢复)。
+工作区恢复在新的空引擎中重建隔离上下文及自有标签页 URL，并分配新的 session ID。它重新加载页面，不保存实时 DOM、草稿、sessionStorage、JavaScript 内存、滚动位置、待完成下载或事务，也不能导入外部 CDP profile。旧引用和验收证据失效，必须重新观察和检查；重新打开 URL 本身也可能触发网页逻辑。详见[运行机制的恢复边界](RUNTIME.md#检查点与恢复)。
 
 修改操作开始后发生崩溃或取消，可能留下未知结果。恢复不会自动重试该操作。CLI 会在启动浏览器或模型前返回 `needs_input`，直至操作者核对业务状态并提供显式 `--reconciled` 说明；库调用方使用 reconciliation。说明不证明成功，也不授权重新提交。要求应用 `validateCompletion` 策略的检查点必须通过库恢复并提供该策略，不能通过 CLI 恢复。
 

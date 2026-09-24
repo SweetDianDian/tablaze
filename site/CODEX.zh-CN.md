@@ -232,7 +232,7 @@ Tablaze 跟踪自己创建的页面及其弹出页面；清理时只关闭这些
 | `STALE_SNAPSHOT` / `STALE_REFERENCE` | 重新观察和判断目标，使用新版本及引用。 |
 | `ACTION_FAILED` | 检查遮挡、禁用状态、超时及部分完成情况，重试前重新观察。 |
 | `BATCH_TIMEOUT` / `CANCELLED` | 核对已发生的副作用；运行中被中断的会话会关闭。 |
-| `CLEANUP_INCOMPLETE` | 有界等待内无法确认自有资源全部关闭。清理错误与业务结果分开检查；未决 CDP 页面创建保留迟到清理逻辑，不会关闭无关页面。详见[运行边界](https://github.com/SweetDianDian/tablaze/blob/main/docs/RUNTIME.md)。 |
+| `CLEANUP_INCOMPLETE` | 有界等待内无法确认自有资源全部关闭。清理错误与业务结果分开检查；未决 CDP 页面创建保留迟到清理逻辑，不会关闭无关页面。详见[运行边界](RUNTIME.md)。 |
 | `SELECTOR_COUNT` | 缩小到唯一根元素；结构化字段确实需要数组时可设置 `multiple: true`。 |
 | `FRAME_NOT_FOUND` | 刷新 frames 列表，不重用已分离的 frame。 |
 | `SENSITIVE_VALUE` | 对 password/hidden input 改用独立可见结果验收。 |
@@ -269,7 +269,7 @@ Tablaze 跟踪自己创建的页面及其弹出页面；清理时只关闭这些
 {"session_id":"<session_id>","selector":"#results","viewport_only":true,"max_elements":150}
 ```
 
-快照会列出当前 `tab_id` 和自有 `tabs`。默认不自动切换弹窗，可先观察列表再显式切换。全局选项 `--popup-policy follow-single` 可在激活动作的有界窗口内，跟随与当前自有 opener 关联的唯一弹窗；多个、后台或迟到的候选仍需显式观察。跟随后返回新快照和 `replan_required`，跳过剩余旧上下文动作。除 `ok` 外还应检查 `batch_complete`，具体关联规则见[运行机制](https://github.com/SweetDianDian/tablaze/blob/main/docs/RUNTIME.md)。
+快照会列出当前 `tab_id` 和自有 `tabs`。默认不自动切换弹窗，可先观察列表再显式切换。全局选项 `--popup-policy follow-single` 可在激活动作的有界窗口内，跟随与当前自有 opener 关联的唯一弹窗；多个、后台或迟到的候选仍需显式观察。跟随后返回新快照和 `replan_required`，跳过剩余旧上下文动作。除 `ok` 外还应检查 `batch_complete`，具体关联规则见[运行机制](RUNTIME.md)。
 
 ```json
 {"session_id":"<session_id>","action":"switch","tab_id":"<tab_id_from_tabs>"}
@@ -354,4 +354,4 @@ CLI 先写入权限为 0600 的临时文件，再原子重命名到 checkpoint �
 
 上次修改的结果不确定时，恢复在启动浏览器和模型前返回 `needs_input`。先核对真实业务结果，再显式传入 `--reconciled "<核对方式及观察结果>"`。这个操作员确认既不证明任务完成，也不要求重放提交。库调用方使用 `reconciliation`；若 checkpoint 要求应用的 `validateCompletion` 函数，必须通过库接口重新提供该函数，CLI 不能恢复可执行应用策略。
 
-恢复沿用规划步数、工具调用数、模型规划调用数和已用时间；默认沿用原预算，进程停机时间不计入。库返回的 checkpoint 计入最终持久化等待；CLI 磁盘文件中的已用时间计入写入前的浏览器状态导出，但尚未包含最后一次原子文件写入本身的耗时，因此不是对最后这段 I/O 的精确计时。详见[运行机制](https://github.com/SweetDianDian/tablaze/blob/main/docs/RUNTIME.md)与[checkpoint 安全边界](SECURITY.md)。
+恢复沿用规划步数、工具调用数、模型规划调用数和已用时间；默认沿用原预算，进程停机时间不计入。库返回的 checkpoint 计入最终持久化等待；CLI 磁盘文件中的已用时间计入写入前的浏览器状态导出，但尚未包含最后一次原子文件写入本身的耗时，因此不是对最后这段 I/O 的精确计时。详见[运行机制](RUNTIME.md)与[checkpoint 安全边界](SECURITY.md)。

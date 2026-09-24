@@ -1128,6 +1128,83 @@ export class BrowserEngine {
             } else { actionStarted = true; await state.frame.evaluate(({ x, y }) => window.scrollBy(x, y), delta); }
           }
           else if (action.type === 'wait') { if (!action.text) throw new BrowserError('INVALID_ARGUMENT', 'Wait text must be nonempty.'); await state.frame.getByText(action.text).first().waitFor({ state: 'visible', timeout: remaining(integer(action.timeoutMs, this.timeout, 100, 60000, 'timeoutMs')) }); }
+          else if (action.type === 'select') {
+            const target = await this.reference(session, state, action.ref);
+            const nativeSelect = await target.evaluate(node => node instanceof HTMLSelectElement);
+            const actionDeadline = performance.now() + this.timeout;
+            if (nativeSelect) {
+              actionStarted = true;
+              await target.click({ trial: true, timeout: remaining(this.timeout) });
+              checkInterruption();
+              await this.reference(session, state, action.ref);
+              await target.selectOption(action.values, { timeout: remaining(Math.max(1, actionDeadline - performance.now())) });
+            } else {
+              if (action.values.length !== 1 || typeof action.values[0] !== 'string') throw new BrowserError('INVALID_ARGUMENT', 'A linked readonly listbox requires exactly one option value.');
+              const requested = action.values[0];
+              // Resolve the option in the observed input's own document or shadow
+              // root. An unrelated listbox is never inferred from proximity.
+              const resolved = await target.evaluateHandle((node, value) => {
+                if (!(node instanceof HTMLInputElement) || !node.readOnly || !['text', 'search', 'email', 'tel', 'url'].includes(node.type)) return { code: 'UNSUPPORTED_SELECT_TARGET' };
+                const ids = [...new Set(['aria-controls', 'aria-owns'].flatMap(attribute => (node.getAttribute(attribute) ?? '').split(/\s+/).filter(Boolean)))];
+                if (ids.length !== 1) return { code: ids.length ? 'AMBIGUOUS_LISTBOX' : 'UNSUPPORTED_SELECT_TARGET' };
+                const root = node.getRootNode() as Document | ShadowRoot;
+                const listbox = root.getElementById(ids[0]);
+                if (!(listbox instanceof HTMLSelectElement) || listbox.multiple || listbox.size <= 1) return { code: 'UNSUPPORTED_SELECT_TARGET' };
+                const matches = [...listbox.options].filter(option => option.value === value);
+                if (matches.length !== 1) return { code: matches.length ? 'AMBIGUOUS_OPTION' : 'OPTION_NOT_FOUND' };
+                const option = matches[0];
+                if (listbox.disabled || option.disabled || option.parentElement instanceof HTMLOptGroupElement && option.parentElement.disabled) return { code: 'OPTION_DISABLED' };
+                return { code: 'READY', option, before: node.value };
+              }, requested);
+              let option: ElementHandle<Element> | null = null;
+              let before = '';
+              try {
+                const info = await resolved.evaluate(value => ({ code: value.code, before: value.before ?? '' }));
+                if (info.code !== 'READY') throw new BrowserError(info.code, 'The readonly input has no unique enabled option in an explicitly linked native listbox.');
+                before = info.before;
+                option = (await resolved.getProperty('option')).asElement() as ElementHandle<Element> | null;
+                if (!option) throw new BrowserError('OPTION_NOT_FOUND', 'The linked option disappeared before input.');
+              } finally { await resolved.dispose(); }
+              try {
+                checkInterruption();
+                actionStarted = true; // Opening the listbox can run page callbacks.
+                await target.click({ trial: true, timeout: remaining(this.timeout) });
+                checkInterruption();
+                await this.reference(session, state, action.ref);
+                await target.click({ timeout: remaining(Math.max(1, actionDeadline - performance.now())) });
+                checkInterruption();
+                await this.reference(session, state, action.ref);
+                await option.click({ trial: true, timeout: remaining(Math.max(1, actionDeadline - performance.now())) });
+                checkInterruption();
+                const stillLinked = await target.evaluate((node, input) => {
+                  const { selected, value } = input;
+                  if (!(node instanceof HTMLInputElement) || !(selected instanceof HTMLOptionElement) || !selected.isConnected) return false;
+                  const ids = [...new Set(['aria-controls', 'aria-owns'].flatMap(attribute => (node.getAttribute(attribute) ?? '').split(/\s+/).filter(Boolean)))];
+                  if (ids.length !== 1) return false;
+                  const listbox = (node.getRootNode() as Document | ShadowRoot).getElementById(ids[0]);
+                  return listbox instanceof HTMLSelectElement && !listbox.multiple && listbox.size > 1 && selected.closest('select') === listbox && selected.value === value && !listbox.disabled && !selected.disabled && !(selected.parentElement instanceof HTMLOptGroupElement && selected.parentElement.disabled);
+                }, { selected: option, value: requested });
+                if (!stillLinked) throw new BrowserError('STALE_REFERENCE', 'The linked listbox changed after opening. Observe it again.');
+                await option.click({ timeout: remaining(Math.max(1, actionDeadline - performance.now())) });
+                checkInterruption();
+                await this.reference(session, state, action.ref);
+                const readApplied = () => target.evaluate((node, value) => {
+                  const ids = [...new Set(['aria-controls', 'aria-owns'].flatMap(attribute => (node.getAttribute(attribute) ?? '').split(/\s+/).filter(Boolean)))];
+                  const listbox = ids.length === 1 ? (node.getRootNode() as Document | ShadowRoot).getElementById(ids[0]) : null;
+                  return { display: (node as HTMLInputElement).value, selected: listbox instanceof HTMLSelectElement && [...listbox.options].some(option => option.value === value && option.selected) };
+                }, requested);
+                let applied = await readApplied();
+                const settleUntil = Math.min(deadline, performance.now() + 500);
+                while (applied.selected && applied.display === before && applied.display !== requested && performance.now() < settleUntil) {
+                  await new Promise(resolve => setTimeout(resolve, Math.min(50, settleUntil - performance.now())));
+                  checkInterruption();
+                  await this.reference(session, state, action.ref);
+                  applied = await readApplied();
+                }
+                if (!applied.selected || applied.display === before && applied.display !== requested) throw new BrowserError('SELECTION_NOT_APPLIED', 'The option click did not update the linked input. Inspect the page before retrying.');
+              } finally { await option?.dispose(); }
+            }
+          }
           else {
             const target = await this.reference(session, state, action.ref);
             checkInterruption();
@@ -1267,7 +1344,6 @@ export class BrowserEngine {
               }
               case 'fill': if (action.value.length > 10000) throw new BrowserError('INVALID_ARGUMENT', 'Fill value exceeds 10000 characters.'); await target.fill(action.value, { timeout }); break;
               case 'press': { await target.focus(); checkInterruption(); const focused = await target.evaluate(element => { let active = document.activeElement; while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement; return active === element; }); if (!focused) throw new BrowserError('NOT_FOCUSABLE', 'The referenced element cannot receive keyboard input.'); popupWindow = armPopupWindow(); await target.press(action.key, { timeout: remaining(timeout) }); break; }
-              case 'select': await target.selectOption(action.values, { timeout }); break;
               case 'check': await target.setChecked(action.checked, { timeout }); break;
               default: throw new BrowserError('INVALID_ARGUMENT', 'Unsupported action type.');
             }

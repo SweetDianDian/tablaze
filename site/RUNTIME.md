@@ -1,6 +1,6 @@
 # Runtime reference / 运行机制
 
-[English](#english) · [简体中文](#简体中文) · [Project home](../README.md)
+[English](#english) · [简体中文](#简体中文) · [Project home](https://github.com/SweetDianDian/tablaze/blob/main/README.md)
 
 ## English
 
@@ -8,7 +8,7 @@ This reference describes the current source, its 16 default MCP tools, one optio
 
 ### Sessions and observations
 
-Tablaze uses a persistent Playwright Chromium process. Default sessions use separate temporary contexts and retain state while their context/server runs; they are not saved disk profiles. Explicit storage-state exports and workspace checkpoints can restore selected state later. The MCP server makes no model calls. The separate optional [`tablaze run` Agent](AGENT.md) uses an explicitly configured model adapter; Jev is not integrated.
+Tablaze uses a persistent Playwright Chromium process. Default sessions use separate temporary contexts and retain state while their context/server runs; they are not saved disk profiles. Explicit storage-state exports and workspace checkpoints can restore selected state later. The MCP server makes no model calls. The separate optional [`tablaze run` Agent](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md) uses an explicitly configured model adapter; Jev is not integrated.
 
 `tab_open` returns a `session_id`, `snapshot_id` and element refs. A new snapshot supersedes the previous revision. A batch consumes its supplied revision; use the fresh snapshot returned by `tab_act`, or observe again. Refs from another session, frame observation or replaced/navigated document are not interchangeable.
 
@@ -59,9 +59,9 @@ The optional [`tab_network` journal](NETWORK.md) appears only with `--capture-ne
 
 `tab_pdf` prints the whole active tab to a local PDF artifact, rather than the selected child frame. It accepts A4/Letter, landscape and background options and returns the path, size, SHA-256, URL and tab identity. Output is limited to 50 MiB. Exceeding the configured action timeout closes the owned tab and returns `PDF_TIMEOUT`; print layout can differ from the screenshot.
 
-[`tab_extract_structured`](EXTRACTION.md) applies an explicit field map and JSON Schema to the observed frame. Citations identify the frame URL, selector, match index and raw observed value. Limits are 30 fields, 20 matches per field and 100 elements in total; type, schema, hidden-field and truncation failures are explicit. The separate provider-independent extraction API checks source-bound quotes for every populated leaf. Schema conformance and quote presence establish provenance, not the truth of a source or the correctness of every interpretation.
+[`tab_extract_structured`](https://github.com/SweetDianDian/tablaze/blob/main/docs/EXTRACTION.md) applies an explicit field map and JSON Schema to the observed frame. Citations identify the frame URL, selector, match index and raw observed value. Limits are 30 fields, 20 matches per field and 100 elements in total; type, schema, hidden-field and truncation failures are explicit. The separate provider-independent extraction API checks source-bound quotes for every populated leaf. Schema conformance and quote presence establish provenance, not the truth of a source or the correctness of every interpretation.
 
-Snapshots omit password/hidden input values, and value checks reject those inputs. Other values, page text, URLs, extracted content, screenshots and PDFs can contain private information. See [security boundaries and reporting](../SECURITY.md).
+Snapshots omit password/hidden input values, and value checks reject those inputs. Other values, page text, URLs, extracted content, screenshots and PDFs can contain private information. See [security boundaries and reporting](SECURITY.md).
 
 Current scope is Chromium, ordinary DOM controls, open shadow roots and explicitly selected frames. The compact snapshot is not a complete accessibility tree. Closed shadow roots remain outside DOM observation.
 
@@ -75,7 +75,7 @@ Current scope is Chromium, ordinary DOM controls, open shadow roots and explicit
 
 ### Typed custom tools and execution context
 
-The SDK's [`defineTool` and `createToolRegistry`](CUSTOM_TOOLS.md) compose typed application operations with the base MCP client. Custom tools have explicit versions, Zod object input/output validation, public JSON Schema and trusted read/write effects. The application supplies tenant credentials and other execution context separately from model arguments. Only public tool schemas and descriptions reach the planner; handlers can still return or log sensitive data, so this is not a general output redactor.
+The SDK's [`defineTool` and `createToolRegistry`](https://github.com/SweetDianDian/tablaze/blob/main/docs/CUSTOM_TOOLS.md) compose typed application operations with the base MCP client. Custom tools have explicit versions, Zod object input/output validation, public JSON Schema and trusted read/write effects. The application supplies tenant credentials and other execution context separately from model arguments. Only public tool schemas and descriptions reach the planner; handlers can still return or log sensitive data, so this is not a general output redactor.
 
 The registry refreshes available tools for each planning decision. Optional `allowedOrigins` filters custom tools by exact HTTP(S) origin, including port; it does not constrain all browser network requests or install a general domain/file policy. Browser guards bind the owned active main document, current location, navigation generation and tab-activation history. They do not grant authority over cross-origin child frames. Planning completion and dispatch both recheck the captured binding. An executor-only `contextKey` also detects changes between catalogs, including switching away and back, so old refs and evidence cannot silently carry into the new context.
 
@@ -95,9 +95,9 @@ An unknown mutating call blocks automatic continuation. The CLI returns `needs_i
 
 Steps, tool calls, planner calls and elapsed runtime carry forward. Saved limits remain the defaults; time while the process is stopped is excluded. The returned library checkpoint includes the final persistence callback's wait. The CLI's saved elapsed time includes browser-state export before saving, but does not yet include the final atomic file write itself. It is therefore not an exact measure of all wall-clock persistence time.
 
-CLI checkpoint JSON contains full Agent history and browser storage and is written with file mode `0600` through a temporary file and atomic rename. This is sensitive plaintext, not an encrypted browser backup. See [Agent setup and recovery](AGENT.md) and [checkpoint security](../SECURITY.md#checkpoints-and-recovery--检查点与恢复).
+CLI checkpoint JSON contains full Agent history and browser storage and is written with file mode `0600` through a temporary file and atomic rename. This is sensitive plaintext, not an encrypted browser backup. See [Agent setup and recovery](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md) and [checkpoint security](SECURITY.md#checkpoints-and-recovery--检查点与恢复).
 
-[Complete arguments and troubleshooting](CODEX.md) · [Tarball installation](CODEX.md#1-build-and-choose-a-browser) · [Release archives](RELEASE.md) · [Benchmark boundaries](../bench/README.md)
+[Complete arguments and troubleshooting](CODEX.md) · [Tarball installation](CODEX.md#1-build-and-choose-a-browser) · [Release archives](https://github.com/SweetDianDian/tablaze/blob/main/docs/RELEASE.md) · [Benchmark boundaries](https://github.com/SweetDianDian/tablaze/blob/main/bench/README.md)
 
 ## 简体中文
 
@@ -105,7 +105,7 @@ CLI checkpoint JSON contains full Agent history and browser storage and is writt
 
 ### 会话与观察
 
-Tablaze 通过 Playwright 持续运行 Chromium。默认会话使用彼此独立的临时上下文，状态在上下文和服务运行期间保留，不是保存到磁盘的 profile；显式导出的存储状态与工作区检查点可在之后恢复部分状态。MCP 服务不调用模型；独立可选的 [`tablaze run` Agent](AGENT.md) 使用显式配置的模型适配器。目前未接入 Jev。
+Tablaze 通过 Playwright 持续运行 Chromium。默认会话使用彼此独立的临时上下文，状态在上下文和服务运行期间保留，不是保存到磁盘的 profile；显式导出的存储状态与工作区检查点可在之后恢复部分状态。MCP 服务不调用模型；独立可选的 [`tablaze run` Agent](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md) 使用显式配置的模型适配器。目前未接入 Jev。
 
 `tab_open` 返回 `session_id`、`snapshot_id` 和元素 ref。新快照使旧版本失效；批次消耗传入的版本，下一步使用 `tab_act` 返回的新快照或重新观察。不同会话、frame 观察及已导航或替换文档的引用不能混用。
 
@@ -154,9 +154,9 @@ CDP 清理只关闭自有页面并断开连接，不主动关闭无关标签页�
 
 `tab_pdf` 将整个活动标签页打印为本地 PDF，不只输出选中的子 frame。可选 A4/Letter、横向及背景，返回路径、大小、SHA-256、URL 和标签页身份。产物上限 50 MiB；超过配置的单步超时会关闭自有标签页并返回 `PDF_TIMEOUT`。打印布局可能与截图不同。
 
-[`tab_extract_structured`](EXTRACTION.md) 对已观察的 frame 应用显式字段映射与 JSON Schema。引用包含 frame URL、选择器、匹配序号和实际读取的原始值。最多 30 个字段、每字段 20 个匹配、总计 100 个元素；类型、schema、隐藏字段和截断错误均显式返回。独立于模型厂商的提取 API 为每个已填充叶值检查绑定来源中的引用文字。schema 合法与引用存在能说明来源，不能证明来源真实或所有解释正确。
+[`tab_extract_structured`](https://github.com/SweetDianDian/tablaze/blob/main/docs/EXTRACTION.md) 对已观察的 frame 应用显式字段映射与 JSON Schema。引用包含 frame URL、选择器、匹配序号和实际读取的原始值。最多 30 个字段、每字段 20 个匹配、总计 100 个元素；类型、schema、隐藏字段和截断错误均显式返回。独立于模型厂商的提取 API 为每个已填充叶值检查绑定来源中的引用文字。schema 合法与引用存在能说明来源，不能证明来源真实或所有解释正确。
 
-快照省略 password/hidden input 的值，字段值检查拒绝这些输入。其他字段、页面文字、URL、提取内容、截图和 PDF 仍可能包含私人信息，具体见[安全边界与报告方式](../SECURITY.md)。
+快照省略 password/hidden input 的值，字段值检查拒绝这些输入。其他字段、页面文字、URL、提取内容、截图和 PDF 仍可能包含私人信息，具体见[安全边界与报告方式](SECURITY.md)。
 
 当前范围为 Chromium、普通 DOM 控件、开放 Shadow DOM 和显式选择的 frame；精简快照不是完整无障碍树，封闭 Shadow DOM 无法通过 DOM 观察。
 
@@ -170,7 +170,7 @@ CDP 清理只关闭自有页面并断开连接，不主动关闭无关标签页�
 
 ### 类型化自定义工具与执行上下文
 
-SDK 的 [`defineTool` 与 `createToolRegistry`](CUSTOM_TOOLS.md) 将类型化业务操作与基础 MCP 客户端组合。自定义工具声明版本、Zod 对象输入/输出、公有 JSON Schema 和可信读写分类。租户凭据及其他执行上下文由应用独立于模型参数提供，规划器只接收公有工具合同。处理函数仍可能在返回值或日志中泄露数据，因此这不是通用输出脱敏机制。
+SDK 的 [`defineTool` 与 `createToolRegistry`](https://github.com/SweetDianDian/tablaze/blob/main/docs/CUSTOM_TOOLS.md) 将类型化业务操作与基础 MCP 客户端组合。自定义工具声明版本、Zod 对象输入/输出、公有 JSON Schema 和可信读写分类。租户凭据及其他执行上下文由应用独立于模型参数提供，规划器只接收公有工具合同。处理函数仍可能在返回值或日志中泄露数据，因此这不是通用输出脱敏机制。
 
 注册表在每次规划前刷新可用工具；`allowedOrigins` 按包含端口的精确 HTTP(S) origin 过滤自定义工具，不约束所有浏览器网络请求，也不提供通用域名或文件策略。浏览器 guard 绑定自有活动主文档、当前位置、导航版本与标签页激活历史，不授予跨域子 frame 权限。规划结束与真正调用处理函数前均重新检查。仅供执行器使用的 `contextKey` 还会检测两次目录之间的变化，包括切走再切回，防止旧引用与验收证据无声进入新上下文。
 
@@ -190,9 +190,9 @@ workspace 也保存弹窗策略；没有该字段的旧版本 1 文件恢复为 
 
 步骤数、工具调用数、规划调用数和已消耗运行时间累计保留，默认继续使用保存的预算；进程停止期间不计时。库最终返回的检查点包含最后一次持久化回调的等待时间。CLI 写入磁盘的 elapsed time 包含保存前导出浏览器状态的耗时，但尚未包含最后原子写入本身的耗时，因此不是全部持久化墙钟时间的精确计量。
 
-CLI 检查点 JSON 包含完整 Agent 历史和浏览器存储，通过权限为 `0600` 的临时文件与原子重命名保存。它是敏感明文，不是加密的浏览器备份。参见 [Agent 配置与恢复](AGENT.md)及[检查点安全边界](../SECURITY.md#checkpoints-and-recovery--检查点与恢复)。
+CLI 检查点 JSON 包含完整 Agent 历史和浏览器存储，通过权限为 `0600` 的临时文件与原子重命名保存。它是敏感明文，不是加密的浏览器备份。参见 [Agent 配置与恢复](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md)及[检查点安全边界](SECURITY.md#checkpoints-and-recovery--检查点与恢复)。
 
-[完整参数与排错](CODEX.zh-CN.md) · [安装本地包](CODEX.zh-CN.md#1-构建与选择浏览器) · [发布归档](RELEASE.md) · [基准范围](../bench/README.md)
+[完整参数与排错](CODEX.zh-CN.md) · [安装本地包](CODEX.zh-CN.md#1-构建与选择浏览器) · [发布归档](https://github.com/SweetDianDian/tablaze/blob/main/docs/RELEASE.md) · [基准范围](https://github.com/SweetDianDian/tablaze/blob/main/bench/README.md)
 
 ## Development additions / 当前开发分支
 

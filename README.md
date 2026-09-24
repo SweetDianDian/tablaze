@@ -155,7 +155,7 @@ Owned contexts also accept `--proxy-server` with optional bypass rules and crede
 | `tab_open` | Open a page and receive its first snapshot. |
 | `tab_snapshot` | Observe the page, changes or a selected frame. |
 | `tab_find` | Search visible text while scrolling a page or observed virtual-list container; return a fresh actionable snapshot. |
-| `tab_act` | Guarded form input, drag/drop, container scrolling, file selection and coordinate actions; optional post-action checks. |
+| `tab_act` | Guarded form input, explicit readonly-input/native-listbox selection, drag/drop, container scrolling, file selection and coordinate actions; optional post-action checks. |
 | `tab_verify` | Test explicit page assertions and guarded form values by ref or CSS selector. |
 | `tab_extract` | Read text, links or tables. |
 | `tab_capture` | Capture a JPEG screenshot. |

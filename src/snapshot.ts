@@ -161,7 +161,11 @@ export function inspectDOM(input: any): any {
     const name = tidy(labelledBy || element.getAttribute('aria-label') || labels || element.getAttribute('alt') || textName || element.getAttribute('title') || element.getAttribute('placeholder') || ((type === 'submit' || type === 'button' || type === 'reset') ? control.value : '') || element.getAttribute('name'));
     const description = referencedText('aria-describedby');
     const options = tag === 'select' ? [...(element as HTMLSelectElement).options] : [];
-    const fingerprint = JSON.stringify([tag, type, role, name, description, element.getAttribute('title'), (element as HTMLAnchorElement).href, element.getAttribute('target'), element.getAttribute('download'), (element as HTMLButtonElement).formAction, element.getAttribute('formmethod'), element.getAttribute('id'), element.getAttribute('name'), (element as HTMLButtonElement).form?.action ?? '', (element as HTMLButtonElement).form?.method ?? '', options.map(option => [option.value, option.label, option.disabled])]);
+    const relatedIds = [...new Set(['aria-controls', 'aria-owns'].flatMap(attribute => (element.getAttribute(attribute) ?? '').split(/\s+/).filter(Boolean)))];
+    const related = tag === 'input' && control.readOnly && ['text', 'search', 'email', 'tel', 'url'].includes(type) && relatedIds.length === 1 ? root.getElementById(relatedIds[0]) : null;
+    const associatedListbox = related instanceof HTMLSelectElement && !related.multiple && related.size > 1 ? related : null;
+    const associatedOptions = associatedListbox ? [...associatedListbox.options] : [];
+    const fingerprint = JSON.stringify([tag, type, role, name, description, element.getAttribute('title'), (element as HTMLAnchorElement).href, element.getAttribute('target'), element.getAttribute('download'), (element as HTMLButtonElement).formAction, element.getAttribute('formmethod'), element.getAttribute('id'), element.getAttribute('name'), element.getAttribute('aria-controls'), element.getAttribute('aria-owns'), (element as HTMLButtonElement).form?.action ?? '', (element as HTMLButtonElement).form?.method ?? '', options.map(option => [option.value, option.label, option.disabled]), associatedListbox?.id, associatedOptions.map(option => [option.value, option.label, option.disabled])]);
     const entry: Record<string, unknown> = { role, name: name.slice(0, 400 + outputPadding) };
     let fieldsTruncated = name.length > 400;
     if (tag === 'input' || tag === 'textarea' || tag === 'select') {
@@ -181,6 +185,10 @@ export function inspectDOM(input: any): any {
       const optionsTruncated = options.length > 20 || options.slice(0, 20).some(option => option.value.length > 100 || option.label.length > 100);
       if (optionsTruncated) entry.options_truncated = true;
       fieldsTruncated ||= optionsTruncated;
+    }
+    if (associatedListbox) {
+      entry.associated_listbox = { options: associatedOptions.slice(0, 20).map(option => ({ value: option.value.slice(0, 100 + outputPadding), label: option.label.slice(0, 100 + outputPadding), disabled: option.disabled || option.parentElement instanceof HTMLOptGroupElement && option.parentElement.disabled })), options_truncated: associatedOptions.length > 20 || associatedOptions.slice(0, 20).some(option => option.value.length > 100 || option.label.length > 100) };
+      fieldsTruncated ||= (entry.associated_listbox as { options_truncated: boolean }).options_truncated;
     }
     if (element.getAttribute('aria-disabled') === 'true') entry.disabled = true;
     const style = getComputedStyle(element);

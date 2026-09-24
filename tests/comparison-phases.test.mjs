@@ -171,8 +171,8 @@ await writeFile(join(c.workDirectory,'adapter-progress.json'),JSON.stringify(res
   assert.equal(record.steps, 2);
   assert.equal(record.toolCalls, 3);
   assert.equal(record.modelCalls, 0);
-  assert.deepEqual(record.engineOptions, { useJudge: true });
-  assert.deepEqual(report.environment.engineOptions.tablaze, { initializeUrl: false, directOpenTaskUrl: false, popupPolicy: 'stay' });
+  assert.deepEqual(record.engineOptions, { useJudge: true, pairedInitialActions: false });
+  assert.deepEqual(report.environment.engineOptions.tablaze, { initializeUrl: false, directOpenTaskUrl: false, pairedInitialActions: false, popupPolicy: 'stay' });
   assert.match(report.environment.deadlineScope, /common absolute deadline/);
   assert.equal(report.environment.historicalTimingComparable, false);
   assert.equal(report.summary['browser-use'].passed, 1);

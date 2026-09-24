@@ -6,7 +6,7 @@ const call = (name, args = {}) => ({ type: 'tools', calls: [{ name, arguments: a
 const payload = result => result.structuredContent ?? JSON.parse(result.content.find(item => item.type === 'text').text);
 
 /** A fixture-aware script validates the harness and tools, never model ability. */
-export function scriptedPlanner(attempt, { initialized = false } = {}) {
+export function scriptedPlanner(attempt, { initialized = false, pairedInitialActions = false } = {}) {
   let initialPage;
   function* workflow() {
     let page = initialized ? initialPage : (yield call('tab_open', { url: attempt.url })).data;
@@ -107,6 +107,24 @@ export function scriptedPlanner(attempt, { initialized = false } = {}) {
         const total = extracted.items.slice(1).reduce((sum, row) => sum + Number(row[1]) * Number(row[2]), 0);
         yield* act([{ type: 'fill', ref: find('Total'), value: String(total) }, { type: 'click', ref: find('Submit total') }]); break;
       }
+      case 'two-page': {
+        if (!pairedInitialActions) yield* click('Destination page');
+        const destinationTab = page.tab_id;
+        if (pairedInitialActions) {
+          const sourceTab = page.tabs.find(tab => tab.url === attempt.initialActionUrls[0]);
+          if (!sourceTab) throw new Error('Script fixture source tab unavailable');
+          page = (yield call('tab_tabs', { session_id: page.session_id, action: 'switch', tab_id: sourceTab.tab_id })).data;
+        } else {
+          page = (yield call('tab_navigate', { session_id: page.session_id, action: 'back' })).data;
+        }
+        const code = page.text.match(/S-[A-F0-9]{12}/)?.[0];
+        if (!code) throw new Error('Script fixture source code unavailable in page text');
+        page = pairedInitialActions
+          ? (yield call('tab_tabs', { session_id: page.session_id, action: 'switch', tab_id: destinationTab })).data
+          : (yield call('tab_navigate', { session_id: page.session_id, action: 'forward' })).data;
+        yield* act([{ type: 'fill', ref: find('Source code'), value: code }, { type: 'click', ref: find('Submit code') }]);
+        break;
+      }
       default: throw new Error('No script for fixture task');
     }
     const verification = yield call('tab_verify', { session_id: page.session_id, checks, timeout_ms: 5000 });
@@ -117,7 +135,7 @@ export function scriptedPlanner(attempt, { initialized = false } = {}) {
     const previous = messages.filter(message => message.role === 'tool').at(-1);
     if (!iterator) {
       if (initialized) {
-        if (previous?.name !== 'tab_open') throw new Error('Script fixture expected executor initialization');
+        if (previous?.name !== (pairedInitialActions ? 'tab_tabs' : 'tab_open')) throw new Error('Script fixture expected executor initialization');
         initialPage = payload(previous.result);
       }
       iterator = workflow();
@@ -154,7 +172,7 @@ export async function runTablaze(attempt, config) {
         } finally { toolTimeMs += performance.now() - start; }
       },
     };
-    const originalPlanner = config.mode === 'scripted' ? scriptedPlanner(attempt, { initialized: config.tablazeInitializeUrl === true || config.tablazeDirectOpenTaskUrl === true }) : createOpenAICompatiblePlanner({
+    const originalPlanner = config.mode === 'scripted' ? scriptedPlanner(attempt, { initialized: config.tablazeInitializeUrl === true || config.tablazeDirectOpenTaskUrl === true || config.pairedInitialActions === true, pairedInitialActions: config.pairedInitialActions === true }) : createOpenAICompatiblePlanner({
       endpoint: config.gatewayEndpoint, model: config.model, apiKey: 'local-benchmark-gateway', supportsImages: true,
     });
     const planner = async input => {
@@ -166,7 +184,7 @@ export async function runTablaze(attempt, config) {
       return decision;
     };
     phase('agent_run_start');
-    result = await runAgent({ task: attempt.prompt, ...(config.tablazeInitializeUrl === true ? { startUrl: attempt.url } : {}), directOpenTaskUrl: config.tablazeDirectOpenTaskUrl === true, planner, tools, maxSteps: config.maxSteps ?? 40, maxToolCalls: config.maxToolCalls ?? 150, timeoutMs: Math.max(1, deadlineAtMs - Date.now()), onEvent: event => {
+    result = await runAgent({ task: attempt.prompt, ...(config.tablazeInitializeUrl === true ? { startUrl: attempt.url } : {}), ...(config.pairedInitialActions === true ? { initialActions: attempt.initialActionUrls.map(url => ({ url, newTab: true })) } : {}), directOpenTaskUrl: config.tablazeDirectOpenTaskUrl === true, planner, tools, maxSteps: config.maxSteps ?? 40, maxToolCalls: config.maxToolCalls ?? 150, timeoutMs: Math.max(1, deadlineAtMs - Date.now()), onEvent: event => {
       observedEvents.push(event);
       phase(event.type, { step: event.step, ...(event.call ? { tool: event.call.name } : {}) });
     } });

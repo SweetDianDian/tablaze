@@ -16,9 +16,9 @@ workflows, selectors and canvas coordinates. Results test integration and browse
 functionality; they do not measure model planning or visual reasoning. No model
 requests or paid calls occur in scripted mode.
 
-The 17 tasks are `form`, `pagination`, `dynamic-menu`, `popup`, `auth-return`, `network-receipt`, `shadow-form`, `readonly-listbox`,
+The 18 tasks are `form`, `pagination`, `dynamic-menu`, `popup`, `auth-return`, `network-receipt`, `shadow-form`, `readonly-listbox`,
 `iframe-form`, `large-page`, `virtual-list`, `canvas`, `upload`, `download`, `state`,
-`duplicate-write`, and `extraction`. Use `--tasks form,popup --repeat 2 --seed 10`
+`duplicate-write`, `extraction`, and `two-page`. Use `--tasks form,popup --repeat 2 --seed 10`
 for a subset. The `state` task checks storage across navigation, not restart or
 full authentication parity. The `auth-return` fixture uses two local origins: the provider popup must authorize once and notify the original app tab, which must submit once. It is a synthetic return flow, not a production OAuth service. The duplicate-write fixture commits an order before
 returning HTTP 503; the agent must inspect its receipt instead of resubmitting.
@@ -103,6 +103,7 @@ each attempt's `engineOptions`:
 | `--browser-use-judge true\|false` | `true` | Preserves Browser Use's post-task model judge unless explicitly disabled. |
 | `--tablaze-initialize-url true\|false` | `false` | Supplies the fixture service's trusted attempt URL to the public `runAgent({startUrl})` option before planning. No URL is extracted from task text. |
 | `--tablaze-direct-open-task-url true\|false` | `false` | Uses the public `runAgent({directOpenTaskUrl})` option to open the sole URL in the trusted task before planning. Mutually exclusive with `--tablaze-initialize-url`. |
+| `--paired-initial-actions true\|false` | `false` | For `--tasks two-page` only, opens the same two trusted URLs in new tabs before planning on both frameworks: Tablaze `runAgent({initialActions})` and Browser Use `Agent(initial_actions=[navigate, navigate])`. Mutually exclusive with the other URL initialization options. |
 | `--tablaze-popup-policy stay\|follow-single` | `stay` | Selects the public `createServer({popupPolicy})` behavior. `follow-single` follows a unique eligible action popup and replans from its snapshot. |
 
 For an explicitly configured initialization/popup experiment, append
@@ -110,6 +111,8 @@ For an explicitly configured initialization/popup experiment, append
 These options do not silently change the defaults used by historical runs. The
 scripted adapter also supports them for integration checks, without model calls.
 The [clean-source direct-task-URL development report](../../docs/CODEX_DIRECT_TASK_URL_20260924.md) records three form and three iframe seeds with the option on/off and a matched Browser Use on batch, including all raw trajectories.
+
+The `two-page` task gives both frameworks the same source and destination URLs. The source contains a seed-derived code absent from the prompt; the destination must receive that code exactly once. The independent server judge requires GET visits to both pages and one correct POST. A model-free scripted run checks harness wiring; a matched model run is required for any agent-performance claim. For example, append `--tasks two-page --paired-initial-actions true --repeat 3` to a matched command.
 
 ## Same Codex CLI transport for both agents
 

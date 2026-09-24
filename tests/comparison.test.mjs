@@ -81,6 +81,23 @@ test('authorization-return judge requires one provider approval and one app subm
   assert.equal(duplicate.evidence.duplicateWrites, 1);
 });
 
+test('two-page judge requires both page visits and the exact source code exactly once', async t => {
+  const service = await startTaskService();
+  t.after(() => service.close());
+  const attempt = await service.createAttempt('two-page', 23);
+  assert.equal(attempt.initialActionUrls.length, 2);
+  const source = await (await fetch(attempt.initialActionUrls[0])).text();
+  const code = source.match(/S-[A-F0-9]{12}/)?.[0];
+  assert.ok(code);
+  const save = value => fetch(attempt.initialActionUrls[1].replace(/destination$/, 'save'), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code: value }) });
+  await save(code);
+  assert.equal((await attempt.judge()).passed, false, 'A correct write without visiting destination is insufficient');
+  await fetch(attempt.initialActionUrls[1]);
+  assert.equal((await attempt.judge()).passed, true);
+  await save(code);
+  assert.equal((await attempt.judge()).passed, false, 'Duplicate submission is rejected');
+});
+
 test('model gateway enforces equal wire settings and measures returned usage without a paid provider', async t => {
   const requests = [];
   const provider = createServer(async (request, response) => {
@@ -118,6 +135,17 @@ test('missing model/dependencies stay not_run and never become a competitor fail
   assert.equal(report.summary['browser-use'].failed, 0);
   assert.throws(() => parseArgs(['--engine', 'unknown']));
   assert.throws(() => parseArgs(['--tasks', 'form,form']));
+  assert.throws(() => parseArgs(['--paired-initial-actions', 'true', '--tasks', 'form']));
+  assert.throws(() => parseArgs(['--paired-initial-actions', 'true', '--tasks', 'two-page', '--tablaze-initialize-url', 'true']));
+});
+
+test('paired initial actions execute both visits before scripted planning', { timeout: 30000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'tablaze-paired-initial-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const { report } = await runComparison({ engine: 'tablaze-scripted', tasks: ['two-page'], pairedInitialActions: true, repeat: 1, seed: 23, timeoutMs: 20000, output: directory });
+  assert.equal(report.attempts[0].outcome, 'passed', JSON.stringify(report.attempts[0]));
+  assert.equal(report.attempts[0].judge.evidence.sourceViews, 1);
+  assert.equal(report.attempts[0].judge.evidence.destinationViews, 1);
 });
 
 test('scripted Tablaze smoke completes diverse real-browser tasks with independent judges', { timeout: 180000 }, async t => {

@@ -23,6 +23,7 @@ export const TASKS = Object.freeze([
   { id: 'state', tags: ['state', 'navigation'], instruction: 'Remember the session, then open the Check remembered state link and check it. The remembered token must survive navigation.' },
   { id: 'duplicate-write', tags: ['recovery', 'duplicate_writes'], instruction: 'Create exactly one order. The server may report an interrupted response after saving. Inspect the receipt before retrying; do not create a second order.' },
   { id: 'extraction', tags: ['extraction', 'tables'], instruction: 'Read the table and submit the total cost of all rows with quantity times unit price.' },
+  { id: 'two-page', tags: ['tabs', 'initial_actions', 'cross_page'], instruction: 'Read the source code from the source page, then enter it on the destination page and submit exactly once.' },
 ]);
 const escape = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const script = value => JSON.stringify(value).replace(/</g, '\\u003c');
@@ -67,6 +68,9 @@ function page(attempt, route) {
     case 'state': body = route === 'check' ? `<button onclick='save({token:localStorage.getItem(${script('remember-' + attempt.id)})})'>Check remembered state</button>` : `<button onclick='localStorage.setItem(${script('remember-' + attempt.id)},${script(attempt.token)});document.querySelector("#status").textContent="Session remembered"'>Remember session</button><a href="${prefix}/check">Check remembered state</a>`; break;
     case 'duplicate-write': body = route === 'receipt' ? `<p id="receipt">Orders recorded: ${attempt.records.length}</p><p>${attempt.records.length ? 'Order receipt ready' : 'No receipt'}</p>` : `<button onclick="save({order:'one'})">Create order</button><a href="${prefix}/receipt">Inspect receipt</a>`; break;
     case 'extraction': body = `<table><tr><th>Item</th><th>Quantity</th><th>Unit price</th></tr><tr><td>Pencils</td><td>3</td><td>${attempt.price}</td></tr><tr><td>Pads</td><td>2</td><td>7</td></tr></table><label>Total<input id="total"></label><button onclick="save({total:Number(document.querySelector('#total').value)})">Submit total</button>`; break;
+    case 'two-page': body = route === 'destination'
+      ? `<h1>Destination page</h1><label>Source code<input id="source-code"></label><button onclick="save({code:document.querySelector('#source-code').value})">Submit code</button><a href="${prefix}/source">Source page</a>`
+      : `<h1>Source page</h1><p>Source code: <strong>${attempt.sourceCode}</strong></p><a href="${prefix}/destination">Destination page</a>`; break;
     default: throw new Error('Unknown fixture task');
   }
   return `<!doctype html><html><head><meta charset="utf-8"><title>Comparison ${escape(attempt.task.id)}</title><style>body{font:16px sans-serif;margin:8px}label{display:block;margin:8px 0}button,a{margin:4px}table,td,th{border:1px solid #888;padding:5px}</style></head><body><script>${post}</script>${body}<p id="status">Ready</p></body></html>`;
@@ -103,6 +107,10 @@ export async function startTaskService() {
       const attempt = match && attempts.get(match[1]);
       if (!attempt) { response.writeHead(404); response.end('Unknown attempt'); return; }
       const route = match[2];
+      if (attempt.task.id === 'two-page' && request.method === 'GET') {
+        if (route === 'source') attempt.sourceViews++;
+        if (route === 'destination') attempt.destinationViews++;
+      }
       if (route === 'network.json' && attempt.task.id === 'network-receipt') {
         attempt.receiptRequests++;
         const authorized = request.headers['x-authorization'] === attempt.token && attempt.authorizations === 1;
@@ -140,13 +148,14 @@ export async function startTaskService() {
       const uploadContent = `Comparison document seed=${seed}\n`;
       const uploadPath = join(directory, `${id}.txt`);
       if (taskId === 'upload') await writeFile(uploadPath, uploadContent, { mode: 0o600 });
-      const attempt = { id, task, seed, token, price, receiptReference, receiptRequests: 0, records: [], downloadRequests: 0, authorizations: 0, appOrigin: base, authOrigin: authBase, authUrl: `${authBase}/r/${id}/auth`, uploadContent, csv: `quarter,revenue\nQ1,${100 + seed}\n` };
+      const attempt = { id, task, seed, token, price, receiptReference, receiptRequests: 0, records: [], downloadRequests: 0, authorizations: 0, sourceCode: `S-${hash(`source:${taskId}:${seed}`).slice(0, 12).toUpperCase()}`, sourceViews: 0, destinationViews: 0, appOrigin: base, authOrigin: authBase, authUrl: `${authBase}/r/${id}/auth`, uploadContent, csv: `quarter,revenue\nQ1,${100 + seed}\n` };
       attempts.set(id, attempt);
-      const canonicalPrompt = `${task.instruction}\nStart at {{TASK_URL}}.${taskId === 'upload' ? '\nSupplied document: {{UPLOAD_PATH}}.' : ''}`;
-      const url = `${base}/r/${id}/`;
-      const prompt = canonicalPrompt.replace('{{TASK_URL}}', url).replace('{{UPLOAD_PATH}}', uploadPath);
+      const canonicalPrompt = taskId === 'two-page' ? `${task.instruction}\nSource page: {{SOURCE_URL}}.\nDestination page: {{DESTINATION_URL}}.` : `${task.instruction}\nStart at {{TASK_URL}}.${taskId === 'upload' ? '\nSupplied document: {{UPLOAD_PATH}}.' : ''}`;
+      const url = `${base}/r/${id}/${taskId === 'two-page' ? 'source' : ''}`;
+      const initialActionUrls = taskId === 'two-page' ? [url, `${base}/r/${id}/destination`] : null;
+      const prompt = canonicalPrompt.replace('{{TASK_URL}}', url).replace('{{SOURCE_URL}}', initialActionUrls?.[0]).replace('{{DESTINATION_URL}}', initialActionUrls?.[1]).replace('{{UPLOAD_PATH}}', uploadPath);
       return {
-        id, taskId, seed, tags: task.tags, url, authUrl: ['auth-return', 'network-receipt'].includes(taskId) ? attempt.authUrl : null, prompt, canonicalPrompt,
+        id, taskId, seed, tags: task.tags, url, initialActionUrls, authUrl: ['auth-return', 'network-receipt'].includes(taskId) ? attempt.authUrl : null, prompt, canonicalPrompt,
         taskHash: hash(JSON.stringify({ task, seed, canonicalPrompt })),
         uploadPath: taskId === 'upload' ? uploadPath : null,
         async judge({ artifactPaths = [] } = {}) {
@@ -177,10 +186,11 @@ export async function startTaskService() {
             case 'state': passed = exactOne && record.token === token; break;
             case 'duplicate-write': passed = exactOne && record.order === 'one'; break;
             case 'extraction': passed = exactOne && record.total === price * 3 + 14; break;
+            case 'two-page': passed = exactOne && record.code === attempt.sourceCode && attempt.sourceViews >= 1 && attempt.destinationViews >= 1; break;
           }
-          return { passed, evidence: { records, writeCount: records.length, duplicateWrites: Math.max(0, records.length - 1), downloadRequests: attempt.downloadRequests, authorizations: attempt.authorizations, receiptRequests: attempt.receiptRequests, artifactHashes }, judge: 'fixture-server-state-and-artifact-sha256-v1' };
+          return { passed, evidence: { records, writeCount: records.length, duplicateWrites: Math.max(0, records.length - 1), downloadRequests: attempt.downloadRequests, authorizations: attempt.authorizations, receiptRequests: attempt.receiptRequests, sourceViews: attempt.sourceViews, destinationViews: attempt.destinationViews, artifactHashes }, judge: 'fixture-server-state-and-artifact-sha256-v1' };
         },
-        reset() { attempt.records.length = 0; attempt.downloadRequests = 0; attempt.authorizations = 0; attempt.receiptRequests = 0; },
+        reset() { attempt.records.length = 0; attempt.downloadRequests = 0; attempt.authorizations = 0; attempt.receiptRequests = 0; attempt.sourceViews = 0; attempt.destinationViews = 0; },
       };
     },
     async close() { server.closeAllConnections(); authServer.closeAllConnections(); await Promise.all([new Promise(resolve => server.close(resolve)), new Promise(resolve => authServer.close(resolve))]); await rm(directory, { recursive: true, force: true }); },

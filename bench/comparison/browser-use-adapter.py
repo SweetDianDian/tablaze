@@ -204,6 +204,8 @@ async def execute(config):
     agent = Agent(
         task=config["prompt"], llm=llm, judge_llm=MeasuredJudge(**llm_options),
         use_judge=config.get("browserUseJudge", True), browser=browser, use_vision=True,
+        initial_actions=([{"navigate": {"url": url, "new_tab": True}} for url in config["initialActionUrls"]]
+                         if config.get("pairedInitialActions") else None),
         available_file_paths=[config["uploadPath"]] if config.get("uploadPath") else [],
         file_system_path=str(work / "agent-files"), calculate_cost=False,
         enable_signal_handler=False,

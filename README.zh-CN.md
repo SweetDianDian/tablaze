@@ -116,7 +116,7 @@ node dist/cli.js run --provider codex --model "<你的Codex模型>" \
 
 使用 `--extraction-model <模型名>` 可让 Agent 在真实页面上调用独立提取模型：`tab_extract_model` 自行读取当前浏览器正文和 URL，拒绝截断证据，并逐字段校验 Schema 与原文引用；完成任务仍需页面核验。提供方可通过 `--extraction-provider` 单独选择。用法与边界见[提取说明](docs/EXTRACTION.md)。
 
-CLI 的 Agent 与 stdio MCP 默认不允许上传任意本机文件。使用可重复的 `--available-file /绝对路径` 授权指定文件；同一会话完成的下载也可用短 ID 再上传。详见[文件策略](docs/FILE_POLICY.md)。
+CLI 的 Agent 与 stdio MCP 默认不允许上传任意本机文件。使用可重复的 `--available-file /绝对路径` 授权指定文件；同一会话完成的下载也可用短 ID 再上传。认证任务可通过 `--storage-state-file /绝对路径/state.json` 将受信任的 Playwright 状态导入新的隔离会话，模型不会收到该文件路径。详见[文件策略](docs/FILE_POLICY.md)。
 
 SDK 调用方可用 `createAgentControl()` 在安全边界暂停、加入可信操作员指令，再以新计划继续；未执行的写入会跳过，先前的验证必须重做。详见 [运行中干预](docs/AGENT.md#live-operator-intervention-sdk)。
 

@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { createReadStream, realpathSync, statSync } from 'node:fs';
+import { closeSync, constants, createReadStream, fstatSync, openSync, readSync, realpathSync, statSync } from 'node:fs';
 import { mkdtemp, realpath, stat, writeFile, chmod, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, isAbsolute, join } from 'node:path';
@@ -22,7 +22,7 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; devicePreset?: DevicePreset; viewport?: { width: number; height: number }; noViewport?: boolean; windowSize?: { width: number; height: number }; windowPosition?: { x: number; y: number }; screen?: { width: number; height: number }; deviceScaleFactor?: number; userAgent?: string; locale?: string; timezoneId?: string; isMobile?: boolean; hasTouch?: boolean; permissions?: string[]; proxy?: { server: string; bypass?: string; username?: string; password?: string }; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; availableFilePaths?: string[]; captureNetwork?: boolean; recordVideo?: boolean; recordHar?: boolean; recordHarContent?: 'omit' | 'embed' | 'attach'; recordHarMode?: 'full' | 'minimal'; recordTrace?: boolean; allowPageScript?: boolean }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; devicePreset?: DevicePreset; viewport?: { width: number; height: number }; noViewport?: boolean; windowSize?: { width: number; height: number }; windowPosition?: { x: number; y: number }; screen?: { width: number; height: number }; deviceScaleFactor?: number; userAgent?: string; locale?: string; timezoneId?: string; isMobile?: boolean; hasTouch?: boolean; permissions?: string[]; proxy?: { server: string; bypass?: string; username?: string; password?: string }; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; availableFilePaths?: string[]; storageStateFile?: string; captureNetwork?: boolean; recordVideo?: boolean; recordHar?: boolean; recordHarContent?: 'omit' | 'embed' | 'attach'; recordHarMode?: 'full' | 'minimal'; recordTrace?: boolean; allowPageScript?: boolean }
 export interface BrowserRecording { session_id: string; tab_id: string; path: string; bytes: number; mime_type: 'video/webm'; sha256: string }
 export interface BrowserDiagnosticArtifact { session_id: string; kind: 'har' | 'trace'; path: string; bytes: number; mime_type: 'application/json' | 'application/zip'; sha256: string; content_mode?: 'omit' | 'embed' | 'attach'; har_mode?: 'full' | 'minimal' }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
@@ -99,6 +99,8 @@ export class BrowserEngine {
   private navigationGuards = new Map<Browser, NavigationGuard>();
   private readonly secretStore?: CompiledSecretStore;
   private readonly availableUploadFiles?: Array<{ id: string; declared: string; path: string; dev: number; ino: number; name: string; bytes: number }>;
+  private readonly initialStorageState?: StorageState;
+  private readonly initialStorageStateHash?: string;
   private readonly filePolicyHash?: string;
   private readonly savedStateFiles = new Set<string>();
   private readonly secretBridgeKey = `__tablaze_${randomUUID().replaceAll('-', '')}`;
@@ -170,7 +172,32 @@ export class BrowserEngine {
           this.availableUploadFiles.push({ id: `file:${this.availableUploadFiles.length + 1}`, declared, path: canonical, dev: info.dev, ino: info.ino, name: basename(canonical), bytes: info.size });
         } catch { throw new BrowserError('FILE_POLICY_INVALID', 'An available file is missing, duplicated, not regular, or exceeds 50 MiB.'); }
       }
-      this.filePolicyHash = createHash('sha256').update(JSON.stringify(this.availableUploadFiles.map(item => [item.path, item.dev, item.ino]))).digest('hex');
+    }
+    if (options.storageStateFile !== undefined) {
+      if (typeof options.storageStateFile !== 'string' || !isAbsolute(options.storageStateFile) || options.storageStateFile.length > 4096 || options.cdpUrl || options.profileDir) throw new BrowserError('STATE_POLICY_INVALID', 'Storage-state file requires an absolute path and a fresh isolated browser context.');
+      let descriptor: number | undefined;
+      try {
+        descriptor = openSync(realpathSync(options.storageStateFile), constants.O_RDONLY | constants.O_NONBLOCK);
+        const info = fstatSync(descriptor);
+        if (!info.isFile() || info.size > 10 * 1024 * 1024) throw new Error();
+        const buffer = Buffer.alloc(10 * 1024 * 1024 + 1);
+        let length = 0;
+        while (length < buffer.length) {
+          const count = readSync(descriptor, buffer, length, buffer.length - length, null);
+          if (!count) break;
+          length += count;
+        }
+        if (length > 10 * 1024 * 1024) throw new Error();
+        const parsed: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(buffer.subarray(0, length)));
+        if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed) || !Array.isArray((parsed as StorageState).cookies) || !Array.isArray((parsed as StorageState).origins)) throw new Error();
+        this.initialStorageState = parsed as StorageState;
+        this.initialStorageStateHash = createHash('sha256').update(buffer.subarray(0, length)).digest('hex');
+      } catch { throw new BrowserError('STATE_POLICY_INVALID', 'Storage-state file must be a readable regular UTF-8 Playwright state JSON of at most 10 MiB.'); }
+      finally { if (descriptor !== undefined) closeSync(descriptor); }
+    }
+    if (this.availableUploadFiles || this.initialStorageStateHash) {
+      const files = this.availableUploadFiles?.map(item => [item.path, item.dev, item.ino]) ?? [];
+      this.filePolicyHash = createHash('sha256').update(JSON.stringify(this.initialStorageStateHash ? { files, initialState: this.initialStorageStateHash } : files)).digest('hex');
     }
   }
 
@@ -427,7 +454,8 @@ export class BrowserEngine {
     try {
       check();
       this.assertNavigationAllowed(url, true);
-      if (options.storageState && (this.options.cdpUrl || this.options.profileDir)) throw new BrowserError('INVALID_ARGUMENT', 'Storage state import requires a fresh isolated context, not an attached or persistent profile.');
+      const storageState = options.storageState ?? this.initialStorageState;
+      if (storageState && (this.options.cdpUrl || this.options.profileDir)) throw new BrowserError('INVALID_ARGUMENT', 'Storage state import requires a fresh isolated context, not an attached or persistent profile.');
       if (typeof options.storageState === 'string' && this.availableUploadFiles && !this.savedStateFiles.has(options.storageState)) throw new BrowserError('STATE_FILE_NOT_AVAILABLE', 'Storage state import requires a file exported by this browser engine.');
       if (typeof options.storageState === 'string' && (await phase(stat(options.storageState))).size > 10 * 1024 * 1024) throw new BrowserError('STATE_TOO_LARGE', 'Storage state exceeds 10 MiB.');
       const browser = await phase(this.browser());
@@ -436,11 +464,15 @@ export class BrowserEngine {
       check();
       if (this.options.recordHar) harPath = join(await phase(this.artifacts()), `${randomUUID()}.${this.options.recordHarContent === 'attach' ? 'zip' : 'har'}`);
       if (this.options.recordTrace) tracePath = join(await phase(this.artifacts()), `${randomUUID()}.trace.zip`);
-      context = this.options.profileDir
+      try { context = this.options.profileDir
         ? this.profileContext
         : ownsContext
-        ? await phase(browser.newContext({ viewport: this.options.noViewport ? null : this.options.viewport ?? { width: 1280, height: 800 }, screen: this.options.screen, deviceScaleFactor: this.options.deviceScaleFactor, userAgent: this.options.userAgent, locale: this.options.locale, timezoneId: this.options.timezoneId, isMobile: this.options.isMobile, hasTouch: this.options.hasTouch, permissions: this.options.permissions, proxy: this.options.proxy, acceptDownloads: true, storageState: options.storageState, ...(this.navigationPolicy ? { serviceWorkers: 'block' as const } : {}), ...(this.options.recordVideo ? { recordVideo: { dir: await this.artifacts(), size: this.options.viewport ?? this.options.windowSize ?? { width: 1280, height: 800 } } } : {}), ...(harPath ? { recordHar: { path: harPath, content: this.options.recordHarContent ?? 'omit', mode: this.options.recordHarMode ?? 'full' } } : {}) }), value => { context = value; }, value => value.close())
-        : browser.contexts()[0];
+        ? await phase(browser.newContext({ viewport: this.options.noViewport ? null : this.options.viewport ?? { width: 1280, height: 800 }, screen: this.options.screen, deviceScaleFactor: this.options.deviceScaleFactor, userAgent: this.options.userAgent, locale: this.options.locale, timezoneId: this.options.timezoneId, isMobile: this.options.isMobile, hasTouch: this.options.hasTouch, permissions: this.options.permissions, proxy: this.options.proxy, acceptDownloads: true, storageState, ...(this.navigationPolicy ? { serviceWorkers: 'block' as const } : {}), ...(this.options.recordVideo ? { recordVideo: { dir: await this.artifacts(), size: this.options.viewport ?? this.options.windowSize ?? { width: 1280, height: 800 } } } : {}), ...(harPath ? { recordHar: { path: harPath, content: this.options.recordHarContent ?? 'omit', mode: this.options.recordHarMode ?? 'full' } } : {}) }), value => { context = value; }, value => value.close())
+        : browser.contexts()[0]; }
+      catch (error) {
+        if (storageState && !interruption && !options.signal?.aborted && !(error instanceof BrowserError)) throw new BrowserError('STATE_IMPORT_FAILED', 'The trusted storage state could not be applied to a new browser context.');
+        throw error;
+      }
       if (!context) throw new BrowserError('CDP_CONTEXT_MISSING', 'The attached browser has no default context.');
       check();
       if (tracePath) await phase(context.tracing.start({ screenshots: true, snapshots: true, sources: false }));

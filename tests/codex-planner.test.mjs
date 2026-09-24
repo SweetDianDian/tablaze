@@ -146,6 +146,7 @@ for (const [mode, failure, code] of [
   const planner = fake.planner({ maxResponseBytes: 1024, onDiagnostic: value => diagnostics.push(value) });
   const result = await runAgent({ task: 'Reject unusable responses.', tools: rejectingTools, planner });
   await planner.close(); assert.equal(result.status, 'failed'); assert.equal(result.failure.code, failure); assert.equal(result.toolCalls, 0);
+  assert.equal(result.failure.retryable, mode === 'nonzero' || mode === 'failed-terminal');
   assert.equal(diagnostics[0].status, 'failed'); assert.equal(diagnostics[0].code, code);
   assert.equal(JSON.stringify({ result, diagnostics }).includes(privateValue), false); await gone((await fake.reports())[0].cwd);
 });

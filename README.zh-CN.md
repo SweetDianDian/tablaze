@@ -116,7 +116,7 @@ node dist/cli.js run --provider codex --model "<你的Codex模型>" \
 
 SDK 调用方可用 `createAgentControl()` 在安全边界暂停、加入可信操作员指令，再以新计划继续；未执行的写入会跳过，先前的验证必须重做。详见 [运行中干预](docs/AGENT.md#live-operator-intervention-sdk)。
 
-默认兼容提供方仍需 `--endpoint`。原生 Anthropic 和 Ollama 使用各自协议及默认端点；认证、输出参数和模型能力各有边界。详见[提供方配置](docs/PROVIDERS.md)、[CLI 示例](docs/CODEX.zh-CN.md#为-run-选择规划器)和[Agent 验收与恢复](docs/AGENT.md)。Anthropic/Ollama 目前只有本地协议覆盖，尚无真实推理结果；上方历史对比仍对应原来的运行代码哈希。
+默认兼容提供方仍需 `--endpoint`。原生 Anthropic 和 Ollama 使用各自协议及默认端点；认证、输出参数和模型能力各有边界。显式配置 `--fallback-model` 后，规划遇到瞬时故障可切换备用模型并在本次运行中继续使用；恢复过程不会重复浏览器操作。详见[提供方配置](docs/PROVIDERS.md)、[CLI 示例](docs/CODEX.zh-CN.md#为-run-选择规划器)和[Agent 验收与恢复](docs/AGENT.md)。Anthropic/Ollama 目前只有本地协议覆盖，尚无真实推理结果；上方历史对比仍对应原来的运行代码哈希。
 
 新 Codex 生产入口另有[独立真实验证](docs/CODEX_PROVIDER_SMOKE.md)：两项任务完整成功并通过服务端验收（2/2），重复写入为 0；不与旧对照数据合并。
 

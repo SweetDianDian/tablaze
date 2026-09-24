@@ -87,7 +87,7 @@ export type AgentEvent =
   | { type: "failure"; step: number; failure: AgentFailure };
 export interface AgentPlannerMetric { step: number; attempt: number; planner: "primary" | "fallback"; latencyMs: number; outcome: "success" | "error" }
 export class AgentPlannerError extends Error {
-  constructor(message: string, public readonly retryable = false) { super(message); this.name = "AgentPlannerError"; }
+  constructor(message: string, public readonly retryable = false, public readonly fallbackEligible = retryable) { super(message); this.name = "AgentPlannerError"; }
 }
 // Keep the original exception only for the existing trusted retry-policy callback.
 // Neither exception, message, cause, nor arbitrary custom properties enter diagnostics.
@@ -98,7 +98,7 @@ class AgentOperationError extends Error {
 const plannerDiagnostics = new WeakMap<AgentPlannerError, AgentFailure>();
 /** @internal Shared by the built-in planner adapters; not a package entry point. */
 export function plannerError(code: AgentFailure["code"], message: string, retryable = false, httpStatus?: number): AgentPlannerError {
-  const error = new AgentPlannerError(message, retryable);
+  const error = new AgentPlannerError(message, retryable, retryable || httpStatus === 401 || httpStatus === 402);
   plannerDiagnostics.set(error, { phase: "planner", code, retryable, ...(Number.isInteger(httpStatus) && httpStatus! >= 100 && httpStatus! <= 599 ? { httpStatus } : {}) });
   return error;
 }
@@ -129,7 +129,7 @@ export interface AgentOptions {
   resumeSessionMap?: Record<string, string>;
   /** Trusted caller acknowledgment after checking actual effects, never a planner decision. */
   reconciliation?: { resolvedCallIds: string[]; note: string };
-  plannerRecovery?: { maxRetries?: number; retryDelayMs?: number; fallback?: AgentPlanner; shouldRetry?: (error: unknown) => boolean };
+  plannerRecovery?: { maxRetries?: number; retryDelayMs?: number; fallback?: AgentPlanner; stickyFallback?: boolean; shouldRetry?: (error: unknown) => boolean };
   stallDetection?: { repeatThreshold?: number; maxWarnings?: number };
   /** Proactively bound model context; false retains the full history until maxHistoryBytes. */
   historyCompaction?: false | { keepRecentGroups?: number; triggerBytes?: number };
@@ -406,8 +406,11 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
     // A protected group may exceed the proactive target. The hard budget still applies.
     return bytes <= maxHistoryBytes;
   };
+  let fallbackActive = false;
   const plan = async (listed: AgentTool[]): Promise<unknown> => {
-    let active = options.planner; let role: AgentPlannerMetric["planner"] = "primary"; let retries = 0; let attempt = 0;
+    let active = fallbackActive ? options.plannerRecovery!.fallback! : options.planner;
+    let role: AgentPlannerMetric["planner"] = fallbackActive ? "fallback" : "primary";
+    let retries = 0; let attempt = 0;
     for (;;) {
       attempt++; plannerCalls++;
       await persist("planning");
@@ -422,9 +425,13 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
       const original = failure instanceof AgentOperationError ? operationErrors.get(failure) : failure;
       const retryable = applicationHook("RETRY_POLICY_FAILED", () => options.plannerRecovery?.shouldRetry?.(original)) ?? (original instanceof AgentPlannerError && original.retryable);
       const diagnostic = failure instanceof AgentOperationError ? { ...failure.diagnostic, retryable: Boolean(retryable) } : { ...((failure instanceof AgentPlannerError ? plannerDiagnostics.get(failure) : undefined) ?? { phase: "planner" as const, code: "PLANNER_FAILED" as const }), retryable: Boolean(retryable) };
-      if (!retryable) throw new AgentOperationError(diagnostic, original);
-      if (role === "primary" && retries < maxRetries) { retries++; await retryDelay(retryDelayMs, controller.signal); continue; }
-      if (role === "primary" && options.plannerRecovery?.fallback) { active = options.plannerRecovery.fallback; role = "fallback"; continue; }
+      const fallbackEligible = original instanceof AgentPlannerError && original.fallbackEligible;
+      if (role === "primary" && retryable && retries < maxRetries) { retries++; await retryDelay(retryDelayMs, controller.signal); continue; }
+      if (role === "primary" && options.plannerRecovery?.fallback && (retryable || fallbackEligible)) {
+        active = options.plannerRecovery.fallback; role = "fallback";
+        if (options.plannerRecovery.stickyFallback) fallbackActive = true;
+        continue;
+      }
       throw new AgentOperationError(diagnostic, original);
     }
   };

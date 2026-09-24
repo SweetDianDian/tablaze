@@ -215,6 +215,44 @@ test('bounded retry and fallback only repeat planning; tools with uncertain effe
   assert.equal(uncertain.checkpoint.ambiguousCalls.length, 1);
 });
 
+test('sticky fallback finishes a verified write without returning to the failed primary model or replaying the write', async t => {
+  const runtime = await fixture(t);
+  let primaryCalls = 0; const fallbackSteps = []; const metrics = [];
+  const run = await runAgent({ task: 'Save exactly once with a backup model.', tools: runtime.tools,
+    planner: async () => { primaryCalls++; throw new AgentPlannerError('Primary transport unavailable.', true); },
+    plannerRecovery: { fallback: async ({ step, messages }) => {
+      fallbackSteps.push(step);
+      if (step === 1) return tool('change', { session_id: 's1', value: 'one' });
+      if (step === 2) return tool('tab_verify', { session_id: 's1', checks });
+      return done(last(messages).toolCallId);
+    }, stickyFallback: true },
+    onMetrics: metric => metrics.push(metric),
+  });
+  assert.equal(run.status, 'succeeded');
+  assert.equal(primaryCalls, 1);
+  assert.deepEqual(fallbackSteps, [1, 2, 3]);
+  assert.deepEqual(runtime.changes, [{ session_id: 's1', value: 'one' }]);
+  assert.equal(run.toolCalls, 2);
+  assert.equal(run.plannerCalls, 4);
+  assert.deepEqual(metrics.map(metric => [metric.planner, metric.outcome]), [['primary', 'error'], ['fallback', 'success'], ['fallback', 'success'], ['fallback', 'success']]);
+});
+
+test('HTTP 401 and 402 switch to an explicit fallback without retrying credentials; 403 remains terminal', async t => {
+  const runtime = await fixture(t);
+  for (const status of [401, 402, 403]) {
+    let primaryCalls = 0, fallbackCalls = 0;
+    const planner = createOpenAICompatiblePlanner({ endpoint: 'http://127.0.0.1/fixture', model: 'primary-fixture', fetch: async () => { primaryCalls++; return new Response('{}', { status }); } });
+    const result = await runAgent({ task: 'Fallback only for eligible credentials or credit failures.', tools: runtime.tools, planner,
+      plannerRecovery: { maxRetries: 2, retryDelayMs: 0, fallback: async () => { fallbackCalls++; return input(); }, stickyFallback: true },
+    });
+    assert.equal(primaryCalls, 1, `HTTP ${status} must not retry the same credential.`);
+    assert.equal(fallbackCalls, status === 403 ? 0 : 1);
+    assert.equal(result.status, status === 403 ? 'failed' : 'needs_input');
+    assert.equal(result.toolCalls, 0);
+    if (status === 403) assert.deepEqual(result.failure, { phase: 'planner', code: 'PLANNER_HTTP_ERROR', retryable: false, httpStatus: 403 });
+  }
+});
+
 test('opt-in compaction preserves complete tool groups and real verification evidence', async t => {
   const runtime = await fixture(t);
   let evidenceId;

@@ -75,7 +75,7 @@ enabled = true
 
 预期顺序是 `tab_list` → `tab_open` → `tab_extract` → `tab_verify` → `tab_close`。空会话列表正常。仅添加配置不算浏览器验证；指定检查的 `passed` 才是对应证据。
 
-在这里的 MCP 接入方式中，Codex 决定下一次工具调用，Tablaze 通过 Playwright 执行。MCP 启动不调用模型，也不需要模型 API Key。另一个可选入口 `tablaze run` 使用显式配置的模型适配器，见 [Agent 指南](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md)。
+在这里的 MCP 接入方式中，Codex 决定下一次工具调用，Tablaze 通过 Playwright 执行。MCP 启动不调用模型，也不需要模型 API Key。另一个可选入口 `tablaze run` 使用显式配置的模型适配器，见 [Agent 指南](AGENT.md)。
 
 ## 4. 先理解三个标识
 
@@ -343,7 +343,7 @@ Codex 推理参数接受 `none`、`minimal`、`low`、`medium`、`high`、`xhigh
 
 首次执行可指定 `run --start-url <HTTP(S)网址>`，在第一轮模型规划前打开这个明确网址，不从页面或工具内容猜测入口。导航使用同一工具执行链，计入调用和时间预算；恢复不会自动重复已经尝试的初始化，也不能给已有任务追加或更换起始网址。当前 Agent 检查点保存该状态，并支持迁移有效的旧格式。workspace 同时保存弹窗策略，旧文件没有策略字段时使用 `stay`；恢复时明确指定不同策略会被拒绝。
 
-可选自主任务循环在 [Agent 指南](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md) 中单独配置，与 MCP 模式分开。下面使用默认兼容提供方创建和恢复私有 checkpoint，凭据通过配置的环境变量提供；使用其他提供方时，每次调用都显式传入上文相应的 provider/model 参数：
+可选自主任务循环在 [Agent 指南](AGENT.md) 中单独配置，与 MCP 模式分开。下面使用默认兼容提供方创建和恢复私有 checkpoint，凭据通过配置的环境变量提供；使用其他提供方时，每次调用都显式传入上文相应的 provider/model 参数：
 
 ```sh
 node dist/cli.js run --task "<已授权的任务>" --model "<model-id>" --endpoint "https://<provider>/v1/chat/completions" --channel chrome --checkpoint "/absolute/path/private-run.json"

@@ -75,7 +75,7 @@ Ask Codex:
 
 Expected tool sequence: `tab_list` → `tab_open` → `tab_extract` → `tab_verify` → `tab_close`. An empty session list is valid. Successful registration alone is not a browser smoke test; the final `passed` value is the evidence for the specified checks.
 
-In this MCP integration, Codex decides the next tool call and Tablaze runs browser operations through Playwright. MCP startup makes no model call and needs no model API key. The separate optional `tablaze run` command has a configured model adapter; see the [Agent guide](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md).
+In this MCP integration, Codex decides the next tool call and Tablaze runs browser operations through Playwright. MCP startup makes no model call and needs no model API key. The separate optional `tablaze run` command has a configured model adapter; see the [Agent guide](AGENT.md).
 
 ## 4. Understand IDs before writing
 
@@ -333,7 +333,7 @@ Planner usage is reported in `model_usage` only from actual provider counters. M
 
 ## Saved tasks and browser restoration
 
-The optional autonomous loop is configured separately from MCP in the [Agent guide](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md). On a new run, `run --start-url <HTTP(S) URL>` can open an explicitly supplied starting page before the first model decision. The normal tool dispatcher accounts for this navigation in tool and time budgets. Current checkpoints retain this initialization state and migrate valid earlier formats; resume does not automatically replay an attempted initializer or let an existing run add or change its URL. Workspaces also retain popup policy, defaulting to `stay` for older files; an explicitly conflicting policy is rejected on resume.
+The optional autonomous loop is configured separately from MCP in the [Agent guide](AGENT.md). On a new run, `run --start-url <HTTP(S) URL>` can open an explicitly supplied starting page before the first model decision. The normal tool dispatcher accounts for this navigation in tool and time budgets. Current checkpoints retain this initialization state and migrate valid earlier formats; resume does not automatically replay an attempted initializer or let an existing run add or change its URL. Workspaces also retain popup policy, defaulting to `stay` for older files; an explicitly conflicting policy is rejected on resume.
 
 To create and resume a private run checkpoint with the default compatible provider, choose your model endpoint and supply credentials through the configured environment variable. For another provider, pass the same explicit provider/model options described above on each invocation:
 

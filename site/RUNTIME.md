@@ -8,7 +8,7 @@ This reference describes the current source, its 16 default MCP tools, one optio
 
 ### Sessions and observations
 
-Tablaze uses a persistent Playwright Chromium process. Default sessions use separate temporary contexts and retain state while their context/server runs; they are not saved disk profiles. Explicit storage-state exports and workspace checkpoints can restore selected state later. The MCP server makes no model calls. The separate optional [`tablaze run` Agent](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md) uses an explicitly configured model adapter; Jev is not integrated.
+Tablaze uses a persistent Playwright Chromium process. Default sessions use separate temporary contexts and retain state while their context/server runs; they are not saved disk profiles. Explicit storage-state exports and workspace checkpoints can restore selected state later. The MCP server makes no model calls. The separate optional [`tablaze run` Agent](AGENT.md) uses an explicitly configured model adapter; Jev is not integrated.
 
 `tab_open` returns a `session_id`, `snapshot_id` and element refs. A new snapshot supersedes the previous revision. A batch consumes its supplied revision; use the fresh snapshot returned by `tab_act`, or observe again. Refs from another session, frame observation or replaced/navigated document are not interchangeable.
 
@@ -95,7 +95,7 @@ An unknown mutating call blocks automatic continuation. The CLI returns `needs_i
 
 Steps, tool calls, planner calls and elapsed runtime carry forward. Saved limits remain the defaults; time while the process is stopped is excluded. The returned library checkpoint includes the final persistence callback's wait. The CLI's saved elapsed time includes browser-state export before saving, but does not yet include the final atomic file write itself. It is therefore not an exact measure of all wall-clock persistence time.
 
-CLI checkpoint JSON contains full Agent history and browser storage and is written with file mode `0600` through a temporary file and atomic rename. This is sensitive plaintext, not an encrypted browser backup. See [Agent setup and recovery](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md) and [checkpoint security](SECURITY.md#checkpoints-and-recovery--检查点与恢复).
+CLI checkpoint JSON contains full Agent history and browser storage and is written with file mode `0600` through a temporary file and atomic rename. This is sensitive plaintext, not an encrypted browser backup. See [Agent setup and recovery](AGENT.md) and [checkpoint security](SECURITY.md#checkpoints-and-recovery--检查点与恢复).
 
 [Complete arguments and troubleshooting](CODEX.md) · [Tarball installation](CODEX.md#1-build-and-choose-a-browser) · [Release archives](https://github.com/SweetDianDian/tablaze/blob/main/docs/RELEASE.md) · [Benchmark boundaries](https://github.com/SweetDianDian/tablaze/blob/main/bench/README.md)
 
@@ -105,7 +105,7 @@ CLI checkpoint JSON contains full Agent history and browser storage and is writt
 
 ### 会话与观察
 
-Tablaze 通过 Playwright 持续运行 Chromium。默认会话使用彼此独立的临时上下文，状态在上下文和服务运行期间保留，不是保存到磁盘的 profile；显式导出的存储状态与工作区检查点可在之后恢复部分状态。MCP 服务不调用模型；独立可选的 [`tablaze run` Agent](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md) 使用显式配置的模型适配器。目前未接入 Jev。
+Tablaze 通过 Playwright 持续运行 Chromium。默认会话使用彼此独立的临时上下文，状态在上下文和服务运行期间保留，不是保存到磁盘的 profile；显式导出的存储状态与工作区检查点可在之后恢复部分状态。MCP 服务不调用模型；独立可选的 [`tablaze run` Agent](AGENT.md) 使用显式配置的模型适配器。目前未接入 Jev。
 
 `tab_open` 返回 `session_id`、`snapshot_id` 和元素 ref。新快照使旧版本失效；批次消耗传入的版本，下一步使用 `tab_act` 返回的新快照或重新观察。不同会话、frame 观察及已导航或替换文档的引用不能混用。
 
@@ -190,7 +190,7 @@ workspace 也保存弹窗策略；没有该字段的旧版本 1 文件恢复为 
 
 步骤数、工具调用数、规划调用数和已消耗运行时间累计保留，默认继续使用保存的预算；进程停止期间不计时。库最终返回的检查点包含最后一次持久化回调的等待时间。CLI 写入磁盘的 elapsed time 包含保存前导出浏览器状态的耗时，但尚未包含最后原子写入本身的耗时，因此不是全部持久化墙钟时间的精确计量。
 
-CLI 检查点 JSON 包含完整 Agent 历史和浏览器存储，通过权限为 `0600` 的临时文件与原子重命名保存。它是敏感明文，不是加密的浏览器备份。参见 [Agent 配置与恢复](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md)及[检查点安全边界](SECURITY.md#checkpoints-and-recovery--检查点与恢复)。
+CLI 检查点 JSON 包含完整 Agent 历史和浏览器存储，通过权限为 `0600` 的临时文件与原子重命名保存。它是敏感明文，不是加密的浏览器备份。参见 [Agent 配置与恢复](AGENT.md)及[检查点安全边界](SECURITY.md#checkpoints-and-recovery--检查点与恢复)。
 
 [完整参数与排错](CODEX.zh-CN.md) · [安装本地包](CODEX.zh-CN.md#1-构建与选择浏览器) · [发布归档](https://github.com/SweetDianDian/tablaze/blob/main/docs/RELEASE.md) · [基准范围](https://github.com/SweetDianDian/tablaze/blob/main/bench/README.md)
 

@@ -94,9 +94,9 @@ tablaze run --resume ./private-run.json --provider codex --model YOUR_MODEL \
   --channel chrome --navigation-policy ./navigation-policy.json
 ```
 
-Policy identity is an equality check, not a signature or permission to trust an edited checkpoint. Checkpoints may contain cookies, page history and other sensitive state; keep them private. Existing limits, fresh-reference requirements and reconciliation of uncertain writes still apply. See [Agent recovery](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md) and [security boundaries](SECURITY.md).
+Policy identity is an equality check, not a signature or permission to trust an edited checkpoint. Checkpoints may contain cookies, page history and other sensitive state; keep them private. Existing limits, fresh-reference requirements and reconciliation of uncertain writes still apply. See [Agent recovery](AGENT.md) and [security boundaries](SECURITY.md).
 
-策略 hash 用于一致性检查，不是签名，也不代表修改后的恢复点可信。恢复点可能包含 Cookie、页面历史及其他敏感状态，应妥善保管。原有预算、重新观察引用和核对未决写操作的要求仍然有效。参见 [Agent 恢复](https://github.com/SweetDianDian/tablaze/blob/main/docs/AGENT.md)和[安全边界](SECURITY.md)。
+策略 hash 用于一致性检查，不是签名，也不代表修改后的恢复点可信。恢复点可能包含 Cookie、页面历史及其他敏感状态，应妥善保管。原有预算、重新观察引用和核对未决写操作的要求仍然有效。参见 [Agent 恢复](AGENT.md)和[安全边界](SECURITY.md)。
 
 ## Boundaries / 边界
 

@@ -83,6 +83,16 @@ process.stdin.on('end', () => {
     if (previous.structuredContent?.checks) call = { name: 'agent_finish', arguments_json: JSON.stringify({ summary: 'Verified fixture.', evidence: [previous.toolCallId] }) };
     else call = { name: 'tab_verify', arguments_json: JSON.stringify({ session_id: previous.structuredContent.session_id, checks: [{ kind: 'title', contains: 'Provider CLI fixture' }] }) };
   }
+  if (mode === 'write') {
+    const marker = 'CONVERSATION_JSON\\n', after = prompt.slice(prompt.indexOf(marker) + marker.length);
+    const messages = JSON.parse(after.split('\\nFUNCTION_SPECIFICATIONS_JSON\\n')[0].trim());
+    const tool = messages.filter(item => item.role === 'tool').at(-1);
+    if (!tool) throw new Error('Expected start URL snapshot before planning');
+    const previous = JSON.parse(tool.content), data = previous.structuredContent;
+    if (data?.checks) call = { name: 'agent_finish', arguments_json: JSON.stringify({ summary: 'Saved once and verified.', evidence: [previous.toolCallId] }) };
+    else if (data?.completed) call = { name: 'tab_verify', arguments_json: JSON.stringify({ session_id: data.session_id, checks: [{ kind: 'text', contains: 'Saved receipt' }], timeout_ms: 2000 }) };
+    else call = { name: 'tab_act', arguments_json: JSON.stringify({ session_id: data.session_id, snapshot_id: data.snapshot_id, actions: [{ type: 'fill', ref: data.elements.find(item => item.name === 'Name').ref, value: 'one-write' }, { type: 'click', ref: data.elements.find(item => item.name === 'Save').ref }] }) };
+  }
   const final = JSON.stringify({ tool_calls: [call] });
   fs.writeFileSync(output, final);
   emit({ type: 'item.completed', item: { id: 'fixture-message', type: 'agent_message', text: final } });
@@ -107,6 +117,13 @@ test('provider selection preserves required explicit model and rejects mismatche
     [['--endpoint', 'http://127.0.0.1:1/unused', '--max-output-tokens', '20'], /applies only/],
     [['--provider', 'anthropic', '--max-output-tokens', '0'], /integer/],
     [['--provider', 'ollama', '--max-output-tokens', '1000001'], /integer/],
+    [['--provider', 'codex', '--fallback-provider', 'codex'], /require a nonempty --fallback-model/],
+    [['--provider', 'codex', '--fallback-model', 'backup', '--fallback-provider', 'unknown'], /--fallback-provider must/],
+    [['--provider', 'codex', '--fallback-model', 'backup', '--fallback-provider', 'codex', '--fallback-endpoint', 'http://127.0.0.1:1'], /do not apply to Codex/],
+    [['--provider', 'codex', '--fallback-model', 'backup', '--fallback-provider', 'openai-compatible'], /requires --fallback-endpoint/],
+    [['--provider', 'codex', '--fallback-model', 'backup', '--fallback-provider', 'openai-compatible', '--fallback-endpoint', 'http://127.0.0.1:1', '--fallback-max-output-tokens', '10'], /applies only/],
+    [['--provider', 'codex', '--planner-retries', '6'], /--planner-retries must/],
+    [['--provider', 'codex', '--planner-retry-delay-ms', '10'], /requires --planner-retries/],
   ];
   for (const [args, expected] of cases) { const result = await launch([...base, ...args]); assert.equal(result.code, 1); assert.match(result.stderr, expected); assert.equal(result.stdout, ''); }
   for (const provider of ['codex', 'anthropic', 'ollama']) {
@@ -118,9 +135,69 @@ test('provider selection preserves required explicit model and rejects mismatche
 });
 
 test('new provider-only options cannot start the default MCP server', { timeout: 15_000 }, async () => {
-  for (const [flag, value] of [['--provider', 'codex'], ['--codex-command', 'codex'], ['--reasoning-effort', 'high'], ['--max-output-tokens', '10']]) {
+  for (const [flag, value] of [['--provider', 'codex'], ['--codex-command', 'codex'], ['--reasoning-effort', 'high'], ['--max-output-tokens', '10'], ['--fallback-model', 'backup'], ['--planner-retries', '1']]) {
     const result = await launch([flag, value]); assert.equal(result.code, 1); assert.match(result.stderr, /Agent options require the run command/);
   }
+});
+
+test('CLI switches from a failed Codex model to backup Codex for the rest of a real-browser task', { timeout: 30_000 }, async t => {
+  const primary = await fakeCodex(t, 'failed');
+  const backup = await fakeCodex(t, 'verify');
+  const service = await httpFixture(t, () => { throw new Error('No model HTTP request expected.'); });
+  const child = await launch([...base, '--provider', 'codex', '--codex-command', primary.executable,
+    '--fallback-provider', 'codex', '--fallback-model', 'backup-fixture-model', '--fallback-codex-command', backup.executable,
+    '--start-url', service.url, '--channel', process.env.TABLAZE_BROWSER_CHANNEL || 'chrome', '--run-timeout-ms', '15000']);
+  assert.equal(child.code, 0, child.stderr + child.stdout);
+  const report = JSON.parse(child.stdout);
+  assert.equal(report.status, 'succeeded');
+  assert.equal(report.fallback_used, true);
+  assert.equal(report.tool_calls, 2);
+  assert.equal(report.planner_calls, 3);
+  assert.equal(report.verification.length, 1);
+  assert.ok(report.verification[0].checks.every(check => check.pass));
+  assert.deepEqual(report.planner_metrics.map(metric => [metric.planner, metric.outcome]), [['primary', 'error'], ['fallback', 'success'], ['fallback', 'success']]);
+  assert.equal(report.provider_diagnostics[0].code, 'CODEX_TURN_FAILED');
+  assert.equal(report.fallback_provider_diagnostics.length, 2);
+  assert.equal((await primary.calls()).length, 1);
+  assert.equal((await backup.calls()).length, 2);
+  assert.equal(service.requests.length, 0);
+  assert.deepEqual(service.errors, []);
+});
+
+test('failed primary planning falls back without replaying a server-accepted browser write', { timeout: 30_000 }, async t => {
+  const primary = await fakeCodex(t, 'failed');
+  const backup = await fakeCodex(t, 'write');
+  const accepted = [], errors = [];
+  const server = createServer(async (request, response) => {
+    if (request.url === '/favicon.ico') { response.writeHead(204); response.end(); return; }
+    if (request.url === '/form') {
+      response.writeHead(200, { 'content-type': 'text/html' });
+      response.end('<!doctype html><title>Write fixture</title><label>Name<input aria-label="Name" id="name"></label><button onclick="fetch(\'/save\',{method:\'POST\',body:document.querySelector(\'#name\').value}).then(()=>document.querySelector(\'#status\').textContent=\'Saved receipt\')">Save</button><p id="status">Ready</p>');
+      return;
+    }
+    if (request.url === '/save' && request.method === 'POST') {
+      const chunks = []; for await (const chunk of request) chunks.push(chunk);
+      accepted.push(Buffer.concat(chunks).toString());
+      response.writeHead(200); response.end('ok'); return;
+    }
+    errors.push(`${request.method} ${request.url}`); response.writeHead(404); response.end();
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(async () => { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); });
+  const url = `http://127.0.0.1:${server.address().port}`;
+  const child = await launch([...base, '--provider', 'codex', '--codex-command', primary.executable,
+    '--fallback-provider', 'codex', '--fallback-model', 'backup-fixture-model', '--fallback-codex-command', backup.executable,
+    '--start-url', `${url}/form`, '--channel', process.env.TABLAZE_BROWSER_CHANNEL || 'chrome', '--run-timeout-ms', '15000']);
+  assert.equal(child.code, 0, child.stderr + child.stdout);
+  const report = JSON.parse(child.stdout);
+  assert.equal(report.status, 'succeeded');
+  assert.equal(report.fallback_used, true);
+  assert.equal(report.verification.length, 1);
+  assert.ok(report.verification[0].checks.every(check => check.pass));
+  assert.deepEqual(accepted, ['one-write']);
+  assert.equal((await primary.calls()).length, 1);
+  assert.equal((await backup.calls()).length, 3);
+  assert.deepEqual(errors, []);
 });
 
 test('Anthropic CLI forwards its explicit model, native tool schema, key and output cap; retains real usage', { timeout: 15_000 }, async t => {

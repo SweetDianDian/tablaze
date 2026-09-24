@@ -313,7 +313,8 @@ export function createCodexPlanner(options: CodexPlannerOptions): CodexPlanner {
       if (transportError.code === 'CODEX_CLEANUP_FAILED') cleanupFailed = true;
       const code = transportError.code === 'CODEX_OUTPUT_LIMIT' ? 'PLANNER_RESPONSE_TOO_LARGE'
         : ['CODEX_REQUEST_INVALID', 'CODEX_IMAGE_INVALID', 'CODEX_RESPONSE_INVALID', 'CODEX_EVENT_INVALID', 'CODEX_INCOMPLETE_TURN'].includes(transportError.code) ? 'PLANNER_INVALID_RESPONSE' : 'PLANNER_PROCESS_FAILED';
-      throw plannerError(code, transportError.message);
+      const retryable = ['CODEX_TIMEOUT', 'CODEX_PROCESS_FAILED', 'CODEX_TURN_FAILED'].includes(transportError.code) && !request.signal.aborted && !shutdown.signal.aborted;
+      throw plannerError(code, transportError.message, retryable);
     } finally {
       clearTimeout(timer);
       let fileCleanupFailed = false;

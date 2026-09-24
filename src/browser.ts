@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { createReadStream } from 'node:fs';
+import { createReadStream, realpathSync, statSync } from 'node:fs';
 import { mkdtemp, realpath, stat, writeFile, chmod, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, isAbsolute, join } from 'node:path';
@@ -22,7 +22,7 @@ export class BrowserError extends Error {
 export type PopupPolicy = 'stay' | 'follow-single';
 export interface BrowserBinding { readonly sessionId: string; readonly tabId: string; readonly documentEpoch: number; readonly origin: string }
 export interface BrowserBindingGuard { readonly binding: BrowserBinding; readonly contextKey: string; assertCurrent(): Promise<void>; close(): Promise<void> }
-export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; devicePreset?: DevicePreset; viewport?: { width: number; height: number }; noViewport?: boolean; windowSize?: { width: number; height: number }; windowPosition?: { x: number; y: number }; screen?: { width: number; height: number }; deviceScaleFactor?: number; userAgent?: string; locale?: string; timezoneId?: string; isMobile?: boolean; hasTouch?: boolean; permissions?: string[]; proxy?: { server: string; bypass?: string; username?: string; password?: string }; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; captureNetwork?: boolean; recordVideo?: boolean; recordHar?: boolean; recordHarContent?: 'omit' | 'embed' | 'attach'; recordHarMode?: 'full' | 'minimal'; recordTrace?: boolean; allowPageScript?: boolean }
+export interface BrowserOptions { headless?: boolean; channel?: string; executablePath?: string; cdpUrl?: string; profileDir?: string; expectedProfileId?: string; devicePreset?: DevicePreset; viewport?: { width: number; height: number }; noViewport?: boolean; windowSize?: { width: number; height: number }; windowPosition?: { x: number; y: number }; screen?: { width: number; height: number }; deviceScaleFactor?: number; userAgent?: string; locale?: string; timezoneId?: string; isMobile?: boolean; hasTouch?: boolean; permissions?: string[]; proxy?: { server: string; bypass?: string; username?: string; password?: string }; timeoutMs?: number; popupPolicy?: PopupPolicy; navigationPolicy?: NavigationPolicy; secrets?: BrowserSecretOptions; availableFilePaths?: string[]; captureNetwork?: boolean; recordVideo?: boolean; recordHar?: boolean; recordHarContent?: 'omit' | 'embed' | 'attach'; recordHarMode?: 'full' | 'minimal'; recordTrace?: boolean; allowPageScript?: boolean }
 export interface BrowserRecording { session_id: string; tab_id: string; path: string; bytes: number; mime_type: 'video/webm'; sha256: string }
 export interface BrowserDiagnosticArtifact { session_id: string; kind: 'har' | 'trace'; path: string; bytes: number; mime_type: 'application/json' | 'application/zip'; sha256: string; content_mode?: 'omit' | 'embed' | 'attach'; har_mode?: 'full' | 'minimal' }
 export interface SnapshotOptions { mode?: 'full' | 'diff'; maxElements?: number; textLimit?: number; frameId?: string; selector?: string; viewportOnly?: boolean }
@@ -34,6 +34,7 @@ export interface BrowserWorkspace {
   /** Bind restoration to the same trusted navigation policy; never infer it from saved URLs. */
   navigationPolicyHash?: string;
   secretPolicyHash?: string;
+  filePolicyHash?: string;
   sessions: { sessionId: string; activeTabId: string; storage: StorageState; requiresReauthentication?: boolean; tabs: { tabId: string; url: string }[] }[];
 }
 export type BrowserAction =
@@ -97,6 +98,9 @@ export class BrowserEngine {
   private readonly navigationPolicy?: CompiledNavigationPolicy;
   private navigationGuards = new Map<Browser, NavigationGuard>();
   private readonly secretStore?: CompiledSecretStore;
+  private readonly availableUploadFiles?: Array<{ id: string; declared: string; path: string; dev: number; ino: number; name: string; bytes: number }>;
+  private readonly filePolicyHash?: string;
+  private readonly savedStateFiles = new Set<string>();
   private readonly secretBridgeKey = `__tablaze_${randomUUID().replaceAll('-', '')}`;
   private readonly secretOperations = new Set<AbortController>();
   private artifactDirectory?: Promise<string>;
@@ -154,6 +158,20 @@ export class BrowserEngine {
     if ((options.recordHar || options.recordTrace) && (options.cdpUrl || options.profileDir)) throw new BrowserError('DIAGNOSTIC_CONTEXT_UNSUPPORTED', 'HAR and trace recording require isolated browser contexts owned by this engine.');
     if ((options.recordHar || options.recordTrace) && this.secretStore && !this.secretStore.allowSensitiveArtifacts) throw new BrowserError('SECRET_ARTIFACT_BLOCKED', 'HAR and trace recording with configured secrets requires allowSensitiveArtifacts in the trusted secret configuration.');
     if (options.allowPageScript && (this.secretStore || options.cdpUrl || this.navigationPolicy)) throw new BrowserError('PAGE_SCRIPT_CONFLICT', 'Page scripts cannot be combined with configured secrets, external CDP, or a navigation policy.');
+    if (options.availableFilePaths !== undefined) {
+      if (!Array.isArray(options.availableFilePaths) || options.availableFilePaths.length > 20) throw new BrowserError('FILE_POLICY_INVALID', 'Available files must be an array of at most 20 absolute regular-file paths.');
+      this.availableUploadFiles = [];
+      for (const declared of options.availableFilePaths) {
+        if (typeof declared !== 'string' || !isAbsolute(declared) || declared.length > 4096) throw new BrowserError('FILE_POLICY_INVALID', 'Available files must be absolute regular-file paths.');
+        try {
+          const canonical = realpathSync(declared);
+          const info = statSync(canonical);
+          if (!info.isFile() || info.size > 50 * 1024 * 1024 || this.availableUploadFiles.some(item => item.path === canonical)) throw new Error();
+          this.availableUploadFiles.push({ id: `file:${this.availableUploadFiles.length + 1}`, declared, path: canonical, dev: info.dev, ino: info.ino, name: basename(canonical), bytes: info.size });
+        } catch { throw new BrowserError('FILE_POLICY_INVALID', 'An available file is missing, duplicated, not regular, or exceeds 50 MiB.'); }
+      }
+      this.filePolicyHash = createHash('sha256').update(JSON.stringify(this.availableUploadFiles.map(item => [item.path, item.dev, item.ino]))).digest('hex');
+    }
   }
 
   private secretText(value: string, limit: number): string { return this.secretStore ? projectSecretText(value, limit, this.secretStore) : value.slice(0, limit); }
@@ -410,6 +428,7 @@ export class BrowserEngine {
       check();
       this.assertNavigationAllowed(url, true);
       if (options.storageState && (this.options.cdpUrl || this.options.profileDir)) throw new BrowserError('INVALID_ARGUMENT', 'Storage state import requires a fresh isolated context, not an attached or persistent profile.');
+      if (typeof options.storageState === 'string' && this.availableUploadFiles && !this.savedStateFiles.has(options.storageState)) throw new BrowserError('STATE_FILE_NOT_AVAILABLE', 'Storage state import requires a file exported by this browser engine.');
       if (typeof options.storageState === 'string' && (await phase(stat(options.storageState))).size > 10 * 1024 * 1024) throw new BrowserError('STATE_TOO_LARGE', 'Storage state exceeds 10 MiB.');
       const browser = await phase(this.browser());
       navigationGuard = this.navigationGuards.get(browser);
@@ -555,7 +574,7 @@ export class BrowserEngine {
         await download.saveAs(destination);
         this.assertArtifactAllowed(session);
         await chmod(destination, 0o600);
-        record.path = destination;
+        record.path = await realpath(destination);
         record.bytes = (await stat(destination)).size;
         record.status = 'completed';
       } catch { await download.cancel().catch(() => {}); if (destination) await rm(destination, { force: true }).catch(() => {}); record.status = 'failed'; record.error = 'The download failed, was blocked by secret artifact policy, or its session closed before completion.'; }
@@ -648,7 +667,9 @@ export class BrowserEngine {
       const state = await session.context.storageState({ indexedDB: true });
       const path = join(await this.artifacts(), `${randomUUID()}.state.json`);
       await writeFile(path, JSON.stringify(state), { mode: 0o600, flag: 'wx' });
-      return { ok: true, session_id: session.id, storage_state: path, cookies: state.cookies.length, origins: state.origins.length, includes: ['cookies', 'localStorage', 'indexedDB'] };
+      const canonical = await realpath(path);
+      this.savedStateFiles.add(canonical);
+      return { ok: true, session_id: session.id, storage_state: canonical, cookies: state.cookies.length, origins: state.origins.length, includes: ['cookies', 'localStorage', 'indexedDB'] };
     });
   }
   /** Capture durable auth and owned URLs. This is not a serialization of live DOM or sessionStorage. */
@@ -668,7 +689,7 @@ export class BrowserEngine {
       });
       sessions.push(state);
     }
-    return { version: 1, popupPolicy: this.popupPolicy, ...(this.navigationPolicy ? { navigationPolicyHash: this.navigationPolicy.hash } : {}), ...(this.secretStore ? { secretPolicyHash: this.secretStore.hash } : {}), sessions };
+    return { version: 1, popupPolicy: this.popupPolicy, ...(this.navigationPolicy ? { navigationPolicyHash: this.navigationPolicy.hash } : {}), ...(this.secretStore ? { secretPolicyHash: this.secretStore.hash } : {}), ...(this.filePolicyHash ? { filePolicyHash: this.filePolicyHash } : {}), sessions };
   }
   async restoreWorkspace(input: unknown): Promise<{ sessionMap: Record<string, string>; snapshots: Record<string, unknown>[] }> {
     if (this.options.cdpUrl || this.options.profileDir) throw new BrowserError('INVALID_ARGUMENT', 'Workspace restoration requires fresh isolated contexts.');
@@ -677,6 +698,7 @@ export class BrowserEngine {
     if (!workspace || workspace.version !== 1 || !Array.isArray(workspace.sessions) || workspace.sessions.length > 20 || Buffer.byteLength(JSON.stringify(workspace)) > 10 * 1024 * 1024) throw new BrowserError('INVALID_ARGUMENT', 'Invalid or oversized browser workspace.');
     if (workspace.navigationPolicyHash !== this.navigationPolicy?.hash) throw new BrowserError('NAVIGATION_POLICY_MISMATCH', 'Restore requires the same navigation policy as the saved workspace.');
     if (workspace.secretPolicyHash !== this.secretStore?.hash) throw new BrowserError('SECRET_POLICY_MISMATCH', 'Restore requires the same secret context, versions and policy as the saved workspace.');
+    if (workspace.filePolicyHash !== this.filePolicyHash && !(workspace.filePolicyHash === undefined && this.availableUploadFiles?.length === 0)) throw new BrowserError('FILE_POLICY_MISMATCH', 'Restore requires the same trusted available files as the saved workspace.');
     if (this.secretStore) await this.secretStore.assertContext(AbortSignal.timeout(this.timeout));
     if (workspace.popupPolicy !== undefined && !['stay', 'follow-single'].includes(workspace.popupPolicy)) throw new BrowserError('INVALID_ARGUMENT', 'Invalid workspace popup policy.');
     const ids = new Set<string>();
@@ -748,12 +770,20 @@ export class BrowserEngine {
       return { ok: true, session_id: session.id, tab_id: tabId, url: this.secretText(url, 4000), path, bytes: buffer.length, mime_type: 'application/pdf', sha256: createHash('sha256').update(buffer).digest('hex') };
     });
   }
-  private async uploadPaths(files: string[]): Promise<string[]> {
+  private async uploadPaths(files: string[], session?: Session): Promise<string[]> {
     if (!Array.isArray(files) || files.length > 20) throw new BrowserError('INVALID_ARGUMENT', 'Supply at most 20 upload paths. An empty list clears the selection.');
     return Promise.all(files.map(async file => {
-      const path = await realpath(file);
-      const info = await stat(path);
+      const listed = this.availableUploadFiles?.find(item => item.id === file || item.declared === file || item.path === file);
+      const downloaded = session && [...session.downloads.values()].find(record => record.status === 'completed' && record.path && (file === `download:${record.id}` || file === record.path));
+      if (this.availableUploadFiles && !listed && !downloaded) throw new BrowserError('FILE_NOT_AVAILABLE', 'Upload requires a trusted available file or a completed download from this session.');
+      let path: string;
+      let info: Awaited<ReturnType<typeof stat>>;
+      try { path = await realpath(listed?.path ?? downloaded?.path ?? file); info = await stat(path); }
+      catch { throw new BrowserError('FILE_NOT_AVAILABLE', 'The requested upload file is no longer available.'); }
       if (!info.isFile() || info.size > 50 * 1024 * 1024) throw new BrowserError('INVALID_ARGUMENT', 'Each upload must be a regular file no larger than 50 MiB.');
+      if (this.availableUploadFiles) {
+        if (!(listed && listed.path === path && listed.dev === info.dev && listed.ino === info.ino) && !(downloaded && downloaded.path === path)) throw new BrowserError('FILE_NOT_AVAILABLE', 'Upload requires a trusted available file or a completed download from this session.');
+      }
       return path;
     }));
   }
@@ -952,6 +982,10 @@ export class BrowserEngine {
     session.snapshot = { id, frame, generation, refs, actionable: true, entries, scope };
     const metadataTruncated = allFrames.length > 100 || allFrames.some(frame => frame.url.length > 4000 || frame.name.length > 200) || title.length > 1000 || session.page.url().length > 4000;
     const output: Record<string, unknown> = { ok: true, session_id: session.id, snapshot_id: id, tab_id: session.activeTabId, tabs: this.tabList(session), scope: { selector: scope.selector ?? null, viewport_only: scope.viewportOnly }, mode: options.mode ?? 'full', frame_id: frameId, url: this.secretText(session.page.url(), 4000), title: this.secretText(title, 1000), frames, frame_count: allFrames.length, elements: entries, text: data.text, truncated: data.truncated || metadataTruncated, truncation: { ...data.truncation, metadata: metadataTruncated }, budgets: { max_elements: maxElements, text_limit: textLimit, max_frames: 100 }, elapsed_ms: Math.round(performance.now() - start) };
+    if (this.availableUploadFiles) output.available_files = [
+      ...this.availableUploadFiles.map(item => ({ id: item.id, name: this.secretText(item.name, 200), bytes: item.bytes, source: 'provided' })),
+      ...[...session.downloads.values()].filter(record => record.status === 'completed' && record.path).map(record => ({ id: `download:${record.id}`, name: record.filename, bytes: record.bytes, source: 'download' })),
+    ];
     if (data.canvas_in_viewport === true) output.visual_content = { canvas_in_viewport: true };
     this.assertNavigationGuard(session.navigationGuard);
     if (session.navigationGuard) output.navigation_policy = { enabled: true, blocked_requests: this.blockedNavigations(session) };
@@ -1218,6 +1252,7 @@ export class BrowserEngine {
             }
           }
           else {
+            const uploadPaths = action.type === 'upload' || action.type === 'upload_chooser' ? await this.uploadPaths(action.files, session) : undefined;
             const target = await this.reference(session, state, action.ref);
             checkInterruption();
             const actionDeadline = performance.now() + this.timeout;
@@ -1235,10 +1270,9 @@ export class BrowserEngine {
               case 'hover': await target.hover({ timeout }); break;
               case 'upload':
               case 'upload_chooser': {
-                const paths = await this.uploadPaths(action.files);
                 checkInterruption();
                 await this.reference(session, state, action.ref);
-                if (action.type === 'upload') await target.setInputFiles(paths, { timeout: remaining(timeout) });
+                if (action.type === 'upload') await target.setInputFiles(uploadPaths!, { timeout: remaining(timeout) });
                 else {
                   popupWindow = armPopupWindow();
                   const [chooser] = await Promise.all([
@@ -1246,7 +1280,7 @@ export class BrowserEngine {
                     target.click({ timeout: remaining(timeout) }),
                   ]);
                   checkInterruption();
-                  await chooser.setFiles(paths, { timeout: remaining(timeout) });
+                  await chooser.setFiles(uploadPaths!, { timeout: remaining(timeout) });
                 }
                 break;
               }

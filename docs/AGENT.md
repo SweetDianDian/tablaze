@@ -23,6 +23,8 @@ tablaze run \
 
 `--endpoint` is required only for the compatible provider. Native Anthropic and Ollama use their documented defaults unless a full endpoint is supplied. HTTP credentials come from `TABLAZE_API_KEY` or `--api-key-env MY_MODEL_KEY`; there is no API-key value flag. Codex rejects both endpoint and API-key flags and instead reuses CLI authentication. Agent-specific options require the `run` command. Standard browser options remain available. `--timeout-ms` controls browser actions; `--run-timeout-ms` bounds the whole agent run. The CLI emits planning progress on stderr and one JSON report on stdout. Exit status is `0` for verified success, `2` for required human input, and `1` for failure, cancellation, budget exhaustion, or incomplete resource cleanup. It attempts browser and MCP cleanup before publishing the report, and also awaits Codex planner cleanup when that provider is selected.
 
+Local uploads in `run` and stdio MCP are denied by default. Repeat `--available-file /absolute/path` to authorize individual files. The Agent sees short IDs in `snapshot.available_files` and can also upload a completed download from the same session. [File policy](FILE_POLICY.md) covers the limits and checkpoint binding.
+
 For Codex, select the model without configuring an HTTP endpoint:
 
 ```sh

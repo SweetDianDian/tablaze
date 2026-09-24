@@ -103,7 +103,7 @@ each attempt's `engineOptions`:
 | `--browser-use-judge true\|false` | `true` | Preserves Browser Use's post-task model judge unless explicitly disabled. |
 | `--tablaze-initialize-url true\|false` | `false` | Supplies the fixture service's trusted attempt URL to the public `runAgent({startUrl})` option before planning. No URL is extracted from task text. |
 | `--tablaze-direct-open-task-url true\|false` | `false` | Uses the public `runAgent({directOpenTaskUrl})` option to open the sole URL in the trusted task before planning. Mutually exclusive with `--tablaze-initialize-url`. |
-| `--paired-initial-actions true\|false` | `false` | For `--tasks two-page` only, opens the same two trusted URLs in new tabs before planning on both frameworks: Tablaze `runAgent({initialActions})` and Browser Use `Agent(initial_actions=[navigate, navigate])`. Mutually exclusive with the other URL initialization options. |
+| `--paired-initial-actions true\|false` | `false` | For `--tasks two-page`, requests two navigations before planning. For `--tasks initial-click`, requests navigation then one click before planning: Tablaze uses an exact accessible name, Browser Use uses its index-based `click` action. The trace must show which actions actually dispatched. Mutually exclusive with the other URL initialization options. |
 | `--tablaze-popup-policy stay\|follow-single` | `stay` | Selects the public `createServer({popupPolicy})` behavior. `follow-single` follows a unique eligible action popup and replans from its snapshot. |
 
 For an explicitly configured initialization/popup experiment, append
@@ -113,6 +113,8 @@ scripted adapter also supports them for integration checks, without model calls.
 The [clean-source direct-task-URL development report](../../docs/CODEX_DIRECT_TASK_URL_20260924.md) records three form and three iframe seeds with the option on/off and a matched Browser Use on batch, including all raw trajectories.
 
 The `two-page` task gives both frameworks the same source and destination URLs. The source contains a seed-derived code absent from the prompt; the destination must receive that code exactly once. The independent server judge requires GET visits to both pages and one correct POST. A model-free scripted run checks harness wiring; a matched model run is required for any agent-performance claim. For example, append `--tasks two-page --paired-initial-actions true --repeat 3` to a matched command.
+
+The `initial-click` task asks both frameworks to open a page and click its first actionable control, **Reveal code**, before planning. The independent server judge requires exactly one reveal request and one correct code submission. Tablaze resolves the control by exact accessible name from a fresh page observation; the pinned Browser Use registry takes element index 1. A navigation may terminate Browser Use's queued initial-action sequence, so pre-model click dispatch and any later model recovery must be reported separately rather than presumed equivalent. This is a visible synthetic task, not a general initial-action comparison.
 
 ## Same Codex CLI transport for both agents
 

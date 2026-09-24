@@ -85,7 +85,7 @@ export function parseArgs(args) {
   if (config.tasks) config.tasks = config.tasks.split(',');
   for (const id of config.tasks ?? []) if (!TASKS.some(task => task.id === id)) throw new Error(`Unknown task ${id}`);
   if (config.tasks && new Set(config.tasks).size !== config.tasks.length) throw new Error('Task IDs must be unique');
-  if (config.pairedInitialActions && (config.tasks ?? TASKS.map(task => task.id)).some(id => id !== 'two-page')) throw new Error('Paired initial actions currently require only the two-page task');
+  if (config.pairedInitialActions && (config.tasks ?? TASKS.map(task => task.id)).some(id => !['two-page', 'initial-click'].includes(id))) throw new Error('Paired initial actions currently require only the two-page or initial-click task');
   return config;
 }
 
@@ -225,7 +225,7 @@ export async function runComparison(config) {
   } catch (error) { if (error.code !== 'ENOENT') throw error; }
   const engineIds = config.engine === 'matched' ? ['tablaze', 'browser-use'] : [config.engine];
   const taskIds = config.tasks ?? TASKS.map(task => task.id);
-  if (config.pairedInitialActions && taskIds.some(id => id !== 'two-page')) throw new Error('Paired initial actions currently require only the two-page task');
+  if (config.pairedInitialActions && taskIds.some(id => !['two-page', 'initial-click'].includes(id))) throw new Error('Paired initial actions currently require only the two-page or initial-click task');
   const codexTransport = config.transport === 'codex';
   const modelConfiguration = config.engine === 'tablaze-scripted' ? null : { model: config.model ?? null, transport: codexTransport ? 'codex-cli' : 'chat-completions', endpoint: codexTransport ? null : publicEndpoint(config.endpoint), temperature: codexTransport || config.reasoningEffort ? null : config.temperature ?? 0, reasoningEffort: config.reasoningEffort ?? null, maxOutputTokens: codexTransport ? null : config.maxOutputTokens ?? 4096, tokenBudget: config.tokenBudget ?? 50000, transportRetries: 0,
     ...(codexTransport ? { codexVersion: check.codex?.version, providerHTTPOverride: true, provider: 'tablaze-comparison', providerConfiguredRequestRetries: 0, providerConfiguredStreamRetries: 0, disabledFeatures: CODEX_DISABLED_FEATURES, limitations: CODEX_TRANSPORT_LIMITS } : {}) };
@@ -268,7 +268,7 @@ export async function runComparison(config) {
           const adapterConfig = { ...config, apiKey: undefined, deadlineAtMs, browserUseJudge: config.browserUseJudge ?? true, mode: engine === 'tablaze-scripted' ? 'scripted' : 'model', executablePath: check.executablePath, gatewayEndpoint: gateway?.endpoint, workDirectory };
           if (engine === 'browser-use') {
             const child = await command(config.python ?? 'python3', [join(here, 'browser-use-adapter.py')], {
-              input: { ...adapterConfig, prompt: attempt.prompt, uploadPath: attempt.uploadPath, initialActionUrls: attempt.initialActionUrls }, timeoutMs: (config.timeoutMs ?? 120000) + 30000,
+              input: { ...adapterConfig, prompt: attempt.prompt, uploadPath: attempt.uploadPath, initialActionUrls: attempt.initialActionUrls, initialActionUrl: attempt.url, taskId: attempt.taskId }, timeoutMs: (config.timeoutMs ?? 120000) + 30000,
             });
             await writeFile(join(workDirectory, 'adapter.stderr.log'), child.stderr);
             try { result = JSON.parse(child.stdout.trim()); } catch { result = await retainedAdapterProgress(workDirectory); }

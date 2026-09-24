@@ -98,6 +98,24 @@ test('two-page judge requires both page visits and the exact source code exactly
   assert.equal((await attempt.judge()).passed, false, 'Duplicate submission is rejected');
 });
 
+test('initial-click judge requires one reveal and one correct submission', async t => {
+  const service = await startTaskService();
+  t.after(() => service.close());
+  const attempt = await service.createAttempt('initial-click', 23);
+  const page = await (await fetch(attempt.url)).text();
+  const code = page.match(/S-[A-F0-9]{12}/)?.[0];
+  assert.ok(code);
+  const save = value => fetch(attempt.url + 'save', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code: value }) });
+  await save(code);
+  assert.equal((await attempt.judge()).passed, false, 'A correct write without the reveal click is insufficient');
+  attempt.reset();
+  await fetch(attempt.url + 'reveal', { method: 'POST' });
+  await save(code);
+  assert.equal((await attempt.judge()).passed, true);
+  await fetch(attempt.url + 'reveal', { method: 'POST' });
+  assert.equal((await attempt.judge()).passed, false, 'A duplicate reveal is rejected');
+});
+
 test('model gateway enforces equal wire settings and measures returned usage without a paid provider', async t => {
   const requests = [];
   const provider = createServer(async (request, response) => {
@@ -146,6 +164,15 @@ test('paired initial actions execute both visits before scripted planning', { ti
   assert.equal(report.attempts[0].outcome, 'passed', JSON.stringify(report.attempts[0]));
   assert.equal(report.attempts[0].judge.evidence.sourceViews, 1);
   assert.equal(report.attempts[0].judge.evidence.destinationViews, 1);
+});
+
+test('paired initial click reveals once before scripted planning', { timeout: 30000 }, async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'tablaze-paired-initial-click-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  const { report } = await runComparison({ engine: 'tablaze-scripted', tasks: ['initial-click'], pairedInitialActions: true, repeat: 1, seed: 23, timeoutMs: 20000, output: directory });
+  assert.equal(report.attempts[0].outcome, 'passed', JSON.stringify(report.attempts[0]));
+  assert.equal(report.attempts[0].judge.evidence.reveals, 1);
+  assert.equal(report.attempts[0].judge.evidence.writeCount, 1);
 });
 
 test('scripted Tablaze smoke completes diverse real-browser tasks with independent judges', { timeout: 180000 }, async t => {

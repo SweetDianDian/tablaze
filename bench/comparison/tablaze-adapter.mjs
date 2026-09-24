@@ -125,6 +125,13 @@ export function scriptedPlanner(attempt, { initialized = false, pairedInitialAct
         yield* act([{ type: 'fill', ref: find('Source code'), value: code }, { type: 'click', ref: find('Submit code') }]);
         break;
       }
+      case 'initial-click': {
+        if (!pairedInitialActions) yield* click('Reveal code');
+        const code = page.text.match(/S-[A-F0-9]{12}/)?.[0];
+        if (!code) throw new Error('Script fixture revealed code unavailable in page text');
+        yield* act([{ type: 'fill', ref: find('Code'), value: code }, { type: 'click', ref: find('Submit code') }]);
+        break;
+      }
       default: throw new Error('No script for fixture task');
     }
     const verification = yield call('tab_verify', { session_id: page.session_id, checks, timeout_ms: 5000 });
@@ -135,8 +142,10 @@ export function scriptedPlanner(attempt, { initialized = false, pairedInitialAct
     const previous = messages.filter(message => message.role === 'tool').at(-1);
     if (!iterator) {
       if (initialized) {
-        if (previous?.name !== (pairedInitialActions ? 'tab_tabs' : 'tab_open')) throw new Error('Script fixture expected executor initialization');
-        initialPage = payload(previous.result);
+        const expected = pairedInitialActions ? attempt.taskId === 'initial-click' ? 'tab_click_named' : 'tab_tabs' : 'tab_open';
+        if (previous?.name !== expected) throw new Error('Script fixture expected executor initialization');
+        const result = payload(previous.result);
+        initialPage = expected === 'tab_click_named' ? result.snapshot : result;
       }
       iterator = workflow();
     }
@@ -184,7 +193,10 @@ export async function runTablaze(attempt, config) {
       return decision;
     };
     phase('agent_run_start');
-    result = await runAgent({ task: attempt.prompt, ...(config.tablazeInitializeUrl === true ? { startUrl: attempt.url } : {}), ...(config.pairedInitialActions === true ? { initialActions: attempt.initialActionUrls.map(url => ({ url, newTab: true })) } : {}), directOpenTaskUrl: config.tablazeDirectOpenTaskUrl === true, planner, tools, maxSteps: config.maxSteps ?? 40, maxToolCalls: config.maxToolCalls ?? 150, timeoutMs: Math.max(1, deadlineAtMs - Date.now()), onEvent: event => {
+    const initialActions = config.pairedInitialActions === true
+      ? attempt.taskId === 'initial-click' ? [{ url: attempt.url }, { click: { name: 'Reveal code', role: 'button' } }] : attempt.initialActionUrls.map(url => ({ url, newTab: true }))
+      : undefined;
+    result = await runAgent({ task: attempt.prompt, ...(config.tablazeInitializeUrl === true ? { startUrl: attempt.url } : {}), ...(initialActions ? { initialActions } : {}), directOpenTaskUrl: config.tablazeDirectOpenTaskUrl === true, planner, tools, maxSteps: config.maxSteps ?? 40, maxToolCalls: config.maxToolCalls ?? 150, timeoutMs: Math.max(1, deadlineAtMs - Date.now()), onEvent: event => {
       observedEvents.push(event);
       phase(event.type, { step: event.step, ...(event.call ? { tool: event.call.name } : {}) });
     } });

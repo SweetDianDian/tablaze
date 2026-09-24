@@ -201,11 +201,15 @@ async def execute(config):
         max_retries=0, max_completion_tokens=config.get("maxOutputTokens", 4096),
     )
     llm = ChatOpenAI(**llm_options)
+    initial_actions = None
+    if config.get("pairedInitialActions"):
+        initial_actions = ([{"navigate": {"url": config["initialActionUrl"], "new_tab": True}}, {"click": {"index": 1}}]
+                           if config.get("taskId") == "initial-click"
+                           else [{"navigate": {"url": url, "new_tab": True}} for url in config["initialActionUrls"]])
     agent = Agent(
         task=config["prompt"], llm=llm, judge_llm=MeasuredJudge(**llm_options),
         use_judge=config.get("browserUseJudge", True), browser=browser, use_vision=True,
-        initial_actions=([{"navigate": {"url": url, "new_tab": True}} for url in config["initialActionUrls"]]
-                         if config.get("pairedInitialActions") else None),
+        initial_actions=initial_actions,
         available_file_paths=[config["uploadPath"]] if config.get("uploadPath") else [],
         file_system_path=str(work / "agent-files"), calculate_cost=False,
         enable_signal_handler=False,

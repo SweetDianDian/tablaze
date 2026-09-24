@@ -130,7 +130,7 @@ SDK 调用方可用 `createAgentControl()` 在安全边界暂停、加入可信�
 
 也可选用 `--record-har` 和 `--record-trace` 保存自有会话的网络 HAR 与 Playwright 追踪 ZIP。HAR 默认不存响应正文；可信操作者可显式选择 `--har-content embed|attach` 和 `--har-mode full|minimal`。关闭后返回私有文件路径、大小和 SHA-256。任一模式都可能含敏感请求数据，正文模式还可能保存私密响应。详见[诊断文件说明](docs/DIAGNOSTICS.md)。
 
-可信操作者可设置自有浏览器的视口、屏幕、像素比、User-Agent、语言、时区、移动端行为、触控和页面权限；`--device-preset pixel-7` 或 `pixel-7-pro` 可一键应用一组移动端模拟参数。`doctor` 会报告生效配置但不回显 User-Agent 字符串，外部 CDP 浏览器不会被修改。预设不是完整设备指纹。详见[浏览器配置与限制](docs/BROWSER_CONFIGURATION.md)。
+可信操作者可设置自有浏览器的视口、屏幕、像素比、User-Agent、语言、时区、移动端行为、触控和页面权限。`--no-viewport` 可让桌面页面跟随浏览器内容区；有头模式还支持 `--window-size` 和 `--window-position`。`--device-preset pixel-7` 或 `pixel-7-pro` 可一键应用一组移动端模拟参数。`doctor` 会报告生效配置但不回显 User-Agent 字符串，外部 CDP 浏览器不会被修改。预设不是完整设备指纹。详见[浏览器配置与限制](docs/BROWSER_CONFIGURATION.md)。
 自有浏览器还可配置 `--proxy-server`，可选绕过规则及从环境变量读取的代理密码；[配置说明](docs/BROWSER_CONFIGURATION.md)区分了已测试的 HTTP 路由和仍待验证的代理认证等路径。
 
 ## 简单的工作流，明确的控制

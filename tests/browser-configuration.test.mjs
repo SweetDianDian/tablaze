@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
+import { mkdtemp, rm } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { createServer as createNetServer } from 'node:net';
-import { networkInterfaces } from 'node:os';
+import { networkInterfaces, tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -20,6 +22,46 @@ test('owned Chrome context applies viewport, pixel ratio and an explicit permiss
   const observed = await engine.script(opened.session_id, opened.snapshot_id, "return { width: innerWidth, height: innerHeight, ratio: devicePixelRatio, geolocation: (await navigator.permissions.query({name:'geolocation'})).state };", null);
   assert.equal(observed.ok, true, JSON.stringify(observed));
   assert.deepEqual(observed.result, { width: 900, height: 620, ratio: 2, geolocation: 'granted' });
+});
+
+test('noViewport uses Chrome window content dimensions instead of the fixed 1280x800 page', { timeout: 30_000 }, async t => {
+  const fixture = await startFixture();
+  const engine = new BrowserEngine({ channel: chrome, headless: true, noViewport: true, allowPageScript: true });
+  t.after(async () => { await engine.dispose(); await fixture.close(); });
+  const opened = await engine.open(fixture.url);
+  const observed = await engine.script(opened.session_id, opened.snapshot_id, 'return { width: innerWidth, height: innerHeight, outerWidth, outerHeight };', null);
+  assert.equal(observed.ok, true, JSON.stringify(observed));
+  assert.ok(observed.result.width > 0 && observed.result.height > 0);
+  assert.ok(observed.result.width <= observed.result.outerWidth && observed.result.height <= observed.result.outerHeight);
+  assert.notDeepEqual([observed.result.width, observed.result.height], [1280, 800]);
+  const capture = await engine.screenshot(opened.session_id);
+  assert.equal(capture.viewport.width, observed.result.width);
+  assert.equal(capture.viewport.height, observed.result.height);
+});
+
+test('headed Chrome applies a requested window size and position without a fixed viewport', { timeout: 30_000 }, async t => {
+  const fixture = await startFixture();
+  const engine = new BrowserEngine({ channel: chrome, headless: false, noViewport: true, windowSize: { width: 980, height: 700 }, windowPosition: { x: -9000, y: -9000 }, allowPageScript: true });
+  t.after(async () => { await engine.dispose(); await fixture.close(); });
+  const opened = await engine.open(fixture.url);
+  const observed = await engine.script(opened.session_id, opened.snapshot_id, 'return { width: innerWidth, height: innerHeight, outerWidth, outerHeight, x: screenX };', null);
+  assert.equal(observed.ok, true, JSON.stringify(observed));
+  assert.deepEqual([observed.result.outerWidth, observed.result.outerHeight], [980, 700]);
+  assert.ok(observed.result.width > 0 && observed.result.height > 0 && observed.result.height < 700);
+  // The OS may clamp an off-screen request to the nearest available display edge.
+  assert.ok(observed.result.x < 0);
+});
+
+test('persistent owned Chrome profile honors noViewport instead of forcing 1280x800', { timeout: 30_000 }, async t => {
+  const fixture = await startFixture();
+  const profileDir = await mkdtemp(join(tmpdir(), 'tablaze-natural-viewport-'));
+  const engine = new BrowserEngine({ channel: chrome, headless: true, profileDir, noViewport: true, allowPageScript: true });
+  t.after(async () => { await engine.dispose(); await fixture.close(); await rm(profileDir, { recursive: true, force: true }); });
+  const opened = await engine.open(fixture.url);
+  const observed = await engine.script(opened.session_id, opened.snapshot_id, 'return [innerWidth, innerHeight];', null);
+  assert.equal(observed.ok, true, JSON.stringify(observed));
+  assert.notDeepEqual(observed.result, [1280, 800]);
+  assert.ok(observed.result.every(value => value > 0));
 });
 
 test('owned Chrome context applies mobile, touch, screen and region settings to a real page', { timeout: 30_000 }, async t => {
@@ -53,6 +95,12 @@ test('Pixel 7 preset applies a coherent mobile viewport, screen, UA and touch pr
 test('browser configuration rejects invalid values and cannot alter an external CDP context', () => {
   for (const options of [
     { viewport: { width: 319, height: 600 } },
+    { noViewport: 'yes' },
+    { noViewport: true, viewport: { width: 900, height: 600 } },
+    { noViewport: true, devicePreset: 'pixel-7' },
+    { windowSize: { width: 900, height: 600 } },
+    { headless: false, windowSize: { width: 200, height: 600 } },
+    { headless: false, windowPosition: { x: 10001, y: 0 } },
     { viewport: { width: 900.5, height: 600 } },
     { deviceScaleFactor: 0 },
     { deviceScaleFactor: Infinity },
@@ -70,6 +118,8 @@ test('browser configuration rejects invalid values and cannot alter an external 
   assert.throws(() => new BrowserEngine({ cdpUrl: 'http://127.0.0.1:9222', viewport: { width: 900, height: 600 } }), { code: 'BROWSER_CONFIG_CDP_UNSUPPORTED' });
   assert.throws(() => new BrowserEngine({ cdpUrl: 'http://127.0.0.1:9222', isMobile: true }), { code: 'BROWSER_CONFIG_CDP_UNSUPPORTED' });
   assert.throws(() => new BrowserEngine({ cdpUrl: 'http://127.0.0.1:9222', devicePreset: 'pixel-7' }), { code: 'BROWSER_CONFIG_CDP_UNSUPPORTED' });
+  assert.throws(() => new BrowserEngine({ cdpUrl: 'http://127.0.0.1:9222', noViewport: true }), { code: 'BROWSER_CONFIG_CDP_UNSUPPORTED' });
+  assert.throws(() => new BrowserEngine({ cdpUrl: 'http://127.0.0.1:9222', windowSize: { width: 900, height: 600 } }), { code: 'BROWSER_CONFIG_CDP_UNSUPPORTED' });
   for (const server of ['ftp://127.0.0.1:3000', 'http://user:secret@127.0.0.1:3000', 'http://127.0.0.1:3000/private']) assert.throws(() => new BrowserEngine({ proxy: { server } }), { code: 'PROXY_CONFIG_INVALID' });
   assert.throws(() => new BrowserEngine({ cdpUrl: 'http://127.0.0.1:9222', proxy: { server: 'http://127.0.0.1:3000' } }), { code: 'PROXY_CDP_UNSUPPORTED' });
 });
@@ -218,6 +268,8 @@ test('owned Chrome reaches an HTTP page through a SOCKS5 proxy', { timeout: 30_0
 test('CLI doctor reports explicit browser configuration and rejects malformed flags', () => {
   const output = JSON.parse(execFileSync(process.execPath, ['dist/cli.js', 'doctor', '--channel', chrome || 'chromium', '--viewport', '900x620', '--screen', '900x620', '--device-scale-factor', '2', '--user-agent', 'FixtureBrowser/1.0', '--locale', 'fr-FR', '--timezone', 'Europe/Paris', '--mobile', '--touch', '--permissions', 'geolocation,notifications'], { encoding: 'utf8' }));
   assert.deepEqual(output.viewport, { width: 900, height: 620 });
+  assert.equal(output.no_viewport, false);
+  assert.equal(output.window_size, null);
   assert.equal(output.device_scale_factor, 2);
   assert.deepEqual(output.screen, { width: 900, height: 620 });
   assert.equal(output.user_agent_configured, true);
@@ -238,18 +290,26 @@ test('CLI doctor reports explicit browser configuration and rejects malformed fl
   assert.deepEqual(pro.viewport, { width: 412, height: 816 });
   assert.deepEqual(pro.screen, { width: 412, height: 892 });
   assert.equal(pro.device_scale_factor, 3.5);
+  const natural = JSON.parse(execFileSync(process.execPath, ['dist/cli.js', 'doctor', '--channel', chrome || 'chromium', '--headed', '--no-viewport', '--window-size', '980x700', '--window-position=-9000,-9000'], { encoding: 'utf8' }));
+  assert.equal(natural.viewport, null);
+  assert.equal(natural.no_viewport, true);
+  assert.deepEqual(natural.window_size, { width: 980, height: 700 });
+  assert.deepEqual(natural.window_position, { x: -9000, y: -9000 });
   const authenticated = spawnSync(process.execPath, ['dist/cli.js', 'doctor', '--channel', chrome || 'chromium', '--proxy-server', 'http://127.0.0.1:3000', '--proxy-username', 'operator', '--proxy-password-env', 'TABLAZE_TEST_PROXY_PASSWORD'], { encoding: 'utf8', env: { ...process.env, TABLAZE_TEST_PROXY_PASSWORD: 'proxy-private-sentinel' } });
   assert.equal(authenticated.status, 0, authenticated.stderr);
   assert.deepEqual(JSON.parse(authenticated.stdout).proxy, { enabled: true, protocol: 'http', has_credentials: true });
   assert.doesNotMatch(authenticated.stdout + authenticated.stderr, /proxy-private-sentinel|operator|127\.0\.0\.1:3000/);
   for (const flags of [
     ['--viewport', '900-620'], ['--viewport', '10x10'], ['--screen', '10x10'], ['--screen', '900-620'], ['--device-scale-factor', '5'],
+    ['--no-viewport', '--viewport', '900x620'], ['--no-viewport', '--device-preset', 'pixel-7'],
+    ['--window-size', '900-620'], ['--window-size', '10x10'], ['--window-position', '4:8'], ['--window-position', '10001,0'], ['--window-size', '900x620'],
     ['--user-agent', 'bad\nagent'], ['--locale', 'not_a_locale'], ['--timezone', 'Moon/Base'],
     ['--device-preset', 'unknown-device'], ['--device-preset', 'pixel-7', '--viewport', '390x844'],
     ['--permissions', 'geolocation,geolocation'], ['--permissions', 'unknown'],
     ['--cdp-url', 'http://127.0.0.1:9222', '--viewport', '900x620'],
     ['--cdp-url', 'http://127.0.0.1:9222', '--mobile'],
     ['--cdp-url', 'http://127.0.0.1:9222', '--device-preset', 'pixel-7'],
+    ['--cdp-url', 'http://127.0.0.1:9222', '--no-viewport'],
     ['--proxy-server', 'http://user:secret@127.0.0.1:3000'], ['--proxy-bypass', 'localhost'],
     ['--cdp-url', 'http://127.0.0.1:9222', '--proxy-server', 'http://127.0.0.1:3000'],
   ]) {
@@ -279,4 +339,19 @@ test('CLI stdio MCP applies the Pixel 7 preset to an actual owned page', { timeo
   assert.equal(observed.result.ratio, 2.625);
   assert.match(observed.result.agent, /Pixel 7/);
   assert.ok(observed.result.touchPoints > 0);
+});
+
+test('CLI stdio MCP no-viewport flag reaches an actual owned Chrome page', { timeout: 30_000 }, async t => {
+  const fixture = await startFixture();
+  const cli = fileURLToPath(new URL('../dist/cli.js', import.meta.url));
+  const transport = new StdioClientTransport({ command: process.execPath, args: [cli, '--channel', chrome || 'chromium', '--no-viewport', '--page-script'], stderr: 'pipe' });
+  const client = new Client({ name: 'natural-viewport-cli-test', version: '1' });
+  t.after(async () => { await client.close(); await fixture.close(); });
+  await client.connect(transport);
+  const opened = (await client.callTool({ name: 'tab_open', arguments: { url: fixture.url } })).structuredContent;
+  assert.equal(opened.ok, true, JSON.stringify(opened));
+  const observed = (await client.callTool({ name: 'tab_script', arguments: { session_id: opened.session_id, snapshot_id: opened.snapshot_id, source: 'return [innerWidth, innerHeight];' } })).structuredContent;
+  assert.equal(observed.ok, true, JSON.stringify(observed));
+  assert.notDeepEqual(observed.result, [1280, 800]);
+  assert.ok(observed.result.every(value => value > 0));
 });

@@ -8,6 +8,15 @@ tablaze --channel chrome --viewport 900x620 --device-scale-factor 2 --permission
 
 The same flags work with `tablaze run` and `tablaze doctor`. The SDK accepts `new BrowserEngine({ viewport: { width: 900, height: 620 }, deviceScaleFactor: 2, permissions: ['geolocation'] })` or the equivalent `createServer` options. `doctor` reports the parsed settings but does not open a browser; a real-Chrome test checks `innerWidth`, `innerHeight`, `devicePixelRatio` and the granted geolocation permission. Video recording, when separately enabled, uses the configured viewport as its frame size.
 
+Some desktop sites size their content from the actual browser window rather than a fixed emulated viewport. Use `--no-viewport` to let Chrome choose the content area; add `--headed`, `--window-size` and `--window-position` when the visible window geometry matters:
+
+```sh
+tablaze --channel chrome --headed --no-viewport \
+  --window-size 980x700 --window-position=-100,30
+```
+
+The SDK equivalents are `noViewport: true`, `windowSize: { width: 980, height: 700 }` and `windowPosition: { x: -100, y: 30 }`. `noViewport` also works in headless mode and owned persistent profiles; it cannot be combined with a fixed viewport, device preset, mobile mode or emulated screen. Window size and position require headed mode, apply at owned Chrome launch, and cannot reconfigure an external CDP browser. The operating system can clamp an off-screen position. `doctor` reports the requested geometry and a null viewport without claiming to have launched Chrome. In real Chrome, the default fixed page was 1280×800 while a no-viewport page followed the browser content area; a headed 980×700 window reported the requested outer dimensions. The [full Node 24 + Chrome regression log](evidence/development-tests-window-geometry-node24.txt) records **511/511 passed** (SHA-256 `53edf821926eaaf0788a2e4c24c694977cdc3a7d4aa0ad71fd67dd7850d496bb`). This is layout control, not proof of browser fingerprint equivalence or a cross-product task-speed result.
+
 For responsive or localized pages, configure screen size, user agent, locale, time zone, mobile viewport behavior and touch independently:
 
 ```sh
@@ -40,12 +49,14 @@ The SDK option is `proxy: { server, bypass?, username?, password? }`. The CLI re
 
 Default viewport is 1280×800 with device scale 1 and no explicit permission grants. Width is limited to 320–3840 CSS pixels, height to 240–2160, and scale to 0.5–4. Permission names must be unique and belong to the allowlist: `geolocation`, `notifications`, `clipboard-read`, `clipboard-write`, `camera`, `microphone`, `midi`, `midi-sysex`, `background-sync`, `ambient-light-sensor`, `accelerometer`, `gyroscope`, `magnetometer`, `accessibility-events`, `payment-handler`. Chromium/platform support varies; a requested permission can still fail at browser creation, so callers should use only permissions their workflow needs.
 
-These options do not emulate full browser/device identity or browser window geometry. Optional [HAR and browser trace files](DIAGNOSTICS.md) are separate debugging artifacts with their own privacy and lifecycle limits. Granting camera, microphone, clipboard or location changes what a page may access. A proxy can see destination metadata and, for plain HTTP, page content; use one you trust. Keep credentials in a trusted environment and dedicated profiles.
+These options do not emulate full browser/device identity; window geometry is a request subject to the OS window manager. Optional [HAR and browser trace files](DIAGNOSTICS.md) are separate debugging artifacts with their own privacy and lifecycle limits. Granting camera, microphone, clipboard or location changes what a page may access. A proxy can see destination metadata and, for plain HTTP, page content; use one you trust. Keep credentials in a trusted environment and dedicated profiles.
 
 中文：`--viewport 宽x高`、`--device-scale-factor` 和 `--permissions` 用来配置新建的自有浏览器上下文，也可用于自有持久 profile；不修改外部 CDP 浏览器。默认视口 1280×800、像素比 1、不主动授予权限。权限由操作者配置，页面获得这些权限后可能读取位置、剪贴板或设备，请只开启任务需要的项目。
 
 移动端与地区测试可另设 `--screen`、`--user-agent`、`--locale`、`--timezone`、`--mobile`、`--touch`。这些参数彼此独立，不是预设的完整手机设备身份；真实 Chrome 回归已验证页面可见的语言、时区、屏幕、像素比和触控状态。
 
 常见移动页面可用 `--device-preset pixel-7` 或 `pixel-7-pro` 一次设置视口、屏幕、像素比、UA、移动端行为和触控。SDK 使用 `devicePreset`；与手动设备参数冲突时直接报错。预设只模拟部分浏览器属性，不会改变宿主系统或提供完整设备指纹。
+
+桌面页面如需按真实窗口布局，使用 `--no-viewport`；有头模式还可加 `--window-size 宽x高` 与 `--window-position X,Y`。SDK 对应 `noViewport`、`windowSize`、`windowPosition`。窗口位置可能被操作系统限制；外部 CDP 浏览器不可重配。这项功能不代表完整设备指纹或速度优势。
 
 代理可用 `--proxy-server`、`--proxy-bypass`、`--proxy-username` 与 `--proxy-password-env` 配置；密码只从环境变量读取，不要放进 URL。真实 Chrome 与独立本地服务器已分别验收 HTTP 代理、407 Basic 认证、非回环目标的绕过规则，以及 SOCKS5 传递目标域名并加载 HTTP 页面。另有 CLI stdio MCP 测试证实环境变量密码经过 407 挑战后成功请求页面，输出未泄露凭据。HTTPS CONNECT 与外部代理服务仍需另测。

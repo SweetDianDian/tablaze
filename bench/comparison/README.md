@@ -16,7 +16,7 @@ workflows, selectors and canvas coordinates. Results test integration and browse
 functionality; they do not measure model planning or visual reasoning. No model
 requests or paid calls occur in scripted mode.
 
-The 16 tasks are `form`, `pagination`, `dynamic-menu`, `popup`, `auth-return`, `network-receipt`, `shadow-form`,
+The 17 tasks are `form`, `pagination`, `dynamic-menu`, `popup`, `auth-return`, `network-receipt`, `shadow-form`, `readonly-listbox`,
 `iframe-form`, `large-page`, `virtual-list`, `canvas`, `upload`, `download`, `state`,
 `duplicate-write`, and `extraction`. Use `--tasks form,popup --repeat 2 --seed 10`
 for a subset. The `state` task checks storage across navigation, not restart or
@@ -198,7 +198,7 @@ node --test tests/comparison-phases.test.mjs
 ```
 
 These tests check judge rejection, file contents, reset isolation, equal gateway
-settings, missing prerequisites and all 15 real-browser scripted workflows.
+settings, missing prerequisites and all 17 real-browser scripted workflows.
 They make no paid model calls. The broader 24-task smoke target, frozen full
 evaluation set, matched real-model repetitions and shared external-agent MCP
 track remain open. `superiorityProven` always stays false in this harness.

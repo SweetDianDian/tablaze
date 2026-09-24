@@ -13,6 +13,7 @@ export const TASKS = Object.freeze([
   { id: 'auth-return', tags: ['authentication', 'tabs', 'cross_origin', 'state'], instruction: 'Connect the account in the provider popup, return to the original app tab, and finish the connection exactly once.' },
   { id: 'network-receipt', tags: ['authentication', 'tabs', 'network', 'extraction'], instruction: 'Connect the account in the provider popup, read the receipt reference from the authenticated network response, and submit that reference exactly once in the original app tab.' },
   { id: 'shadow-form', tags: ['shadow_dom', 'forms'], instruction: 'Save shadow-component note Orion.' },
+  { id: 'readonly-listbox', tags: ['forms', 'listbox', 'callback'], instruction: 'Choose Business in the read-only Travel category picker. The application saves through the picker option click; choose it exactly once.' },
   { id: 'iframe-form', tags: ['iframe', 'forms'], instruction: 'Save frame-component note Vega.' },
   { id: 'large-page', tags: ['large_dom', 'targeting'], instruction: 'Find and activate Final target after the long list of decoy controls.' },
   { id: 'virtual-list', tags: ['virtual_list', 'targeting', 'scroll'], instruction: 'Find VIRTUAL-130 in the virtualized results list and reserve that row exactly once. Only nearby rows exist in the DOM.' },
@@ -50,6 +51,10 @@ function page(attempt, route) {
         if(!response.ok){document.querySelector('#connection').textContent='Receipt API denied';return}
         await response.json();document.querySelector('#connection').textContent='Receipt API returned. Read its network response for the reference.';document.querySelector('#submit').disabled=false});</script>`; break;
     case 'shadow-form': body = `<section id="component"></section><script>document.querySelector('#component').attachShadow({mode:'open'}).innerHTML='<label>Shadow note<input id="note"></label><button>Save shadow note</button>';const root=document.querySelector('#component').shadowRoot;root.querySelector('button').onclick=()=>save({note:root.querySelector('input').value});</script>`; break;
+    case 'readonly-listbox': body = `<label for="category">Travel category</label><input id="category" readonly aria-controls="category-picker" onclick="document.querySelector('#category-picker').style.display='block'">
+      <select id="category-picker" size="5" style="display:none" onclick="document.querySelector('#category').value=this.value;this.style.display='none';save({category:this.value,callback:'native-option-click'})">
+      ${attempt.seed % 2 ? '<option value="holiday">Holiday</option><option value="business">Business</option>' : '<option value="business">Business</option><option value="holiday">Holiday</option>'}
+      <option value="other">Other</option></select>`; break;
     case 'iframe-form': body = route === 'frame' ? '<label>Frame note<input id="note"></label><button onclick="save({note:document.querySelector(\'#note\').value})">Save frame note</button>' : `<iframe title="Note editor" src="${prefix}/frame" width="600" height="240"></iframe>`; break;
     case 'large-page': body = Array.from({ length: 520 }, (_, i) => `<button>Decoy ${i + 1}</button>`).join('') + `<section id="final"><button onclick="save({target:'final'})">Final target</button></section>`; break;
     case 'virtual-list': body = `<h1>Virtual results</h1><div id="virtual-list" tabindex="0" aria-label="Virtual results" style="height:180px;overflow-y:auto;position:relative;border:1px solid #888"><div style="height:6400px"></div><div id="virtual-rows" style="position:absolute;left:0;right:0;top:0"></div></div><script>
@@ -157,6 +162,7 @@ export async function startTaskService() {
             case 'auth-return': passed = exactOne && record.token === token && attempt.authorizations === 1; break;
             case 'network-receipt': passed = exactOne && record.reference === receiptReference && attempt.authorizations === 1 && attempt.receiptRequests >= 1; break;
             case 'shadow-form': passed = exactOne && record.note === 'Orion'; break;
+            case 'readonly-listbox': passed = exactOne && record.category === 'business' && record.callback === 'native-option-click'; break;
             case 'iframe-form': passed = exactOne && record.note === 'Vega'; break;
             case 'large-page': passed = exactOne && record.target === 'final'; break;
             case 'virtual-list': passed = exactOne && record.record === 'VIRTUAL-130'; break;

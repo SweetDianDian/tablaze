@@ -71,6 +71,7 @@ export function scriptedPlanner(attempt, { initialized = false } = {}) {
         break;
       }
       case 'shadow-form': yield* act([{ type: 'fill', ref: find('Shadow note'), value: 'Orion' }, { type: 'click', ref: find('Save shadow note') }]); break;
+      case 'readonly-listbox': yield* act([{ type: 'select', ref: find('Travel category'), values: ['business'] }]); break;
       case 'iframe-form':
         page = (yield call('tab_snapshot', { session_id: page.session_id, frame_id: page.frames.find(frame => !frame.is_main).frame_id })).data;
         yield* act([{ type: 'fill', ref: find('Frame note'), value: 'Vega' }, { type: 'click', ref: find('Save frame note') }]); break;

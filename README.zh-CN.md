@@ -116,6 +116,8 @@ node dist/cli.js run --provider codex --model "<你的Codex模型>" \
 
 可信预设可用 `--initial-actions ./initial-actions.json` 在首次模型规划前执行：第一项必须是 HTTP(S) `url`，后续可继续导航、用 `newTab: true` 新建标签页，或指定 `{"click":{"name":"打开详情","role":"button"}}` 点击唯一同名控件。缺失、重名或观察不完整时不会输入。SDK 对应 `initialActions`；每次尝试都写入检查点，结果不明时不会自动重放。[格式与恢复规则](docs/AGENT.md)。
 
+[三组同 Codex 预设点击对照](docs/CODEX_INITIAL_CLICK_20260924.md)中，Tablaze 与固定版本 Browser Use 都通过 3/3 次独立业务验收。Tablaze 在规划前完成点击；Browser Use 导航后的排队点击被跳过，模型随后补做。Tablaze 全程中位为 68.562 秒，对方为 62.911 秒，且每组多一次模型调用。这一可见任务不能证明速度领先或整体功能对等。
+
 [同版本 Codex 任务网址直开对照](docs/CODEX_DIRECT_TASK_URL_20260924.md)的表单与 iframe 共 18 次运行均通过独立业务验收、每次一次正确写入。表单中 Tablaze 直开后的 Agent 完成中位数为 30.378 秒，关闭时为 55.583 秒；Browser Use 默认评审前为 37.647 秒。iframe 中 Tablaze 仍需 56.317 秒，而 Browser Use 为 40.495 秒：Tablaze 三次均额外检查了输入值是否出现在页面正文。少量可见任务不能证明普遍速度领先。
 
 在模型可见的工具参数中明确 `text` 与 `value` 检查范围后，[六组 iframe 同模型复测](docs/CODEX_CHECK_DOMAINS_IFRAME_20260924.md)双方各通过 6/6 次独立业务验收，每次一次正确写入。Tablaze 六次都未再误查输入值是否在页面正文中；四次用 2 次规划完成，另外两次单独验证。Agent 完成中位数为 Tablaze 42.162 秒、Browser Use 45.713 秒，但其中一组 Tablaze 慢约 22 秒；单一合成任务不能证明稳定领先。

@@ -35,6 +35,7 @@ const publicGuides = new Map([
   ['docs/CODEX_READONLY_LISTBOX_20260924.md', 'CODEX_READONLY_LISTBOX_20260924.md'],
   ['docs/CODEX_DIRECT_TASK_URL_20260924.md', 'CODEX_DIRECT_TASK_URL_20260924.md'],
   ['docs/CODEX_INITIAL_ACTIONS_TWO_PAGE_20260924.md', 'CODEX_INITIAL_ACTIONS_TWO_PAGE_20260924.md'],
+  ['docs/CODEX_INITIAL_CLICK_20260924.md', 'CODEX_INITIAL_CLICK_20260924.md'],
   ['docs/CODEX_CHECK_DOMAINS_IFRAME_20260924.md', 'CODEX_CHECK_DOMAINS_IFRAME_20260924.md'],
   ['docs/AGENT_LONG_HISTORY_20260924.md', 'AGENT_LONG_HISTORY_20260924.md'],
   ['docs/RECORDING.md', 'RECORDING.md'],
@@ -81,7 +82,7 @@ for (const name of [
   'native-mcp-network-browser-use-mcp-full-attempt1.jsonl', 'native-mcp-network-browser-use-mcp-full-attempt2.jsonl',
   'network-receipt-direct-runner-v1.mjs', 'development-tests-network-receipt.txt',
   'agent-long-history-20260924.jsonl', 'development-tests-long-history-node24.txt', 'development-tests-proxy-routes-node24.txt', 'development-tests-proxy-cli-node24.txt', 'development-tests-device-presets-node24.txt', 'development-tests-har-modes-node24.txt', 'development-tests-associated-listbox-node24.txt', 'development-tests-window-geometry-node24.txt', 'development-tests-model-fallback-node24.txt', 'development-tests-model-extraction-node24.txt', 'development-tests-agent-extraction-node24.txt', 'development-tests-file-policy-node24.txt', 'development-tests-storage-state-node24.txt', 'development-tests-direct-task-url-node24.txt', 'development-tests-check-domains-node24.txt', 'model-extraction-codex-live-20260924.json',
-  'development-tests-initial-actions-node24.txt', 'development-tests-initial-click-node24.txt', 'owned-profile-validation.json',
+  'development-tests-initial-actions-node24.txt', 'development-tests-initial-click-node24.txt', 'development-tests-initial-click-comparison-node24.txt', 'owned-profile-validation.json',
   'native-mcp-page-script-v1.json', 'native-mcp-page-script-v1.json.tablaze.jsonl',
   'native-mcp-page-script-v1.json.browser-use-cli-mcp.jsonl',
 ]) await copyFile(join(root, 'docs/evidence', name), join(site, 'evidence', name));
@@ -100,4 +101,5 @@ await cp(join(root, 'docs/evidence/readonly-listbox-20260924'), join(site, 'evid
 await cp(join(root, 'docs/evidence/direct-task-url-20260924'), join(site, 'evidence/direct-task-url-20260924'), { recursive: true, force: true });
 await cp(join(root, 'docs/evidence/check-domains-iframe-20260924'), join(site, 'evidence/check-domains-iframe-20260924'), { recursive: true, force: true });
 await cp(join(root, 'docs/evidence/initial-actions-two-page-20260924'), join(site, 'evidence/initial-actions-two-page-20260924'), { recursive: true, force: true });
+await cp(join(root, 'docs/evidence/initial-click-20260924'), join(site, 'evidence/initial-click-20260924'), { recursive: true, force: true });
 console.log('Synchronized public guides, comparison reports, and their fixed evidence files. Historical benchmark.json is unchanged.');

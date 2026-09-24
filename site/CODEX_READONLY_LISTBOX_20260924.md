@@ -1,0 +1,21 @@
+# Read-only native-listbox matched Codex development run
+
+Date: 2026-09-24. Clean source commit `386e7de8ff72593132bb91a6b3e375f12ed226ec` (empty patch SHA-256 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`, source-tree SHA-256 `6452a6965d1763bc41d5d217e6f22c2ad73d7b23589cc38f365fefd66cf1e08d`) was compared with Browser Use Python Agent 0.13.10 pinned to `d8110c5ff87ccba887aaa726cdb780f2f84bef8d`. Both used signed-in Codex CLI `0.155.0-alpha.9.2`, `gpt-6-astra / ultra`, a reported 160,000-token ceiling, 40 planning steps and a 240-second deadline. Tablaze used trusted initial URL and `follow-single`; Browser Use retained its default post-task judge. Each attempt had reset server state and a separate Chrome instance, with engine order alternated.
+
+The visible synthetic task asks the Agent to choose **Business** once in a read-only `Travel category` input. An explicit `aria-controls` relationship points to a native listbox initially hidden until the input is clicked. The server accepts only one record with `category: business` and `callback: native-option-click`, so changing the value without the page callback is a failure. Option order changes across seeds.
+
+| Seed | Tablaze business / Agent | Browser Use business / Agent | Tablaze whole / Agent done | Browser Use whole / Agent done |
+| --- | --- | --- | ---: | ---: |
+| 70 | pass / success | fail / failed | 56.242 / 56.101 s | 92.570 s / no done |
+| 71 | pass / success | pass / success | 51.805 / 51.649 s | 68.804 / 48.995 s |
+| 72 | pass / success | pass / success | 67.386 / 67.236 s | 78.185 / 57.720 s |
+
+Tablaze passed **3/3** independent server checks; Browser Use passed **2/3**. Each successful run made exactly one correct write, with zero duplicates. Browser Use's failed seed 70 made no write. Its trace shows that it navigated and clicked the opener, then a shared Codex inference request was cancelled (`CODEX_CANCELLED`, `SIGTERM`) before a response or token usage record. The gateway's accounting rule prevented further calls. This is a **transport-confounded run**, not evidence that Browser Use cannot use this listbox. In fact, its two other runs completed the same interaction correctly. The [upstream issue #5796](https://github.com/browser-use/browser-use/issues/5796) remains a report about the specialized `select_dropdown` flow, not a claim that every Browser Use Agent fails this task.
+
+On the **two jointly successful seeds only**, the visible median whole-run time was **59.595 s Tablaze versus 73.495 s Browser Use**. Agent-done median was **59.442 versus 53.357 s**: Tablaze's Agent finished later on both seeds. Browser Use's default judge ran after its Agent completed and counts in whole-run time, so the whole-run lead must not be described as faster browser interaction. Tablaze used three model calls per attempt; Browser Use used four in each successful attempt, including one default-judge call. Framework tool counts are not directly equivalent. Two joint successes cannot estimate p95, production reliability, cost, or stable relative efficiency.
+
+The model-free script preflight passed both seed orders, and the 17-task comparison framework passed 7/7 tests. This is a visible development fixture whose scripted Tablaze adapter knows task IDs. The Codex CLI bridge contributes its own instructions and cannot verify equal per-call temperature or output-token limits. The result supports a narrow claim that Tablaze's new interaction path works under the matched model; it does **not** establish overall Browser Use feature parity or superiority across Python Agent, MCP, Harness, Pi or hosted products.
+
+The [unaltered runner report](evidence/readonly-listbox-20260924/results.json) has SHA-256 `47bd01494cbda8f9e0df85b561326b19525b0deebe51b485a2b79a7db0b3ccfd`. The [trace index](evidence/readonly-listbox-20260924/README.md) links all six unedited trajectories, including the cancellation. The report retains source and comparator pins, environment, model settings, task and judge hashes, server writes, timing axes, and transport-error metadata.
+
+中文结论：Tablaze 在这个只读输入框关联原生列表的可见任务上，服务端验收 3/3；Browser Use 为 2/3，其中一次失败源于 Codex 推理调用取消，不能算作产品功能缺陷。双方共同成功的两组中，Tablaze 全程较短，但 Agent 完成较慢；Browser Use 的默认评审计入全程。样本量不足以证明稳定速度或整体领先。

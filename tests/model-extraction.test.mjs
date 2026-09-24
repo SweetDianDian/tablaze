@@ -7,8 +7,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import { createServer } from '../dist/server.js';
-import { connectAgentTools, createOpenAICompatiblePlanner } from '../dist/agent.js';
-import { extractWithPlanner } from '../dist/model-extraction.js';
+import { connectAgentTools, createOpenAICompatiblePlanner, runAgent } from '../dist/agent.js';
+import { createModelExtractionToolClient, extractWithPlanner } from '../dist/model-extraction.js';
 import { ExtractionError } from '../dist/extraction.js';
 import { createCodexPlanner } from '../dist/codex.js';
 
@@ -24,6 +24,126 @@ const candidate = {
     { pointer: '/price', sourceId: 'browser-page', quote: '25 EUR' },
   ],
 };
+
+test('runAgent uses a separate extraction model over its actual Chrome page, then verifies before finishing', { timeout: 30000 }, async t => {
+  const fixture = createHttpServer((_request, response) => {
+    response.writeHead(200, { 'content-type': 'text/html' });
+    response.end('<main id="offers"><p>Lisbon: 25 EUR</p></main>');
+  });
+  await new Promise(resolve => fixture.listen(0, '127.0.0.1', resolve));
+  t.after(async () => { fixture.closeAllConnections(); await new Promise(resolve => fixture.close(resolve)); });
+  const url = `http://127.0.0.1:${fixture.address().port}/offers`;
+  const runtime = createServer({ headless: true, channel: process.env.TABLAZE_BROWSER_CHANNEL || 'chrome' });
+  const connection = await connectAgentTools(runtime.server);
+  t.after(async () => { await connection.close(); await runtime.dispose(); });
+  let extractionCalls = 0;
+  const extractionPlanner = async ({ messages }) => {
+    extractionCalls++;
+    const source = JSON.parse(messages[1].content).sources[0];
+    assert.equal(source.url, url);
+    assert.match(source.text, /Lisbon: 25 EUR/);
+    return { type: 'tools', calls: [{ name: 'submit_extraction', arguments: { ...candidate, citations: candidate.citations.map(citation => ({ ...citation, sourceId: 'current-page' })) } }] };
+  };
+  const tools = createModelExtractionToolClient(connection.tools, extractionPlanner);
+  let extracted, sessionId, verifyId;
+  const result = await runAgent({ task: 'Extract the Lisbon price and verify the page.', startUrl: url, tools, maxSteps: 3, finalOutputSchema: schema,
+    planner: async ({ step, messages, tools: catalog }) => {
+      assert.ok(catalog.some(tool => tool.name === 'tab_extract_model' && tool.annotations.readOnlyHint === true));
+      const previous = messages.filter(message => message.role === 'tool').at(-1);
+      if (step === 1) {
+        sessionId = previous.result.structuredContent.session_id;
+        return { type: 'tools', calls: [{ name: 'tab_extract_model', arguments: { session_id: sessionId, task: 'Extract the Lisbon offer.', schema, selector: '#offers' } }] };
+      }
+      if (step === 2) {
+        extracted = previous.result.structuredContent;
+        assert.equal(extracted.ok, true);
+        assert.equal(extracted.url, url);
+        assert.deepEqual(extracted.data, candidate.data);
+        return { type: 'tools', calls: [{ name: 'tab_verify', arguments: { session_id: sessionId, checks: [{ kind: 'text', contains: 'Lisbon: 25 EUR' }] } }] };
+      }
+      verifyId = previous.toolCallId;
+      return { type: 'finish', summary: 'Verified Lisbon offer.', evidence: [verifyId], data: extracted.data };
+    },
+  });
+  assert.equal(result.status, 'succeeded', JSON.stringify(result));
+  assert.deepEqual(result.data, candidate.data);
+  assert.equal(extractionCalls, 1);
+  assert.equal(result.evidence[0].toolCallId, verifyId);
+});
+
+test('browser-bound model extraction rejects incomplete text before calling the model', async () => {
+  let extractionCalls = 0;
+  const tools = createModelExtractionToolClient({
+    listTools: async () => [{ name: 'tab_extract', inputSchema: { type: 'object' } }],
+    callTool: async () => ({ content: [], structuredContent: { ok: true, session_id: 's1', url: 'https://example.test/', text: 'partial', truncated: true } }),
+  }, async () => { extractionCalls++; throw new Error('Must not run.'); });
+  const result = await tools.callTool({ name: 'tab_extract_model', arguments: { session_id: 's1', task: 'Extract', schema } }, { signal: new AbortController().signal });
+  assert.equal(result.isError, true);
+  assert.equal(result.structuredContent.error.code, 'SOURCE_INCOMPLETE');
+  assert.equal(extractionCalls, 0);
+  assert.throws(() => createModelExtractionToolClient({ getExecutionIdentity: async () => ({}), listTools: async () => [], callTool: async () => ({ content: [] }) }, async () => ({})), /unbound/);
+});
+
+test('tablaze run selects and accounts for a distinct extraction model', { timeout: 30000 }, async t => {
+  let sessionId, extracted, verificationId;
+  const requests = [];
+  const fixture = createHttpServer(async (request, response) => {
+    if (request.url === '/favicon.ico') { response.writeHead(204); response.end(); return; }
+    if (request.url === '/offers') {
+      response.writeHead(200, { 'content-type': 'text/html' });
+      response.end('<main id="offers"><p>Lisbon: 25 EUR</p></main>');
+      return;
+    }
+    const chunks = []; for await (const chunk of request) chunks.push(chunk);
+    const body = JSON.parse(Buffer.concat(chunks).toString());
+    requests.push(body);
+    let name, args;
+    if (body.model === 'extractor-fixture') {
+      name = 'submit_extraction';
+      args = { ...candidate, citations: candidate.citations.map(citation => ({ ...citation, sourceId: 'current-page' })) };
+    } else {
+      assert.equal(body.model, 'planner-fixture');
+      const previous = body.messages.filter(message => message.role === 'tool').at(-1);
+      const result = previous ? JSON.parse(previous.content) : undefined;
+      if (!sessionId) {
+        sessionId = result.structuredContent.session_id;
+        name = 'tab_extract_model';
+        args = { session_id: sessionId, task: 'Extract the Lisbon offer.', schema, selector: '#offers' };
+      } else if (!extracted) {
+        extracted = result.structuredContent;
+        assert.equal(extracted.schema_validated, true);
+        name = 'tab_verify'; args = { session_id: sessionId, checks: [{ kind: 'text', contains: 'Lisbon: 25 EUR' }] };
+      } else {
+        verificationId = result.toolCallId;
+        name = 'agent_finish'; args = { summary: 'Verified Lisbon offer.', evidence: [verificationId], data: extracted.data };
+      }
+    }
+    response.writeHead(200, { 'content-type': 'application/json' });
+    response.end(JSON.stringify({ choices: [{ message: { tool_calls: [{ type: 'function', function: { name, arguments: JSON.stringify(args) } }] } }], usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 } }));
+  });
+  await new Promise(resolve => fixture.listen(0, '127.0.0.1', resolve));
+  t.after(async () => { fixture.closeAllConnections(); await new Promise(resolve => fixture.close(resolve)); });
+  const dir = await mkdtemp(join(tmpdir(), 'tablaze-agent-extraction-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  const schemaPath = join(dir, 'schema.json');
+  await writeFile(schemaPath, JSON.stringify(schema));
+  const base = `http://127.0.0.1:${fixture.address().port}`;
+  const command = fileURLToPath(new URL('../dist/cli.js', import.meta.url));
+  const output = await new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [command, 'run', '--task', 'Extract the Lisbon price.', '--start-url', `${base}/offers`, '--model', 'planner-fixture', '--endpoint', `${base}/model`, '--extraction-model', 'extractor-fixture', '--output-schema', schemaPath, '--channel', process.env.TABLAZE_BROWSER_CHANNEL || 'chrome', '--max-steps', '3'], { stdio: ['ignore', 'pipe', 'pipe'] });
+    let stdout = '', stderr = '';
+    child.stdout.on('data', chunk => { stdout += chunk; });
+    child.stderr.on('data', chunk => { stderr += chunk; });
+    child.on('error', reject);
+    child.on('close', code => resolve({ code, stdout, stderr }));
+  });
+  assert.equal(output.code, 0, output.stderr + output.stdout);
+  const report = JSON.parse(output.stdout);
+  assert.equal(report.status, 'succeeded');
+  assert.deepEqual(report.data, candidate.data);
+  assert.ok(report.model_usage.some(entry => entry.role === 'extraction' && entry.model === 'extractor-fixture'));
+  assert.equal(requests.filter(request => request.model === 'extractor-fixture').length, 1);
+});
 
 test('a separate model extracts from a real Chrome observation with exact quote and schema checks', { timeout: 30000 }, async t => {
   const requests = [];

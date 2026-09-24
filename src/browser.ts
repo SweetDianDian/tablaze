@@ -1396,13 +1396,16 @@ export class BrowserEngine {
     return this.exclusive(sessionId, async session => {
       const maxItems = integer(options.maxItems, 100, 1, 500, 'maxItems');
       const frame = session.snapshot?.frame ?? session.page.mainFrame();
+      const page = session.page;
+      const generation = session.generations.get(frame) ?? 0;
       const selector = options.selector ?? (options.kind === 'table' ? 'table' : 'body');
       const roots = frame.locator(selector);
       if (await roots.count() !== 1) throw new BrowserError('SELECTOR_COUNT', 'Extraction selector must match exactly one root element.');
       const root = await roots.elementHandle();
       if (!root) throw new BrowserError('SELECTOR_COUNT', 'Extraction root disappeared.');
       const result = await frame.evaluate(inspectDOM, { op: 'extract', root, kind: options.kind, maxItems, outputPadding: this.secretStore?.padding }).finally(() => root.dispose());
-      return { ok: true, session_id: session.id, kind: options.kind, limits: { max_items: maxItems, max_characters: 20000 }, ...(this.secretStore ? projectSecretExtraction(result, options.kind, this.secretStore) : result) };
+      if (frame.isDetached() || session.page !== page || generation !== (session.generations.get(frame) ?? 0)) throw new BrowserError('SNAPSHOT_CHANGED', 'The document changed during extraction. Observe again.');
+      return { ok: true, session_id: session.id, url: this.secretText(frame.url(), 4000), ...(frame.url().length > 4000 ? { url_truncated: true } : {}), kind: options.kind, limits: { max_items: maxItems, max_characters: 20000 }, ...(this.secretStore ? projectSecretExtraction(result, options.kind, this.secretStore) : result) };
     });
   }
   extractStructured(sessionId: string, options: { schema: ExtractionSchema; fields: DOMFieldPlan[] }): Promise<Record<string, unknown>> {

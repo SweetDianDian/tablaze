@@ -19,6 +19,7 @@ import { loadSecretConfig } from "./secret-config.js";
 import { compileFinalOutput } from "./final-output.js";
 import { DEVICE_PRESETS, devicePresetOptions, type DevicePreset } from "./device-presets.js";
 import type { ExtractionSchema } from "./extraction.js";
+import { createModelExtractionToolClient } from "./model-extraction.js";
 
 const require = createRequire(import.meta.url);
 const HELP = `Tablaze / 闪页 — compact browser MCP
@@ -87,6 +88,13 @@ Agent run options / 任务执行选项:
   --fallback-codex-command <path>  Backup Codex executable
   --fallback-reasoning-effort <id>  Backup Codex reasoning effort
   --fallback-max-output-tokens <n>  Backup Anthropic/Ollama output limit
+  --extraction-model <id>  Enable a separate model for browser-bound schema extraction
+  --extraction-provider <id>  Extraction provider; defaults to primary provider
+  --extraction-endpoint <url>  Extraction HTTP endpoint when distinct from primary
+  --extraction-api-key-env <name>  Extraction HTTP key environment variable
+  --extraction-codex-command <path>  Extraction Codex executable
+  --extraction-reasoning-effort <id>  Extraction Codex reasoning effort
+  --extraction-max-output-tokens <n>  Extraction Anthropic/Ollama output limit
   --max-steps <1-1000>      Planning limit (default 30) / 规划步数上限
   --max-calls <1-10000>     Tool limit (default 100) / 工具调用上限
   --output-schema <file>   Draft-07 JSON Schema for validated final data / 最终数据格式
@@ -112,6 +120,7 @@ interface RunOptions {
   partialOutputSchema?: ExtractionSchema;
   plannerRetries?: number; plannerRetryDelayMs?: number;
   fallback?: { provider: RunProvider; model: string; endpoint?: string; apiKey?: string; codexCommand?: string; reasoningEffort?: CodexReasoningEffort; maxOutputTokens?: number };
+  extraction?: { provider: RunProvider; model: string; endpoint?: string; apiKey?: string; codexCommand?: string; reasoningEffort?: CodexReasoningEffort; maxOutputTokens?: number };
 }
 const PROVIDERS = new Set<RunProvider>(["openai-compatible", "codex", "anthropic", "ollama"]);
 const REASONING_EFFORTS = new Set<CodexReasoningEffort>(["none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"]);
@@ -166,7 +175,7 @@ function loadOutputSchema(path: string, flag = "--output-schema"): ExtractionSch
 
 function parseOptions(): { command: string; options: BrowserOptions; run?: RunOptions } {
   const { values, positionals } = parseArgs({
-    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, "capture-network": { type: "boolean" }, "record-video": { type: "boolean" }, "record-har": { type: "boolean" }, "har-content": { type: "string" }, "har-mode": { type: "string" }, "record-trace": { type: "boolean" }, "device-preset": { type: "string" }, viewport: { type: "string" }, "no-viewport": { type: "boolean" }, "window-size": { type: "string" }, "window-position": { type: "string" }, screen: { type: "string" }, "device-scale-factor": { type: "string" }, "user-agent": { type: "string" }, locale: { type: "string" }, timezone: { type: "string" }, mobile: { type: "boolean" }, touch: { type: "boolean" }, permissions: { type: "string" }, "proxy-server": { type: "string" }, "proxy-bypass": { type: "string" }, "proxy-username": { type: "string" }, "proxy-password-env": { type: "string" }, "page-script": { type: "boolean" }, "profile-dir": { type: "string" }, "profile-id": { type: "string" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, "secret-config": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "planner-retries": { type: "string" }, "planner-retry-delay-ms": { type: "string" }, "fallback-provider": { type: "string" }, "fallback-model": { type: "string" }, "fallback-endpoint": { type: "string" }, "fallback-api-key-env": { type: "string" }, "fallback-codex-command": { type: "string" }, "fallback-reasoning-effort": { type: "string" }, "fallback-max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "output-schema": { type: "string" }, "partial-schema": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
+    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, "capture-network": { type: "boolean" }, "record-video": { type: "boolean" }, "record-har": { type: "boolean" }, "har-content": { type: "string" }, "har-mode": { type: "string" }, "record-trace": { type: "boolean" }, "device-preset": { type: "string" }, viewport: { type: "string" }, "no-viewport": { type: "boolean" }, "window-size": { type: "string" }, "window-position": { type: "string" }, screen: { type: "string" }, "device-scale-factor": { type: "string" }, "user-agent": { type: "string" }, locale: { type: "string" }, timezone: { type: "string" }, mobile: { type: "boolean" }, touch: { type: "boolean" }, permissions: { type: "string" }, "proxy-server": { type: "string" }, "proxy-bypass": { type: "string" }, "proxy-username": { type: "string" }, "proxy-password-env": { type: "string" }, "page-script": { type: "boolean" }, "profile-dir": { type: "string" }, "profile-id": { type: "string" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, "secret-config": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "planner-retries": { type: "string" }, "planner-retry-delay-ms": { type: "string" }, "fallback-provider": { type: "string" }, "fallback-model": { type: "string" }, "fallback-endpoint": { type: "string" }, "fallback-api-key-env": { type: "string" }, "fallback-codex-command": { type: "string" }, "fallback-reasoning-effort": { type: "string" }, "fallback-max-output-tokens": { type: "string" }, "extraction-provider": { type: "string" }, "extraction-model": { type: "string" }, "extraction-endpoint": { type: "string" }, "extraction-api-key-env": { type: "string" }, "extraction-codex-command": { type: "string" }, "extraction-reasoning-effort": { type: "string" }, "extraction-max-output-tokens": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "output-schema": { type: "string" }, "partial-schema": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
     allowPositionals: true, strict: true,
   });
   if (values.help) return { command: "help", options: {} };
@@ -251,7 +260,7 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
   let popupPolicy: BrowserOptions["popupPolicy"];
   if (values["popup-policy"] !== undefined && values["popup-policy"] !== "stay" && values["popup-policy"] !== "follow-single") throw new Error("--popup-policy must be stay or follow-single.");
   popupPolicy = values["popup-policy"];
-  const runKeys = ["task", "start-url", "model", "provider", "endpoint", "api-key-env", "codex-command", "reasoning-effort", "max-output-tokens", "planner-retries", "planner-retry-delay-ms", "fallback-provider", "fallback-model", "fallback-endpoint", "fallback-api-key-env", "fallback-codex-command", "fallback-reasoning-effort", "fallback-max-output-tokens", "max-steps", "max-calls", "output-schema", "partial-schema", "run-timeout-ms", "checkpoint", "resume", "reconciled"] as const;
+  const runKeys = ["task", "start-url", "model", "provider", "endpoint", "api-key-env", "codex-command", "reasoning-effort", "max-output-tokens", "planner-retries", "planner-retry-delay-ms", "fallback-provider", "fallback-model", "fallback-endpoint", "fallback-api-key-env", "fallback-codex-command", "fallback-reasoning-effort", "fallback-max-output-tokens", "extraction-provider", "extraction-model", "extraction-endpoint", "extraction-api-key-env", "extraction-codex-command", "extraction-reasoning-effort", "extraction-max-output-tokens", "max-steps", "max-calls", "output-schema", "partial-schema", "run-timeout-ms", "checkpoint", "resume", "reconciled"] as const;
   if (positionals[0] === "run") {
     const provider = (values.provider ?? "openai-compatible") as RunProvider;
     if (!PROVIDERS.has(provider)) throw new Error("--provider must be openai-compatible, codex, anthropic, or ollama.");
@@ -291,13 +300,30 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
     const fallbackKeyName = values["fallback-api-key-env"] ?? (fallbackProvider === provider ? envName : "TABLAZE_FALLBACK_API_KEY");
     if (values["fallback-model"] && fallbackProvider !== "codex" && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(fallbackKeyName)) throw new Error("--fallback-api-key-env must name an environment variable.");
     const fallback = values["fallback-model"] ? { provider: fallbackProvider, model: values["fallback-model"], endpoint: fallbackEndpoint, apiKey: fallbackProvider === "codex" ? undefined : process.env[fallbackKeyName] || undefined, codexCommand: values["fallback-codex-command"] ?? (fallbackProvider === provider ? values["codex-command"] : undefined), reasoningEffort: fallbackReasoningEffort ?? (fallbackProvider === provider ? reasoningEffort : undefined), maxOutputTokens: fallbackMaxOutputTokens ?? (fallbackProvider === provider ? maxOutputTokens : undefined) } : undefined;
+    const extractionKeys = ["extraction-provider", "extraction-model", "extraction-endpoint", "extraction-api-key-env", "extraction-codex-command", "extraction-reasoning-effort", "extraction-max-output-tokens"] as const;
+    if (extractionKeys.some(key => values[key] !== undefined) && !values["extraction-model"]?.trim()) throw new Error("Extraction options require a nonempty --extraction-model.");
+    const extractionProvider = (values["extraction-provider"] ?? provider) as RunProvider;
+    if (values["extraction-model"] && !PROVIDERS.has(extractionProvider)) throw new Error("--extraction-provider must be openai-compatible, codex, anthropic, or ollama.");
+    if (values["extraction-model"] && extractionProvider === "codex" && ["extraction-endpoint", "extraction-api-key-env", "extraction-max-output-tokens"].some(key => values[key as keyof typeof values] !== undefined)) throw new Error("HTTP extraction options do not apply to Codex.");
+    if (values["extraction-model"] && extractionProvider !== "codex" && (values["extraction-codex-command"] !== undefined || values["extraction-reasoning-effort"] !== undefined)) throw new Error("Extraction Codex options require --extraction-provider codex.");
+    if (values["extraction-model"] && extractionProvider === "openai-compatible" && values["extraction-max-output-tokens"] !== undefined) throw new Error("--extraction-max-output-tokens applies only to Anthropic or Ollama.");
+    if (values["extraction-codex-command"] !== undefined && !values["extraction-codex-command"].trim()) throw new Error("--extraction-codex-command must be a nonempty executable name or path.");
+    const extractionReasoningEffort = values["extraction-reasoning-effort"] as CodexReasoningEffort | undefined;
+    if (extractionReasoningEffort !== undefined && !REASONING_EFFORTS.has(extractionReasoningEffort)) throw new Error("--extraction-reasoning-effort must be a supported Codex reasoning effort.");
+    const extractionMaxOutputTokens = values["extraction-max-output-tokens"] === undefined ? undefined : Number(values["extraction-max-output-tokens"]);
+    if (extractionMaxOutputTokens !== undefined && (!Number.isInteger(extractionMaxOutputTokens) || extractionMaxOutputTokens < 1 || extractionMaxOutputTokens > 1_000_000)) throw new Error("--extraction-max-output-tokens must be an integer from 1 to 1000000.");
+    const extractionEndpoint = values["extraction-endpoint"] ?? (extractionProvider === provider ? values.endpoint : undefined);
+    if (values["extraction-model"] && extractionProvider === "openai-compatible" && !extractionEndpoint?.trim()) throw new Error("An openai-compatible extraction model requires --extraction-endpoint unless it shares the primary endpoint.");
+    const extractionKeyName = values["extraction-api-key-env"] ?? (extractionProvider === provider ? envName : "TABLAZE_EXTRACTION_API_KEY");
+    if (values["extraction-model"] && extractionProvider !== "codex" && !/^[A-Za-z_][A-Za-z0-9_]*$/.test(extractionKeyName)) throw new Error("--extraction-api-key-env must name an environment variable.");
+    const extraction = values["extraction-model"] ? { provider: extractionProvider, model: values["extraction-model"], endpoint: extractionEndpoint, apiKey: extractionProvider === "codex" ? undefined : process.env[extractionKeyName] || undefined, codexCommand: values["extraction-codex-command"] ?? (extractionProvider === provider ? values["codex-command"] : undefined), reasoningEffort: extractionReasoningEffort ?? (extractionProvider === provider ? reasoningEffort : undefined), maxOutputTokens: extractionMaxOutputTokens ?? (extractionProvider === provider ? maxOutputTokens : undefined) } : undefined;
     const limit = (key: "max-steps" | "max-calls" | "run-timeout-ms", fallback: number, max: number) => {
       if (values.resume && values[key] === undefined) return undefined;
       const value = values[key] === undefined ? fallback : Number(values[key]);
       if (!Number.isInteger(value) || value < 1 || value > max) throw new Error(`--${key} must be an integer from 1 to ${max}.`);
       return value;
     };
-    run = { task: values.task, startUrl: values["start-url"] === undefined ? undefined : normalizeStartUrl(values["start-url"]), provider, model: values.model, endpoint: values.endpoint, apiKey: provider === "codex" ? undefined : process.env[envName] || undefined, codexCommand: values["codex-command"], reasoningEffort, maxOutputTokens, plannerRetries, plannerRetryDelayMs, fallback, maxSteps: limit("max-steps", 30, 1000), maxToolCalls: limit("max-calls", 100, 10000), ...(values["output-schema"] !== undefined ? { finalOutputSchema: loadOutputSchema(values["output-schema"]) } : {}), ...(values["partial-schema"] !== undefined ? { partialOutputSchema: loadOutputSchema(values["partial-schema"], "--partial-schema") } : {}), timeoutMs: limit("run-timeout-ms", 300000, 86400000), checkpointPath: values.checkpoint ? resolve(values.checkpoint) : undefined, resumePath: values.resume ? resolve(values.resume) : undefined, reconciled: values.reconciled };
+    run = { task: values.task, startUrl: values["start-url"] === undefined ? undefined : normalizeStartUrl(values["start-url"]), provider, model: values.model, endpoint: values.endpoint, apiKey: provider === "codex" ? undefined : process.env[envName] || undefined, codexCommand: values["codex-command"], reasoningEffort, maxOutputTokens, plannerRetries, plannerRetryDelayMs, fallback, extraction, maxSteps: limit("max-steps", 30, 1000), maxToolCalls: limit("max-calls", 100, 10000), ...(values["output-schema"] !== undefined ? { finalOutputSchema: loadOutputSchema(values["output-schema"]) } : {}), ...(values["partial-schema"] !== undefined ? { partialOutputSchema: loadOutputSchema(values["partial-schema"], "--partial-schema") } : {}), timeoutMs: limit("run-timeout-ms", 300000, 86400000), checkpointPath: values.checkpoint ? resolve(values.checkpoint) : undefined, resumePath: values.resume ? resolve(values.resume) : undefined, reconciled: values.reconciled };
   } else if (runKeys.some(key => values[key] !== undefined)) throw new Error("Agent options require the run command.");
   return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, profileDir: values["profile-dir"] !== undefined ? resolve(values["profile-dir"]) : undefined, expectedProfileId: values["profile-id"], devicePreset, viewport, noViewport: values["no-viewport"], windowSize, windowPosition, screen, deviceScaleFactor, userAgent: values["user-agent"], locale: values.locale, timezoneId: values.timezone, isMobile: values.mobile, hasTouch: values.touch, permissions, proxy, timeoutMs, popupPolicy, navigationPolicy, secrets, captureNetwork: values["capture-network"] ?? false, recordVideo: values["record-video"] ?? false, recordHar: values["record-har"] ?? false, recordHarContent: values["har-content"] as BrowserOptions['recordHarContent'], recordHarMode: values["har-mode"] as BrowserOptions['recordHarMode'], recordTrace: values["record-trace"] ?? false, allowPageScript: values["page-script"] ?? false }, run };
 }
@@ -422,6 +448,7 @@ async function main(): Promise<void> {
     const usage: Record<string, unknown>[] = [];
     const providerDiagnostics: Record<string, unknown>[] = [];
     const fallbackProviderDiagnostics: Record<string, unknown>[] = [];
+    const extractionProviderDiagnostics: Record<string, unknown>[] = [];
     const onUsage = (entry: AgentModelUsage) => { usage.push({ ...entry }); };
     const httpPlannerOptions = { endpoint: run.endpoint, model: run.model, apiKey: run.apiKey, maxOutputTokens: run.maxOutputTokens, onUsage };
     const codexPlanner = run.provider === "codex" ? createCodexPlanner({
@@ -439,6 +466,15 @@ async function main(): Promise<void> {
     const fallbackPlanner = fallbackCodexPlanner ?? (run.fallback?.provider === "anthropic" ? createAnthropicPlanner(fallbackHttpOptions!)
       : run.fallback?.provider === "ollama" ? createOllamaPlanner(fallbackHttpOptions!)
       : run.fallback ? createOpenAICompatiblePlanner({ ...fallbackHttpOptions!, endpoint: run.fallback.endpoint! }) : undefined);
+    const extractionOnUsage = (entry: AgentModelUsage) => { usage.push({ ...entry, role: "extraction" }); };
+    const extractionCodexPlanner = run.extraction?.provider === "codex" ? createCodexPlanner({
+      model: run.extraction.model, codexCommand: run.extraction.codexCommand, reasoningEffort: run.extraction.reasoningEffort, onUsage: extractionOnUsage,
+      onDiagnostic: diagnostic => { extractionProviderDiagnostics.push({ ...diagnostic }); },
+    }) : undefined;
+    const extractionHttpOptions = run.extraction ? { endpoint: run.extraction.endpoint, model: run.extraction.model, apiKey: run.extraction.apiKey, maxOutputTokens: run.extraction.maxOutputTokens, onUsage: extractionOnUsage } : undefined;
+    const extractionPlanner = extractionCodexPlanner ?? (run.extraction?.provider === "anthropic" ? createAnthropicPlanner(extractionHttpOptions!)
+      : run.extraction?.provider === "ollama" ? createOllamaPlanner(extractionHttpOptions!)
+      : run.extraction ? createOpenAICompatiblePlanner({ ...extractionHttpOptions!, endpoint: run.extraction.endpoint! }) : undefined);
     const { server, engine, dispose } = createServer(options);
     const connection = await connectAgentTools(server);
     const controller = new AbortController();
@@ -470,7 +506,7 @@ async function main(): Promise<void> {
       }
       let workspace: BrowserWorkspace = await engine.exportWorkspace();
       const checkpointPath = run.checkpointPath ?? run.resumePath;
-      const result = await runAgent({ task: run.task ?? saved!.agent.task, startUrl: run.startUrl, planner, tools: connection.tools, maxSteps: run.maxSteps, maxToolCalls: run.maxToolCalls, timeoutMs: run.timeoutMs, finalOutputSchema: run.finalOutputSchema, partialOutputSchema: run.partialOutputSchema, signal: controller.signal,
+      const result = await runAgent({ task: run.task ?? saved!.agent.task, startUrl: run.startUrl, planner, tools: extractionPlanner ? createModelExtractionToolClient(connection.tools, extractionPlanner) : connection.tools, maxSteps: run.maxSteps, maxToolCalls: run.maxToolCalls, timeoutMs: run.timeoutMs, finalOutputSchema: run.finalOutputSchema, partialOutputSchema: run.partialOutputSchema, signal: controller.signal,
         ...((run.plannerRetries !== undefined || fallbackPlanner) ? { plannerRecovery: { maxRetries: run.plannerRetries ?? 0, retryDelayMs: run.plannerRetryDelayMs, fallback: fallbackPlanner, stickyFallback: !!fallbackPlanner } } : {}),
         resume: saved?.agent, resumeSessionMap: restored?.sessionMap,
         resumeFeedback: restored ? `Browser contexts were recreated from the saved workspace. A session marked requires_reauthentication did not restore its login state or original URLs: use an address authorized by the user task and log in again with the available secret aliases before continuing. Other sessions restored their saved cookies/localStorage/IndexedDB and URLs. DOM, form drafts and sessionStorage were not restored. Old refs are invalid. Observe every needed tab before acting. Reauthentication does not reconcile unknown earlier writes. Restored sessions: ${JSON.stringify(restored.snapshots.map(snapshot => ({ session_id: snapshot.session_id, tab_id: snapshot.tab_id, tabs: snapshot.tabs, url: snapshot.url, requires_reauthentication: snapshot.requires_reauthentication === true })))}` : undefined,
@@ -483,7 +519,7 @@ async function main(): Promise<void> {
         onEvent: event => { if (event.type === "planning") process.stderr.write(`Tablaze: planning step ${event.step}\n`); },
       });
       // Default CLI output omits raw prompts, tool arguments and page history.
-      report = { status: result.status, reason: result.reason, ...(result.failure ? { failure: result.failure } : {}), summary: result.summary, ...(result.status === "succeeded" && result.data !== undefined ? { data: result.data } : {}), ...(run.partialOutputSchema ? { partials: result.partials } : {}), question: result.question, steps: result.steps, tool_calls: result.toolCalls, planner_calls: result.plannerCalls, checkpoint: checkpointPath, model_usage: usage, ...(codexPlanner ? { provider_diagnostics: providerDiagnostics } : {}), ...(fallbackCodexPlanner ? { fallback_provider_diagnostics: fallbackProviderDiagnostics } : {}), ...((run.plannerRetries !== undefined || run.fallback) ? { planner_metrics: result.metrics, fallback_used: result.metrics.some(metric => metric.planner === "fallback") } : {}), verification: result.evidence.map(item => ({ tool_call_id: item.toolCallId, session_id: item.sessionId, checks: item.checks })) };
+      report = { status: result.status, reason: result.reason, ...(result.failure ? { failure: result.failure } : {}), summary: result.summary, ...(result.status === "succeeded" && result.data !== undefined ? { data: result.data } : {}), ...(run.partialOutputSchema ? { partials: result.partials } : {}), question: result.question, steps: result.steps, tool_calls: result.toolCalls, planner_calls: result.plannerCalls, checkpoint: checkpointPath, model_usage: usage, ...(codexPlanner ? { provider_diagnostics: providerDiagnostics } : {}), ...(fallbackCodexPlanner ? { fallback_provider_diagnostics: fallbackProviderDiagnostics } : {}), ...(extractionCodexPlanner ? { extraction_provider_diagnostics: extractionProviderDiagnostics } : {}), ...((run.plannerRetries !== undefined || run.fallback) ? { planner_metrics: result.metrics, fallback_used: result.metrics.some(metric => metric.planner === "fallback") } : {}), verification: result.evidence.map(item => ({ tool_call_id: item.toolCallId, session_id: item.sessionId, checks: item.checks })) };
       if (result.status !== "succeeded") process.exitCode = result.status === "needs_input" ? 2 : 1;
     } finally {
       process.removeListener("SIGINT", abort); process.removeListener("SIGTERM", abort);
@@ -495,6 +531,8 @@ async function main(): Promise<void> {
       catch { recordCleanupFailure(undefined, { code: "CODEX_CLEANUP_FAILED", message: "Codex planner cleanup did not complete." }); }
       try { await fallbackCodexPlanner?.close(); }
       catch { recordCleanupFailure(undefined, { code: "CODEX_CLEANUP_FAILED", message: "Fallback Codex planner cleanup did not complete." }); }
+      try { await extractionCodexPlanner?.close(); }
+      catch { recordCleanupFailure(undefined, { code: "CODEX_CLEANUP_FAILED", message: "Extraction Codex planner cleanup did not complete." }); }
       if (report && options.recordVideo) report.recordings = engine.recordings();
       if (report && (options.recordHar || options.recordTrace)) report.diagnostics = engine.diagnostics();
       if (cleanupFailure) {

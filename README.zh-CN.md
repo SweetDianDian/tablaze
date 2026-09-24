@@ -114,6 +114,8 @@ node dist/cli.js run --provider codex --model "<你的Codex模型>" \
 
 使用 `--output-schema ./result.schema.json` 可要求 Agent 结束前返回符合 JSON Schema 的结构化结果；业务正确性仍需应用验收。恢复运行时须提供相同 Schema。详见 [Agent 约定](docs/AGENT.md)。
 
+使用 `--extraction-model <模型名>` 可让 Agent 在真实页面上调用独立提取模型：`tab_extract_model` 自行读取当前浏览器正文和 URL，拒绝截断证据，并逐字段校验 Schema 与原文引用；完成任务仍需页面核验。提供方可通过 `--extraction-provider` 单独选择。用法与边界见[提取说明](docs/EXTRACTION.md)。
+
 SDK 调用方可用 `createAgentControl()` 在安全边界暂停、加入可信操作员指令，再以新计划继续；未执行的写入会跳过，先前的验证必须重做。详见 [运行中干预](docs/AGENT.md#live-operator-intervention-sdk)。
 
 默认兼容提供方仍需 `--endpoint`。原生 Anthropic 和 Ollama 使用各自协议及默认端点；认证、输出参数和模型能力各有边界。显式配置 `--fallback-model` 后，规划遇到瞬时故障可切换备用模型并在本次运行中继续使用；恢复过程不会重复浏览器操作。详见[提供方配置](docs/PROVIDERS.md)、[CLI 示例](docs/CODEX.zh-CN.md#为-run-选择规划器)和[Agent 验收与恢复](docs/AGENT.md)。Anthropic/Ollama 目前只有本地协议覆盖，尚无真实推理结果；上方历史对比仍对应原来的运行代码哈希。

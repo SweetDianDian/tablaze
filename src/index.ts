@@ -16,7 +16,7 @@ export { defineTool, createToolRegistry, ToolRegistryError } from "./custom-tool
 export type { CustomTool, CustomToolDefinition, CustomToolEffect, CustomToolExecutionContext, ToolRegistryOptions, ToolRegistryErrorCode } from "./custom-tools.js";
 export { extractWithProvenance, validateProvenance, assembleDOMExtraction, validateDOMFieldPlan, ExtractionError } from "./extraction.js";
 export type { JSONValue, ExtractionSchema, ExtractionSource, ExtractionCandidate, ProvenanceExtraction, ProvenanceExtractionOptions, DOMFieldPlan, DOMExtraction } from "./extraction.js";
-export { extractWithPlanner } from "./model-extraction.js";
+export { extractWithPlanner, createModelExtractionToolClient } from "./model-extraction.js";
 export type { PlannerExtractionOptions } from "./model-extraction.js";
 export { createCodexPlanner, CODEX_TESTED_CLI_VERSION } from "./codex.js";
 export type { CodexPlanner, CodexPlannerOptions, CodexPlannerDiagnostic, CodexResponseStage, CodexReasoningEffort, CodexFailureCode } from "./codex.js";

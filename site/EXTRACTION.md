@@ -126,7 +126,19 @@ tablaze-extract --task 'Extract the Lisbon offer.' \
   --provider codex --model YOUR_CODEX_MODEL
 ```
 
-The output includes validated `data`, bound citations, and only usage counters actually reported by the provider. Source text and extracted values may contain private page data; use the usual provider and output handling rules. Exact quote presence does not prove semantic support or completeness. This is currently a separate SDK/CLI extraction step, not an Agent-integrated replacement for Browser Use's `page_extraction_llm`. The [one real Codex sample](MODEL_EXTRACTION_20260924.md) and local tests validate the new path, not model accuracy across varied pages or comparative cost and latency.
+For live Agent tasks, `tablaze run --extraction-model MODEL` adds a read-only `tab_extract_model` tool. The extraction provider defaults to the task planner's provider; choose another with `--extraction-provider`. Endpoint, key environment name, Codex command, reasoning effort, and Anthropic/Ollama output limit can be set with matching `--extraction-*` flags. For example:
+
+```sh
+tablaze run --task 'Extract the offer and verify the page.' \
+  --start-url https://example.test/offer \
+  --provider codex --model YOUR_PLANNER_MODEL \
+  --extraction-provider codex --extraction-model YOUR_EXTRACTION_MODEL \
+  --output-schema ./offer.schema.json
+```
+
+The Agent supplies `session_id`, `task`, `schema`, and an optional narrow `selector`. The tool itself calls `tab_extract` on the active observed frame, binds its actual HTTP(S) URL, rejects empty or truncated text and page changes, then asks the separate model for one candidate. It returns only schema-valid data with exact source-quote citations. The model cannot substitute page text or URL through tool arguments. Agent completion still needs successful `tab_verify` or `tab_act` post-check evidence; a quote alone is not completion proof. The CLI reports provider-reported extraction usage with `role: "extraction"`; absence of usage is not zero cost. An application using the SDK can wrap an unbound `AgentToolClient` with `createModelExtractionToolClient(tools, planner)`. The wrapper rejects bound execution clients because it does not implement their lease protocol.
+
+The standalone `tablaze-extract` output includes validated `data`, bound citations, and only usage counters actually reported by the provider. Source text and extracted values may contain private page data; use the usual provider and output handling rules. Exact quote presence does not prove semantic support or completeness. The [one real Codex sample](MODEL_EXTRACTION_20260924.md) and local tests validate the paths, not model accuracy across varied pages or comparative cost and latency.
 
 Limits are 100 sources, 100,000 text characters per source, 2,000,000 source characters total, a 64 KiB schema, a 2 MiB candidate/final result, 5,000 leaves, 10,000 citations, and 2,000 characters per quote. JSON input is bounded to depth 64 and 100,000 nodes; cycles, accessors, sparse arrays, nonfinite numbers, and non-JSON object types are rejected. The timeout defaults to 60 seconds and supports up to one hour. `signal` propagates to the extractor and waiting stops even when the callback ignores it; cancellation cannot undo or forcibly stop external work already started.
 

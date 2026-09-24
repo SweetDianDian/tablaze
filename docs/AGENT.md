@@ -40,6 +40,8 @@ node dist/cli.js run --provider codex --model "<primary-model>" \
 
 The CLI keeps using the backup for later decisions in the same run. HTTP 401/402 can switch to an explicitly configured backup without retrying the failed credential; 403 remains terminal. Transient Codex timeout, process and turn failures can retry or switch, but cancellation cannot. Only model planning is repeated: an uncertain browser action is never replayed by recovery. When recovery is configured, the JSON report includes `planner_metrics` and `fallback_used`; a backup Codex planner also has `fallback_provider_diagnostics`. These fields record actual attempts and do not imply task success. Resuming a checkpoint starts a new CLI run and selects the configured primary again.
 
+For page data extraction, `--extraction-model` selects an independent model and adds `tab_extract_model` to the Agent's tool catalog. `--extraction-provider` defaults to the primary provider; the corresponding endpoint, key environment variable, Codex command, reasoning effort and output-limit flags are available when applicable. The tool reads actual browser text and frame URL through `tab_extract`, rejects incomplete text, and checks JSON Schema and exact source quotes before returning data. Extracted data alone cannot finish a run: the Agent must still cite passing page verification. The report marks actual extraction-model usage with `role: "extraction"`. See [extraction and provenance](EXTRACTION.md#use-a-separate-extraction-model).
+
 To require a machine-readable deliverable, pass a local draft-7 JSON Schema file to `--output-schema`:
 
 ```json

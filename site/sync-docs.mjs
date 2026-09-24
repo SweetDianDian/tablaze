@@ -28,6 +28,7 @@ const publicGuides = new Map([
   ['docs/CODEX_IFRAME_READINESS_SMOKE.md', 'CODEX_IFRAME_READINESS_SMOKE.md'],
   ['docs/CODEX_IFRAME_FEEDBACK_SMOKE.md', 'CODEX_IFRAME_FEEDBACK_SMOKE.md'],
   ['docs/CODEX_IFRAME_DIRECT_OPEN_SMOKE.md', 'CODEX_IFRAME_DIRECT_OPEN_SMOKE.md'],
+  ['docs/CODEX_IFRAME_CURRENT_20260924.md', 'CODEX_IFRAME_CURRENT_20260924.md'],
   ['docs/CODEX_MIXED_FOUR_20260924.md', 'CODEX_MIXED_FOUR_20260924.md'],
   ['docs/CODEX_CANVAS_INITIAL_VISION_SMOKE.md', 'CODEX_CANVAS_INITIAL_VISION_SMOKE.md'],
   ['docs/CODEX_NEW_SURFACE_20260924.md', 'CODEX_NEW_SURFACE_20260924.md'],
@@ -88,6 +89,7 @@ await cp(join(root, 'docs/evidence/current-four'), join(site, 'evidence/current-
 await cp(join(root, 'docs/evidence/iframe-readiness'), join(site, 'evidence/iframe-readiness'), { recursive: true, force: true });
 await cp(join(root, 'docs/evidence/iframe-feedback'), join(site, 'evidence/iframe-feedback'), { recursive: true, force: true });
 await cp(join(root, 'docs/evidence/iframe-direct-open'), join(site, 'evidence/iframe-direct-open'), { recursive: true, force: true });
+await cp(join(root, 'docs/evidence/iframe-current-20260924'), join(site, 'evidence/iframe-current-20260924'), { recursive: true, force: true });
 await cp(join(root, 'docs/evidence/mixed-four-20260924'), join(site, 'evidence/mixed-four-20260924'), { recursive: true, force: true });
 await cp(join(root, 'docs/evidence/canvas-initial-vision-20260924'), join(site, 'evidence/canvas-initial-vision-20260924'), { recursive: true, force: true });
 await cp(join(root, 'docs/evidence/new-surface-20260924'), join(site, 'evidence/new-surface-20260924'), { recursive: true, force: true });

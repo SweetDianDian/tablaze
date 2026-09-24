@@ -1,0 +1,346 @@
+{
+  "history_path": "/private/tmp/tablaze-new-surface-20260924/iframe-form-1-browser-use/browser-use-history.json",
+  "history": {
+    "history": [
+      {
+        "model_output": {
+          "evaluation_previous_goal": "Start",
+          "memory": null,
+          "next_goal": "Initial navigation",
+          "action": [
+            {
+              "navigate": {
+                "url": "http://127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/",
+                "new_tab": false
+              }
+            }
+          ]
+        },
+        "result": [
+          {
+            "is_done": false,
+            "long_term_memory": "Found initial url and automatically loaded it. Navigated to http://127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/",
+            "extracted_content": "🔗 Navigated to http://127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/",
+            "include_extracted_content_only_once": false,
+            "include_in_memory": false
+          }
+        ],
+        "state": {
+          "tabs": [],
+          "screenshot_path": null,
+          "interacted_element": [
+            null
+          ],
+          "url": "http://127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/",
+          "title": "Initial Actions"
+        },
+        "metadata": {
+          "step_start_time": 1790207813.360529,
+          "step_end_time": 1790207813.360529,
+          "step_number": 0,
+          "step_interval": null
+        },
+        "state_message": null
+      },
+      {
+        "model_output": {
+          "evaluation_previous_goal": "Success: the starting page loaded and the note editor is visible.",
+          "memory": "The Frame note input is index 6 and Save frame note button is index 35. No note has been saved yet.",
+          "next_goal": "Enter Vega in the Frame note field and click Save frame note.",
+          "action": [
+            {
+              "input": {
+                "index": 6,
+                "text": "Vega",
+                "clear": true
+              }
+            },
+            {
+              "click": {
+                "index": 35
+              }
+            }
+          ],
+          "thinking": "The note editor is visible with an empty Frame note field and a Save frame note button. I will enter Vega and save it, then verify the resulting status."
+        },
+        "result": [
+          {
+            "is_done": false,
+            "long_term_memory": "Typed 'Vega'",
+            "extracted_content": "Typed 'Vega'",
+            "include_extracted_content_only_once": false,
+            "metadata": {
+              "input_x": 179.296875,
+              "input_y": 30.5
+            },
+            "include_in_memory": false
+          },
+          {
+            "is_done": false,
+            "extracted_content": "Clicked button \"Save frame note\"",
+            "include_extracted_content_only_once": false,
+            "metadata": {
+              "click_x": 78.90625,
+              "click_y": 63.5
+            },
+            "include_in_memory": false
+          }
+        ],
+        "state": {
+          "tabs": [
+            {
+              "url": "http://127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/",
+              "title": "127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/",
+              "target_id": "F80E",
+              "parent_target_id": null
+            }
+          ],
+          "screenshot_path": "/var/folders/3h/1r_stj657pb4qjp8yq1t37280000gn/T/browser_use_agent_06ab4674-343c-7760-8000-1717eda12fa4_1790207811/screenshots/step_1.png",
+          "interacted_element": [
+            {
+              "node_id": 64,
+              "backend_node_id": 6,
+              "frame_id": null,
+              "node_type": 1,
+              "node_value": "",
+              "node_name": "INPUT",
+              "attributes": {
+                "id": "note"
+              },
+              "x_path": "html/body/label/input",
+              "element_hash": 315933446546834370,
+              "stable_hash": 9539305483401610000,
+              "bounds": {
+                "x": 92.796875,
+                "y": 10,
+                "width": 153,
+                "height": 21
+              },
+              "ax_name": "Frame note"
+            },
+            {
+              "node_id": 67,
+              "backend_node_id": 35,
+              "frame_id": null,
+              "node_type": 1,
+              "node_value": "",
+              "node_name": "BUTTON",
+              "attributes": {
+                "onclick": "save({note:document.querySelector('#note').value})"
+              },
+              "x_path": "html/body/button",
+              "element_hash": 1840466995234743600,
+              "stable_hash": 13369682041303214000,
+              "bounds": {
+                "x": 12,
+                "y": 43,
+                "width": 113.8125,
+                "height": 21
+              },
+              "ax_name": "Save frame note"
+            }
+          ],
+          "url": "http://127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/",
+          "title": "127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/"
+        },
+        "metadata": {
+          "step_start_time": 1790207813.360569,
+          "step_end_time": 1790207831.510846,
+          "step_number": 1,
+          "step_interval": 0
+        },
+        "state_message": "<user_request>\nSave frame-component note Vega.\nStart at http://127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/.\n</user_request>\n\n<agent_history>\nAgent initialized\n<step>\nResult\nFound initial url and automatically loaded it. Navigated to http://127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/\n</agent_history>\n\n<agent_state>\n<file_system>\n\n</file_system>\n<todo_contents>\n[empty todo.md, fill it when applicable]\n</todo_contents>\n</agent_state>\n<browser_state>\n<page_stats>0 links, 4 interactive, 1 iframes, 1 shadow(open), 0 shadow(closed), 14 total elements</page_stats>\nCurrent tab: F80E\nAvailable tabs:\nTab F80E: http://127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/ - 127.0.0.1:62237/r/5a1f55c2-5b2\n\n<page_info>0.0 pages above, 0.0 pages below</page_info>\n\nInteractive elements:\n[Start of page]\n|scroll element[19]<iframe title=Note editor /> (scroll)\n\t[33]<label />\n\t\tFrame note\n\t\t|SHADOW(open)|[6]<input id=note />\n\t[35]<button />\n\t\tSave frame note\n\tReady\nReady\n[End of page]\n</browser_state>\n<step_info>Step1 maximum:40\nToday:2026-09-24</step_info>\n\nCurrent screenshot:"
+      },
+      {
+        "model_output": {
+          "evaluation_previous_goal": "Success: Vega is entered and the page confirms it was saved.",
+          "memory": "Frame-component note Vega is saved, confirmed by the visible “Saved successfully” message.",
+          "next_goal": "Report completion.",
+          "action": [
+            {
+              "done": {
+                "text": "Saved frame-component note “Vega”.",
+                "success": true
+              }
+            }
+          ],
+          "thinking": "The note field shows Vega, and the screenshot and browser state both show “Saved successfully.” The requested save is verified."
+        },
+        "result": [
+          {
+            "is_done": true,
+            "success": true,
+            "judgement": {
+              "reasoning": "The task required opening the specified page, entering “Vega” in the frame-component note field, and saving it. The agent navigated successfully, entered the exact text, and clicked “Save frame note.” The final screenshot confirms “Vega” in the field and “Saved successfully” inside the frame. All recorded actions succeeded, execution was efficient, and the final response accurately described the verified outcome.",
+              "verdict": true,
+              "failure_reason": "",
+              "impossible_task": false,
+              "reached_captcha": false
+            },
+            "attachments": [],
+            "long_term_memory": "Task completed: True - Saved frame-component note “Vega”.",
+            "extracted_content": "Saved frame-component note “Vega”.",
+            "include_extracted_content_only_once": false,
+            "include_in_memory": false
+          }
+        ],
+        "state": {
+          "tabs": [
+            {
+              "url": "http://127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/",
+              "title": "127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/",
+              "target_id": "F80E",
+              "parent_target_id": null
+            }
+          ],
+          "screenshot_path": "/var/folders/3h/1r_stj657pb4qjp8yq1t37280000gn/T/browser_use_agent_06ab4674-343c-7760-8000-1717eda12fa4_1790207811/screenshots/step_2.png",
+          "interacted_element": [
+            null
+          ],
+          "url": "http://127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/",
+          "title": "127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/"
+        },
+        "metadata": {
+          "step_start_time": 1790207831.517508,
+          "step_end_time": 1790207853.5038562,
+          "step_number": 2,
+          "step_interval": 18.15027689933777
+        },
+        "state_message": "<user_request>\nSave frame-component note Vega.\nStart at http://127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/.\n</user_request>\n\n<agent_history>\nAgent initialized\n<step>\nResult\nFound initial url and automatically loaded it. Navigated to http://127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/\n<step>\nSuccess: the starting page loaded and the note editor is visible.\nThe Frame note input is index 6 and Save frame note button is index 35. No note has been saved yet.\nEnter Vega in the Frame note field and click Save frame note.\nResult\nTyped 'Vega'\nClicked button \"Save frame note\"\n</agent_history>\n\n<agent_state>\n<file_system>\n\n</file_system>\n<todo_contents>\n[empty todo.md, fill it when applicable]\n</todo_contents>\n</agent_state>\n<browser_state>\n<page_stats>0 links, 4 interactive, 1 iframes, 1 shadow(open), 0 shadow(closed), 24 total elements</page_stats>\nCurrent tab: F80E\nAvailable tabs:\nTab F80E: http://127.0.0.1:62237/r/5a1f55c2-5b29-4e56-8137-7b7de3fb82eb/ - 127.0.0.1:62237/r/5a1f55c2-5b2\n\n<page_info>0.0 pages above, 0.0 pages below</page_info>\n\nInteractive elements:\n[Start of page]\n|scroll element[19]<iframe title=Note editor /> (scroll)\n\t[33]<label />\n\t\tFrame note\n\t\t|SHADOW(open)|[6]<input id=note value=Vega />\n\t[35]<button />\n\t\tSave frame note\n\tSaved successfully\nReady\n[End of page]\n</browser_state>\n<step_info>Step2 maximum:40\nToday:2026-09-24</step_info>\n\nCurrent screenshot:"
+      }
+    ]
+  },
+  "summary": "Saved frame-component note “Vega”.",
+  "phaseEvents": [
+    {
+      "type": "browser_start",
+      "atMs": 88.94
+    },
+    {
+      "type": "agent_run_start",
+      "atMs": 767.89
+    },
+    {
+      "type": "step_end",
+      "atMs": 20268.813,
+      "steps": 2,
+      "toolCalls": 3
+    },
+    {
+      "type": "step_end",
+      "atMs": 42259.007,
+      "steps": 3,
+      "toolCalls": 4
+    },
+    {
+      "type": "agent_done_observed",
+      "atMs": 42259.015,
+      "success": true
+    },
+    {
+      "type": "judge_model_start",
+      "atMs": 42260.34
+    },
+    {
+      "type": "judge_model_end",
+      "atMs": 60267.388,
+      "outcome": "returned"
+    },
+    {
+      "type": "agent_run_returned",
+      "atMs": 60328.44,
+      "success": true
+    },
+    {
+      "type": "cleanup_start",
+      "atMs": 60330.876
+    },
+    {
+      "type": "cleanup_end",
+      "atMs": 60438.549,
+      "status": "completed",
+      "elapsedMs": 107.662
+    }
+  ],
+  "judgeCalls": [
+    {
+      "startedAtMs": 42260.338,
+      "endedAtMs": 60267.399,
+      "outcome": "returned",
+      "usage": {
+        "prompt_tokens": 13210,
+        "completion_tokens": 192,
+        "prompt_cached_tokens": 7040,
+        "total_tokens": 13402,
+        "prompt_cache_creation_tokens": null,
+        "prompt_cache_creation_5m_tokens": null,
+        "prompt_cache_creation_1h_tokens": null,
+        "prompt_image_tokens": null
+      }
+    }
+  ],
+  "completion": {
+    "agentDoneObserved": true,
+    "agentSuccessObserved": true,
+    "agentDoneAtMs": 42259.014,
+    "agentDoneSource": "public Agent.run on_step_end / AgentHistoryList",
+    "agentRunReturned": true,
+    "timedOut": false,
+    "timeoutPhase": null,
+    "errorPhase": null,
+    "phase": "adapter_finished",
+    "adapterElapsedMs": 60439.151,
+    "cleanup": {
+      "status": "completed",
+      "elapsedMs": 107.662
+    },
+    "browserUseJudge": true,
+    "judgeInstrumentation": "explicit judge_llm public ainvoke; excludes judge prompt construction and other finalization",
+    "judgeModelCalls": 1,
+    "judgeUsage": {
+      "inputTokens": 13210,
+      "outputTokens": 192,
+      "cachedTokens": 7040,
+      "totalTokens": 13402,
+      "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+    },
+    "postDonePhaseMeaning": "inferred from done observed before Agent.run returned; not attributed solely to judge"
+  },
+  "error_type": null,
+  "history_error": null,
+  "comparisonOutcome": {
+    "businessPassed": true,
+    "agentDoneObserved": true,
+    "agentSuccessObserved": true,
+    "runReturnedBeforeDeadline": true,
+    "agentStatus": "succeeded",
+    "completion": {
+      "agentDoneObserved": true,
+      "agentSuccessObserved": true,
+      "agentDoneAtMs": 42259.014,
+      "agentDoneSource": "public Agent.run on_step_end / AgentHistoryList",
+      "agentRunReturned": true,
+      "timedOut": false,
+      "timeoutPhase": null,
+      "errorPhase": null,
+      "phase": "adapter_finished",
+      "adapterElapsedMs": 60439.151,
+      "cleanup": {
+        "status": "completed",
+        "elapsedMs": 107.662
+      },
+      "browserUseJudge": true,
+      "judgeInstrumentation": "explicit judge_llm public ainvoke; excludes judge prompt construction and other finalization",
+      "judgeModelCalls": 1,
+      "judgeUsage": {
+        "inputTokens": 13210,
+        "outputTokens": 192,
+        "cachedTokens": 7040,
+        "totalTokens": 13402,
+        "source": "public ChatInvokeCompletion.usage; subset of gateway totals"
+      },
+      "postDonePhaseMeaning": "inferred from done observed before Agent.run returned; not attributed solely to judge"
+    },
+    "runFailureClass": null
+  }
+}

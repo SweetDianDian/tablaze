@@ -25,6 +25,7 @@ const publicGuides = new Map([
   ['docs/CODEX_IFRAME_DIRECT_OPEN_SMOKE.md', 'CODEX_IFRAME_DIRECT_OPEN_SMOKE.md'],
   ['docs/CODEX_MIXED_FOUR_20260924.md', 'CODEX_MIXED_FOUR_20260924.md'],
   ['docs/CODEX_CANVAS_INITIAL_VISION_SMOKE.md', 'CODEX_CANVAS_INITIAL_VISION_SMOKE.md'],
+  ['docs/CODEX_NEW_SURFACE_20260924.md', 'CODEX_NEW_SURFACE_20260924.md'],
   ['docs/AGENT_LONG_HISTORY_20260924.md', 'AGENT_LONG_HISTORY_20260924.md'],
   ['docs/RECORDING.md', 'RECORDING.md'],
   ['docs/DIAGNOSTICS.md', 'DIAGNOSTICS.md'],
@@ -82,4 +83,5 @@ await cp(join(root, 'docs/evidence/iframe-feedback'), join(site, 'evidence/ifram
 await cp(join(root, 'docs/evidence/iframe-direct-open'), join(site, 'evidence/iframe-direct-open'), { recursive: true, force: true });
 await cp(join(root, 'docs/evidence/mixed-four-20260924'), join(site, 'evidence/mixed-four-20260924'), { recursive: true, force: true });
 await cp(join(root, 'docs/evidence/canvas-initial-vision-20260924'), join(site, 'evidence/canvas-initial-vision-20260924'), { recursive: true, force: true });
+await cp(join(root, 'docs/evidence/new-surface-20260924'), join(site, 'evidence/new-surface-20260924'), { recursive: true, force: true });
 console.log('Synchronized public guides, comparison reports, and their fixed evidence files. Historical benchmark.json is unchanged.');

@@ -154,7 +154,7 @@ export async function runTablaze(attempt, config) {
         } finally { toolTimeMs += performance.now() - start; }
       },
     };
-    const originalPlanner = config.mode === 'scripted' ? scriptedPlanner(attempt, { initialized: config.tablazeInitializeUrl === true }) : createOpenAICompatiblePlanner({
+    const originalPlanner = config.mode === 'scripted' ? scriptedPlanner(attempt, { initialized: config.tablazeInitializeUrl === true || config.tablazeDirectOpenTaskUrl === true }) : createOpenAICompatiblePlanner({
       endpoint: config.gatewayEndpoint, model: config.model, apiKey: 'local-benchmark-gateway', supportsImages: true,
     });
     const planner = async input => {
@@ -166,7 +166,7 @@ export async function runTablaze(attempt, config) {
       return decision;
     };
     phase('agent_run_start');
-    result = await runAgent({ task: attempt.prompt, ...(config.tablazeInitializeUrl === true ? { startUrl: attempt.url } : {}), planner, tools, maxSteps: config.maxSteps ?? 40, maxToolCalls: config.maxToolCalls ?? 150, timeoutMs: Math.max(1, deadlineAtMs - Date.now()), onEvent: event => {
+    result = await runAgent({ task: attempt.prompt, ...(config.tablazeInitializeUrl === true ? { startUrl: attempt.url } : {}), directOpenTaskUrl: config.tablazeDirectOpenTaskUrl === true, planner, tools, maxSteps: config.maxSteps ?? 40, maxToolCalls: config.maxToolCalls ?? 150, timeoutMs: Math.max(1, deadlineAtMs - Date.now()), onEvent: event => {
       observedEvents.push(event);
       phase(event.type, { step: event.step, ...(event.call ? { tool: event.call.name } : {}) });
     } });

@@ -4,7 +4,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CallToolResultSchema, type CallToolResult, type Tool } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { createHash, randomUUID } from "node:crypto";
-import { AGENT_CHECKPOINT_VERSION, PARTIAL_HISTORY_PREFIX, checkpointHistory, compactAgentHistory, executionIdentitySchema, normalizeStartUrl, parseAgentCheckpoint, type AgentCheckpoint } from "./checkpoint.js";
+import { AGENT_CHECKPOINT_VERSION, PARTIAL_HISTORY_PREFIX, checkpointHistory, compactAgentHistory, executionIdentitySchema, normalizeStartUrl, uniqueTaskStartUrl, parseAgentCheckpoint, type AgentCheckpoint } from "./checkpoint.js";
 import { compileFinalOutput } from "./final-output.js";
 import { ExtractionError, type ExtractionSchema, type JSONValue } from "./extraction.js";
 import type { AgentControl } from "./agent-control.js";
@@ -111,6 +111,8 @@ export interface AgentOptions {
   task: string;
   /** Explicit caller-supplied URL opened once before planning; never extracted from text. */
   startUrl?: string;
+  /** Opt in to opening a single unambiguous HTTP(S) URL in the trusted task before model planning. */
+  directOpenTaskUrl?: boolean;
   planner: AgentPlanner;
   tools: AgentToolClient;
   maxSteps?: number;
@@ -258,7 +260,8 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
   if (resumed?.executionIdentity && !boundExecution) throw new Error("This checkpoint requires its bound tool execution runtime.");
   if (resumed && !resumed.executionIdentity && boundExecution) throw new Error("An unbound checkpoint cannot gain a registry or caller context on resume.");
   if (resumed && resumed.task !== options.task) throw new Error("The resumed task must exactly match its checkpoint.");
-  const startUrl = options.startUrl === undefined ? undefined : normalizeStartUrl(options.startUrl);
+  if (options.directOpenTaskUrl !== undefined && typeof options.directOpenTaskUrl !== "boolean") throw new Error("directOpenTaskUrl must be a boolean.");
+  const startUrl = options.startUrl === undefined ? options.directOpenTaskUrl ? uniqueTaskStartUrl(options.task) : undefined : normalizeStartUrl(options.startUrl);
   if (resumed && startUrl !== undefined && startUrl !== resumed.initialization?.url) throw new Error("A resumed run cannot add or change its saved startUrl.");
   let initialization: AgentCheckpoint["initialization"] = resumed?.initialization ? structuredClone(resumed.initialization) : startUrl ? { url: startUrl, state: "not_started" } : undefined;
   if (resumed?.requiresCompletionPolicy && typeof options.validateCompletion !== "function") throw new Error("This checkpoint requires the application's validateCompletion policy to be supplied again before resuming.");

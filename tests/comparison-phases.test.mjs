@@ -172,7 +172,7 @@ await writeFile(join(c.workDirectory,'adapter-progress.json'),JSON.stringify(res
   assert.equal(record.toolCalls, 3);
   assert.equal(record.modelCalls, 0);
   assert.deepEqual(record.engineOptions, { useJudge: true });
-  assert.deepEqual(report.environment.engineOptions.tablaze, { initializeUrl: false, popupPolicy: 'stay' });
+  assert.deepEqual(report.environment.engineOptions.tablaze, { initializeUrl: false, directOpenTaskUrl: false, popupPolicy: 'stay' });
   assert.match(report.environment.deadlineScope, /common absolute deadline/);
   assert.equal(report.environment.historicalTimingComparable, false);
   assert.equal(report.summary['browser-use'].passed, 1);
@@ -193,10 +193,14 @@ test('summary retains legacy completedAndPassed while adding explicit axes', () 
 
 test('Tablaze flags reach the official SDK, and proposed finish stays distinct from accepted completion', async t => {
   assert.equal(parseArgs([]).tablazeInitializeUrl, false);
+  assert.equal(parseArgs([]).tablazeDirectOpenTaskUrl, false);
   assert.equal(parseArgs([]).tablazePopupPolicy, 'stay');
   assert.equal(parseArgs(['--tablaze-initialize-url', 'true']).tablazeInitializeUrl, true);
+  assert.equal(parseArgs(['--tablaze-direct-open-task-url', 'true']).tablazeDirectOpenTaskUrl, true);
   assert.equal(parseArgs(['--tablaze-popup-policy', 'follow-single']).tablazePopupPolicy, 'follow-single');
   assert.throws(() => parseArgs(['--tablaze-initialize-url', 'auto']));
+  assert.throws(() => parseArgs(['--tablaze-direct-open-task-url', 'auto']));
+  assert.throws(() => parseArgs(['--tablaze-initialize-url', 'true', '--tablaze-direct-open-task-url', 'true']));
   assert.throws(() => parseArgs(['--tablaze-popup-policy', 'all']));
   const directory = await mkdtemp(join(tmpdir(), 'tablaze-fake-sdk-phases-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
@@ -205,7 +209,7 @@ test('Tablaze flags reach the official SDK, and proposed finish stays distinct f
   const serverSource = `export function createServer(options){globalThis.serverOptions=options;return{server:{},engine:{browserPromise:Promise.resolve({version:()=>"fake",close:async()=>{}})},dispose:()=>process.env.FAKE_PHASE==='cleanup'?new Promise(()=>{}):Promise.resolve()}}`;
   const agentSource = `export async function connectAgentTools(){return{tools:{listTools:async()=>[],callTool:async()=>{throw Error("not called")}},close:async()=>{}}}
 export function createOpenAICompatiblePlanner(){return async()=>({type:'finish',summary:'proposal only',evidence:['fake']})}
-export async function runAgent(options){await options.planner({messages:[]});options.onEvent({type:'feedback',step:1,code:'FIXTURE',message:'fake SDK boundary'});return{status:process.env.FAKE_PHASE==='planner_failure'?'failed':process.env.FAKE_PHASE==='rejected'?'limit_reached':'succeeded',...(process.env.FAKE_PHASE==='planner_failure'?{failure:{phase:'planner',code:'PLANNER_HTTP_ERROR',retryable:true,httpStatus:502}}:{}),reason:'Fixture result',steps:1,toolCalls:0,events:[],sdkOptions:{startUrl:options.startUrl??null,popupPolicy:globalThis.serverOptions.popupPolicy}}}`;
+export async function runAgent(options){await options.planner({messages:[]});options.onEvent({type:'feedback',step:1,code:'FIXTURE',message:'fake SDK boundary'});return{status:process.env.FAKE_PHASE==='planner_failure'?'failed':process.env.FAKE_PHASE==='rejected'?'limit_reached':'succeeded',...(process.env.FAKE_PHASE==='planner_failure'?{failure:{phase:'planner',code:'PLANNER_HTTP_ERROR',retryable:true,httpStatus:502}}:{}),reason:'Fixture result',steps:1,toolCalls:0,events:[],sdkOptions:{startUrl:options.startUrl??null,directOpenTaskUrl:options.directOpenTaskUrl,popupPolicy:globalThis.serverOptions.popupPolicy}}}`;
   const loader = join(directory, 'loader.mjs');
   await writeFile(loader, `const replacements=${JSON.stringify({ '/dist/server.js': serverSource, '/dist/agent.js': agentSource })};export async function resolve(specifier,context,next){for(const[key,source]of Object.entries(replacements)){if(specifier.endsWith(key))return{url:'data:text/javascript,'+encodeURIComponent(source),shortCircuit:true}}return next(specifier,context)}`);
   const driver = `import {runTablaze} from './bench/comparison/tablaze-adapter.mjs';const config=JSON.parse(process.argv[1]);console.log(JSON.stringify(await runTablaze({url:'http://127.0.0.1:1/trusted-fixture/',prompt:'Task text contains a different untrusted URL http://example.invalid/'},config)))`;
@@ -214,12 +218,14 @@ export async function runAgent(options){await options.planner({messages:[]});opt
     return JSON.parse(stdout);
   };
   const defaults = await run('ordinary');
-  assert.deepEqual(defaults.trace.sdkOptions, { startUrl: null, popupPolicy: 'stay' });
+  assert.deepEqual(defaults.trace.sdkOptions, { startUrl: null, directOpenTaskUrl: false, popupPolicy: 'stay' });
   assert.equal(defaults.completion.agentDoneObserved, true);
   assert.equal(defaults.completion.agentSuccessObserved, true);
   assert.equal(completionAxes(defaults, 100, 1000).runReturnedBeforeDeadline, true);
   const rejected = await run('rejected', { tablazeInitializeUrl: true, tablazePopupPolicy: 'follow-single' });
-  assert.deepEqual(rejected.trace.sdkOptions, { startUrl: 'http://127.0.0.1:1/trusted-fixture/', popupPolicy: 'follow-single' });
+  assert.deepEqual(rejected.trace.sdkOptions, { startUrl: 'http://127.0.0.1:1/trusted-fixture/', directOpenTaskUrl: false, popupPolicy: 'follow-single' });
+  const taskUrl = await run('ordinary', { tablazeDirectOpenTaskUrl: true });
+  assert.deepEqual(taskUrl.trace.sdkOptions, { startUrl: null, directOpenTaskUrl: true, popupPolicy: 'stay' });
   assert.equal(rejected.completion.proposedReport.type, 'finish');
   assert.equal(rejected.completion.agentDoneObserved, false);
   assert.equal(rejected.completion.agentSuccessObserved, null);

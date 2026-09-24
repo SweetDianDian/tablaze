@@ -15,6 +15,18 @@ export function normalizeStartUrl(value: string): string {
   return parsed.href;
 }
 
+/** Extract only one unambiguous user-task URL; never inspect page/tool content. */
+export function uniqueTaskStartUrl(task: string): string | undefined {
+  if (typeof task !== "string") return undefined;
+  const matches = [...task.matchAll(/\bhttps?:\/\/[^\s<>"'`]+/gi)];
+  if (matches.length !== 1) return undefined;
+  let candidate = matches[0][0].replace(/[.,;!?]+$/g, "");
+  for (const [open, close] of [["(", ")"], ["[", "]"], ["{", "}"]] as const) {
+    while (candidate.endsWith(close) && candidate.split(close).length > candidate.split(open).length) candidate = candidate.slice(0, -1);
+  }
+  try { return normalizeStartUrl(candidate); } catch { return undefined; }
+}
+
 const startUrlSchema = z.string().min(1).max(8192).refine(value => {
   try { return normalizeStartUrl(value) === value; } catch { return false; }
 }, "Invalid canonical start URL.");

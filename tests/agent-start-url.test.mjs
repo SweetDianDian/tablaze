@@ -9,7 +9,7 @@ import { test } from 'node:test';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { connectAgentTools, runAgent } from '../dist/agent.js';
-import { AGENT_CHECKPOINT_VERSION, parseAgentCheckpoint } from '../dist/checkpoint.js';
+import { AGENT_CHECKPOINT_VERSION, parseAgentCheckpoint, uniqueTaskStartUrl } from '../dist/checkpoint.js';
 
 const payload = value => ({ content: [{ type: 'text', text: JSON.stringify(value) }], structuredContent: value });
 const call = (name, args = {}) => ({ type: 'tools', calls: [{ name, arguments: args }] });
@@ -17,6 +17,31 @@ const ask = { type: 'human_input', question: 'Which record should be used next?'
 const last = messages => messages.filter(message => message.role === 'tool').at(-1);
 const url = 'https://example.test/start';
 const task = 'Inspect the explicitly selected page.';
+
+test('opt-in task URL opens once before the first model call and ambiguous URLs stay with the planner', async () => {
+  assert.equal(uniqueTaskStartUrl('Inspect [the page](https://EXAMPLE.test/start).'), url);
+  assert.equal(uniqueTaskStartUrl('Inspect https://example.test/start and https://example.test/other.'), undefined);
+  assert.equal(uniqueTaskStartUrl('Inspect https://user:secret@example.test/start.'), undefined);
+  let opens = 0;
+  const tools = toolsFor(async request => { opens++; assert.equal(request.arguments.url, url); return payload({ ok: true, session_id: 's1', snapshot_id: 's1:1' }); });
+  const directTask = 'Inspect [the page](https://EXAMPLE.test/start).';
+  const opened = await runAgent({ task: directTask, directOpenTaskUrl: true, tools, planner: async ({ step, messages }) => {
+    assert.equal(step, 1);
+    assert.equal(last(messages).name, 'tab_open');
+    return ask;
+  } });
+  assert.equal(opened.status, 'needs_input');
+  assert.deepEqual([opens, opened.toolCalls, opened.plannerCalls, opened.checkpoint.initialization.url], [1, 1, 1, url]);
+  parseAgentCheckpoint(opened.checkpoint);
+  const resumed = await runAgent({ task: directTask, directOpenTaskUrl: true, resume: opened.checkpoint, tools, planner: async () => ask });
+  assert.equal(resumed.status, 'needs_input');
+  assert.equal(opens, 1, 'A resumed task never repeats the model-free navigation.');
+  const ambiguous = await runAgent({ task: `Compare ${url} and https://example.test/other.`, directOpenTaskUrl: true, tools, planner: async () => ask });
+  assert.equal(ambiguous.checkpoint.initialization, undefined);
+  assert.equal(opens, 1);
+  const explicit = await runAgent({ task: 'Inspect https://example.test/other.', startUrl: url, directOpenTaskUrl: true, tools, planner: async () => ask });
+  assert.equal(explicit.checkpoint.initialization.url, url, 'The explicit startUrl has priority.');
+});
 
 function toolsFor(open = async () => payload({ ok: true, session_id: 's1', snapshot_id: 's1:1', text: 'Ready' })) {
   return {

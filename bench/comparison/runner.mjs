@@ -51,17 +51,17 @@ async function command(program, args, { input, timeoutMs = 15000, cwd = root, en
 }
 
 export function parseArgs(args) {
-  const config = { engine: 'tablaze-scripted', transport: 'http', browserUseJudge: true, tablazeInitializeUrl: false, tablazePopupPolicy: 'stay', repeat: 1, seed: 1, maxSteps: 40, maxToolCalls: 150, timeoutMs: 120000, maxOutputTokens: 4096, tokenBudget: 50000, temperature: 0 };
+  const config = { engine: 'tablaze-scripted', transport: 'http', browserUseJudge: true, tablazeInitializeUrl: false, tablazeDirectOpenTaskUrl: false, tablazePopupPolicy: 'stay', repeat: 1, seed: 1, maxSteps: 40, maxToolCalls: 150, timeoutMs: 120000, maxOutputTokens: 4096, tokenBudget: 50000, temperature: 0 };
   const keys = { '--engine': 'engine', '--transport': 'transport', '--codex-command': 'codexCommand', '--tasks': 'tasks', '--repeat': 'repeat', '--seed': 'seed', '--model': 'model', '--endpoint': 'endpoint', '--python': 'python', '--executable-path': 'executablePath', '--output': 'output', '--max-steps': 'maxSteps', '--max-tool-calls': 'maxToolCalls', '--timeout-ms': 'timeoutMs', '--max-output-tokens': 'maxOutputTokens', '--token-budget': 'tokenBudget', '--temperature': 'temperature', '--reasoning-effort': 'reasoningEffort' };
   for (let index = 0; index < args.length; index++) {
     const flag = args[index];
     if (flag === '--preflight') { config.preflightOnly = true; continue; }
     if (flag === '--allow-anonymous') { config.allowAnonymous = true; continue; }
     if (flag === '--help') { config.help = true; continue; }
-    if (flag === '--browser-use-judge' || flag === '--tablaze-initialize-url') {
+    if (flag === '--browser-use-judge' || flag === '--tablaze-initialize-url' || flag === '--tablaze-direct-open-task-url') {
       const value = args[++index];
       if (!['true', 'false'].includes(value)) throw new Error(`${flag} requires true or false`);
-      config[flag === '--browser-use-judge' ? 'browserUseJudge' : 'tablazeInitializeUrl'] = value === 'true'; continue;
+      config[flag === '--browser-use-judge' ? 'browserUseJudge' : flag === '--tablaze-initialize-url' ? 'tablazeInitializeUrl' : 'tablazeDirectOpenTaskUrl'] = value === 'true'; continue;
     }
     if (flag === '--tablaze-popup-policy') {
       const value = args[++index];
@@ -73,6 +73,7 @@ export function parseArgs(args) {
     config[key] = args[++index];
   }
   if (!['tablaze-scripted', 'tablaze', 'browser-use', 'matched'].includes(config.engine)) throw new Error('Unknown engine');
+  if (config.tablazeInitializeUrl && config.tablazeDirectOpenTaskUrl) throw new Error('Choose only one Tablaze URL initialization mode');
   if (!['http', 'codex'].includes(config.transport)) throw new Error('Unknown model transport');
   for (const key of ['repeat', 'seed', 'maxSteps', 'maxToolCalls', 'timeoutMs', 'maxOutputTokens', 'tokenBudget']) {
     config[key] = Number(config[key]);
@@ -229,7 +230,7 @@ export async function runComparison(config) {
     schemaVersion: 2, suite: 'development-smoke-v1', purpose: 'Executable harness validation; not a superiority experiment',
     superiorityProven: false, baselineManifestUnchanged: true, preflight: check,
     environment: { platform: process.platform, arch: process.arch, os: os.release(), node: process.version, viewport: { width: 1280, height: 800 }, browserExecutable: check.executablePath, modelConfiguration, browserUseJudge: config.browserUseJudge ?? true,
-      engineOptions: { tablaze: { initializeUrl: config.tablazeInitializeUrl ?? false, popupPolicy: config.tablazePopupPolicy ?? 'stay' }, browserUse: { useJudge: config.browserUseJudge ?? true } },
+      engineOptions: { tablaze: { initializeUrl: config.tablazeInitializeUrl ?? false, directOpenTaskUrl: config.tablazeDirectOpenTaskUrl ?? false, popupPolicy: config.tablazePopupPolicy ?? 'stay' }, browserUse: { useJudge: config.browserUseJudge ?? true } },
       deadlineScope: 'schema v2: common absolute deadline begins before gateway and adapter startup; adapter return and owned cleanup, final independent business judging and gateway teardown all count in runReturnedBeforeDeadline wall time; cancellation and cleanup may use bounded grace after deadline',
       historicalTimingComparable: false },
     source, attempts: [], summary: {},
@@ -342,7 +343,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   try {
     const config = parseArgs(process.argv.slice(2));
     config.apiKey = process.env.TABLAZE_BENCH_API_KEY;
-    if (config.help) console.log('Usage: node bench/comparison/runner.mjs --engine tablaze-scripted|tablaze|browser-use|matched [--browser-use-judge true|false] [--tablaze-initialize-url true|false] [--tablaze-popup-policy stay|follow-single] [--transport http|codex] [--preflight] [--tasks form,popup] [--repeat 1] [--endpoint URL --model MODEL] [--reasoning-effort EFFORT] [--codex-command PATH] [--allow-anonymous] [--python PATH] [--executable-path PATH] [--output DIR]\nHTTP runs read TABLAZE_BENCH_API_KEY. Codex transport reuses CLI-managed login with no auth-file reads. Scripted smoke and preflight make no model calls.');
+    if (config.help) console.log('Usage: node bench/comparison/runner.mjs --engine tablaze-scripted|tablaze|browser-use|matched [--browser-use-judge true|false] [--tablaze-initialize-url true|false] [--tablaze-direct-open-task-url true|false] [--tablaze-popup-policy stay|follow-single] [--transport http|codex] [--preflight] [--tasks form,popup] [--repeat 1] [--endpoint URL --model MODEL] [--reasoning-effort EFFORT] [--codex-command PATH] [--allow-anonymous] [--python PATH] [--executable-path PATH] [--output DIR]\nHTTP runs read TABLAZE_BENCH_API_KEY. Codex transport reuses CLI-managed login with no auth-file reads. Scripted smoke and preflight make no model calls.');
     else if (config.preflightOnly) console.log(JSON.stringify(await preflight(config), null, 2));
     else {
       const { report, outputDirectory } = await runComparison(config);

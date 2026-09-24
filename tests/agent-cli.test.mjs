@@ -111,6 +111,26 @@ test('run CLI completes a scripted model task through real Chrome and prints a b
   assert.match(child.stderr, /planning step 4/);
 });
 
+test('CLI opt-in opens the sole task URL before model planning', { timeout: 30_000 }, async t => {
+  const service = await fixture(t, (body, step) => {
+    const result = latest(body);
+    assert.notEqual(result.isError, true, JSON.stringify(result));
+    if (step === 1) {
+      assert.equal(result.structuredContent.url, `${service.url}/form`);
+      return { name: 'tab_verify', arguments: { session_id: result.structuredContent.session_id, checks: [{ kind: 'title', contains: 'Agent CLI fixture' }] } };
+    }
+    assert.equal(step, 2);
+    assert.equal(result.structuredContent.passed, true);
+    return { name: 'agent_finish', arguments: { summary: 'The requested page title was verified.', evidence: [result.toolCallId] } };
+  });
+  const child = await launch(['run', '--task', `Inspect [this page](${service.url}/form).`, '--direct-open-task-url', '--model', 'scripted-cli-fixture', '--endpoint', service.endpoint, '--channel', process.env.TABLAZE_BROWSER_CHANNEL || 'chrome', '--max-steps', '2']);
+  assert.deepEqual(service.errors, [], service.errors.map(error => error.message).join('\n'));
+  assert.equal(child.code, 0, child.stderr + child.stdout);
+  const report = JSON.parse(child.stdout);
+  assert.equal(report.status, 'succeeded');
+  assert.deepEqual([report.tool_calls, report.planner_calls, service.requests.length], [2, 2, 2]);
+});
+
 test('CLI passes a final schema to the model and returns only corrected verified data', { timeout: 30_000 }, async t => {
   const directory = await mkdtemp(join(tmpdir(), 'tablaze-output-schema-'));
   t.after(() => rm(directory, { recursive: true, force: true }));
@@ -218,6 +238,9 @@ test('run CLI does not accept an unverified model completion and enforces the st
 });
 
 test('CLI rejects agent-only options outside run and validates required arguments and limits', { timeout: 30_000 }, async () => {
+  const directOnly = await launch(['doctor', '--direct-open-task-url']);
+  assert.equal(directOnly.code, 1);
+  assert.match(directOnly.stderr, /Agent options require the run command/);
   for (const [flag, value] of [['--task', 'x'], ['--model', 'fixture'], ['--endpoint', 'http://localhost/fixture'], ['--api-key-env', 'TEST_KEY'], ['--max-steps', '1'], ['--max-calls', '1'], ['--output-schema', '/tmp/schema.json'], ['--run-timeout-ms', '1000']]) {
     const child = await launch(['doctor', flag, value]);
     assert.equal(child.code, 1, flag);

@@ -102,6 +102,7 @@ each attempt's `engineOptions`:
 | --- | --- | --- |
 | `--browser-use-judge true\|false` | `true` | Preserves Browser Use's post-task model judge unless explicitly disabled. |
 | `--tablaze-initialize-url true\|false` | `false` | Supplies the fixture service's trusted attempt URL to the public `runAgent({startUrl})` option before planning. No URL is extracted from task text. |
+| `--tablaze-direct-open-task-url true\|false` | `false` | Uses the public `runAgent({directOpenTaskUrl})` option to open the sole URL in the trusted task before planning. Mutually exclusive with `--tablaze-initialize-url`. |
 | `--tablaze-popup-policy stay\|follow-single` | `stay` | Selects the public `createServer({popupPolicy})` behavior. `follow-single` follows a unique eligible action popup and replans from its snapshot. |
 
 For an explicitly configured initialization/popup experiment, append

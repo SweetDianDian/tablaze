@@ -112,6 +112,8 @@ node dist/cli.js run --provider codex --model "<your-codex-model>" \
   --task "<authorized task>" --channel chrome
 ```
 
+For a task with exactly one intended starting URL, add `--direct-open-task-url` to open it before the first model call. This is opt-in; `--start-url <url>` remains available when the caller already knows the exact page. See [initialization and resume behavior](docs/AGENT.md).
+
 Use `--output-schema ./result.schema.json` to require a schema-valid JSON deliverable before the Agent can finish; the application should still check business correctness. The same schema is required on resume. See [the Agent contract](docs/AGENT.md).
 
 SDK callers can use `createAgentControl()` to pause at a safe boundary, add trusted steering, and resume with a fresh plan; queued writes are skipped and prior verification must be repeated. See [live operator intervention](docs/AGENT.md#live-operator-intervention-sdk).

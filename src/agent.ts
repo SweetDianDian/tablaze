@@ -4,7 +4,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { CallToolResultSchema, type CallToolResult, type Tool } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import { createHash, randomUUID } from "node:crypto";
-import { AGENT_CHECKPOINT_VERSION, PARTIAL_HISTORY_PREFIX, checkpointHistory, compactAgentHistory, executionIdentitySchema, normalizeStartUrl, uniqueTaskStartUrl, parseAgentCheckpoint, type AgentCheckpoint } from "./checkpoint.js";
+import { AGENT_CHECKPOINT_VERSION, PARTIAL_HISTORY_PREFIX, checkpointHistory, compactAgentHistory, executionIdentitySchema, normalizeInitialActions, normalizeStartUrl, uniqueTaskStartUrl, parseAgentCheckpoint, type AgentCheckpoint, type InitialNavigationAction } from "./checkpoint.js";
 import { compileFinalOutput } from "./final-output.js";
 import { ExtractionError, type ExtractionSchema, type JSONValue } from "./extraction.js";
 import type { AgentControl } from "./agent-control.js";
@@ -113,6 +113,8 @@ export interface AgentOptions {
   startUrl?: string;
   /** Opt in to opening a single unambiguous HTTP(S) URL in the trusted task before model planning. */
   directOpenTaskUrl?: boolean;
+  /** Trusted model-free navigation sequence. The first URL opens a session; later URLs navigate its active tab or open a new tab. */
+  initialActions?: InitialNavigationAction[];
   planner: AgentPlanner;
   tools: AgentToolClient;
   maxSteps?: number;
@@ -261,9 +263,13 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
   if (resumed && !resumed.executionIdentity && boundExecution) throw new Error("An unbound checkpoint cannot gain a registry or caller context on resume.");
   if (resumed && resumed.task !== options.task) throw new Error("The resumed task must exactly match its checkpoint.");
   if (options.directOpenTaskUrl !== undefined && typeof options.directOpenTaskUrl !== "boolean") throw new Error("directOpenTaskUrl must be a boolean.");
+  const requestedActions = options.initialActions === undefined ? undefined : normalizeInitialActions(options.initialActions);
+  if (requestedActions && (options.startUrl !== undefined || options.directOpenTaskUrl)) throw new Error("initialActions cannot be combined with startUrl or directOpenTaskUrl.");
   const startUrl = options.startUrl === undefined ? options.directOpenTaskUrl ? uniqueTaskStartUrl(options.task) : undefined : normalizeStartUrl(options.startUrl);
   if (resumed && startUrl !== undefined && startUrl !== resumed.initialization?.url) throw new Error("A resumed run cannot add or change its saved startUrl.");
+  if (resumed && requestedActions && JSON.stringify(requestedActions) !== JSON.stringify(resumed.initialActions?.actions)) throw new Error("A resumed run cannot add or change its saved initialActions.");
   let initialization: AgentCheckpoint["initialization"] = resumed?.initialization ? structuredClone(resumed.initialization) : startUrl ? { url: startUrl, state: "not_started" } : undefined;
+  let initialActions: AgentCheckpoint["initialActions"] = resumed?.initialActions ? structuredClone(resumed.initialActions) : requestedActions ? { actions: requestedActions, attempts: [] } : undefined;
   if (resumed?.requiresCompletionPolicy && typeof options.validateCompletion !== "function") throw new Error("This checkpoint requires the application's validateCompletion policy to be supplied again before resuming.");
   const originalSystem = resumed?.history[0];
   const originalApplicationPrompt = originalSystem?.role === "system" ? originalSystem.content.split("\nApplication instructions:\n").slice(1).join("\nApplication instructions:\n") : undefined;
@@ -354,6 +360,7 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
   const checkpoint = (phase: AgentCheckpoint["phase"]): AgentCheckpoint => ({
     schemaVersion: AGENT_CHECKPOINT_VERSION, runId, task: options.task, ...(applicationPrompt ? { systemPrompt: applicationPrompt } : {}), requiresCompletionPolicy: Boolean(options.validateCompletion) || resumed?.requiresCompletionPolicy === true, ...(finalOutput ? { outputSchemaHash: finalOutput.hash } : {}), ...(partialOutput ? { partialSchemaHash: partialOutput.hash } : {}), requiresPartialPolicy: Boolean(options.validatePartial) || resumed?.requiresPartialPolicy === true, partials: structuredClone(partials), phase, createdAt: new Date().toISOString(), nextCallSequence,
     ...(initialization ? { initialization: structuredClone(initialization) } : {}),
+    ...(initialActions ? { initialActions: structuredClone(initialActions) } : {}),
     ...(executionIdentity ? { executionIdentity: { ...executionIdentity } } : {}),
     steps: step, toolCalls, plannerCalls, elapsedMs: Math.round(elapsed()), limits: { maxSteps, maxToolCalls, timeoutMs, maxHistoryBytes },
     history: checkpointHistory(history, pendingTool?.call), ...(pendingTool ? { pendingTool: structuredClone(pendingTool) } : {}),
@@ -402,7 +409,7 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
     const bytes = Buffer.byteLength(JSON.stringify(history));
     if (bytes <= Math.min(compactionTriggerBytes, maxHistoryBytes) || options.historyCompaction === false && bytes <= maxHistoryBytes) return true;
     if (options.historyCompaction === false) return false;
-    const protectedCallIds = [...evidence.keys(), ...ambiguous.keys(), ...(initialization?.state === "attempted" ? [initialization.toolCallId] : [])];
+    const protectedCallIds = [...evidence.keys(), ...ambiguous.keys(), ...(initialization?.state === "attempted" ? [initialization.toolCallId] : []), ...(initialActions?.attempts.map(attempt => attempt.toolCallId) ?? [])];
     const compacted = compactAgentHistory(history, { maxBytes: Math.min(compactionTriggerBytes, maxHistoryBytes), keepRecentGroups, protectedCallIds })
       ?? (bytes > maxHistoryBytes ? compactAgentHistory(history, { maxBytes: maxHistoryBytes, keepRecentGroups, protectedCallIds }) : undefined);
     if (compacted) { history = compacted; return true; }
@@ -454,14 +461,15 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
       catch (error) { throw new AgentOperationError({ phase: "catalog", code: "TOOL_CATALOG_FAILED", retryable: false }, error); }
     }
     let resumedPendingChecked = false;
-    while (initialization?.state === "not_started" || step < maxSteps) {
+    const needsInitialAction = () => initialActions !== undefined && initialActions.attempts.length < initialActions.actions.length && (initialActions.attempts.length === 0 || initialActions.attempts.at(-1)?.state === "succeeded");
+    while (initialization?.state === "not_started" || needsInitialAction() || step < maxSteps) {
       try {
       controller.signal.throwIfAborted();
       if (options.control) {
         const paused = await options.control.boundary(controller.signal);
         if (paused) invalidateIntervention();
-        if (paused && initialization?.state !== "not_started") feedback("INTERVENTION_REPLAN", "The run resumed at a safe boundary. Observe current state before continuing; no prior action was replayed.");
-        if (initialization?.state !== "not_started") applySteering();
+        if (paused && initialization?.state !== "not_started" && !needsInitialAction()) feedback("INTERVENTION_REPLAN", "The run resumed at a safe boundary. Observe current state before continuing; no prior action was replayed.");
+        if (initialization?.state !== "not_started" && !needsInitialAction()) applySteering();
       }
       if (!fitHistory()) return await finish("limit_reached", "Conversation history budget reached.");
       if (boundExecution) {
@@ -502,11 +510,22 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
         }
         previousContextKey = activeCatalog.contextKey;
       }
-      const initializing = initialization?.state === "not_started";
+      const initializing = initialization?.state === "not_started" || needsInitialAction();
+      const initialIndex = initialActions && needsInitialAction() ? initialActions.attempts.length : undefined;
       let decision: AgentDecision;
       if (initializing) {
-        if (!tools.has("tab_open")) { recordFailure({ phase: "catalog", code: "INITIALIZATION_TOOL_MISSING", retryable: false }); return await finish("failed", "startUrl requires a tab_open tool in the catalog."); }
-        decision = { type: "tools", calls: [{ name: "tab_open", arguments: { url: initialization!.url } }] };
+        let name: string;
+        let args: Record<string, unknown>;
+        if (initialIndex !== undefined) {
+          const action = initialActions!.actions[initialIndex];
+          name = initialIndex === 0 ? "tab_open" : action.newTab ? "tab_tabs" : "tab_navigate";
+          const priorSession = initialActions!.attempts.at(-1)?.sessionId;
+          const sessionId = priorSession ? sessionMap[priorSession] ?? priorSession : undefined;
+          if (initialIndex > 0 && !sessionId) throw new Error("A successful initial action must retain its browser session.");
+          args = initialIndex === 0 ? { url: action.url } : { session_id: sessionId, action: action.newTab ? "new" : "goto", url: action.url };
+        } else { name = "tab_open"; args = { url: initialization!.url }; }
+        if (!tools.has(name)) { recordFailure({ phase: "catalog", code: "INITIALIZATION_TOOL_MISSING", retryable: false }); return await finish("failed", `initialActions require a ${name} tool in the catalog.`); }
+        decision = { type: "tools", calls: [{ name, arguments: args }] };
       } else {
         step++;
         emit({ type: "planning", step });
@@ -595,8 +614,9 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
       }
       if (toolCalls >= maxToolCalls) return await finish("limit_reached", "Tool-call budget reached.");
       const calls = decision.calls.map(call => ({ ...call, id: `${runId}_call_${nextCallSequence++}` }));
-      if (initializing) initialization = { url: initialization!.url, state: "attempted", toolCallId: calls[0].id };
-      history.push({ role: "assistant", content: initializing ? "Executor initialization: open the caller-supplied startUrl before model planning." : "", toolCalls: calls });
+      if (initializing && initialIndex !== undefined) initialActions!.attempts.push({ toolCallId: calls[0].id, state: "attempted" });
+      else if (initializing) initialization = { url: initialization!.url, state: "attempted", toolCallId: calls[0].id };
+      history.push({ role: "assistant", content: initializing ? "Executor initialization: run a trusted browser action before model planning." : "", toolCalls: calls });
       let skip = false;
       let historyBudgetReached = Buffer.byteLength(JSON.stringify(history)) > maxHistoryBytes;
       let stallFeedback: string | undefined;
@@ -675,6 +695,16 @@ export async function runAgent(options: AgentOptions): Promise<AgentResult> {
           }
         }
         const data = output(result);
+        if (initialIndex !== undefined) {
+          const attempt = initialActions!.attempts[initialIndex];
+          const validReceipt = !toolFailed(result) && data?.ok === true && typeof data.session_id === "string" && data.session_id.length > 0 && data.session_id.length <= 160 && (initialIndex === 0 || data.session_id === call.arguments.session_id);
+          if (validReceipt) { attempt.state = "succeeded"; attempt.sessionId = data.session_id as string; }
+          else if (toolFailed(result) && !ambiguous.has(call.id)) attempt.state = "failed";
+          else {
+            ambiguous.set(call.id, call);
+            result = errorResult("INITIAL_ACTION_OUTCOME_UNKNOWN", "The initial browser action has no trustworthy session receipt. Inspect the actual effect before continuing.");
+          }
+        }
         if (call.name === "tab_close" && tool && toolFailed(result)) { revision++; latestMutationSession = sessionId; }
         if (mutating && (activeCatalog ? executionSessionId : typeof data?.session_id === "string")) latestMutationSession = activeCatalog ? executionSessionId : data?.session_id as string;
         if (call.name === "tab_close" && !toolFailed(result) && data?.closed === true && typeof data.session_id === "string" && data.session_id === call.arguments.session_id && data.session_id === sessionId && (!activeCatalog || executionSessionId === data.session_id)) {

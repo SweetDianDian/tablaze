@@ -68,6 +68,18 @@ If cleanup fails after the Agent returns, the CLI reports `status: "failed"`, pr
 
 The opening is a real `tab_open` through the same MCP client, call IDs, write-ahead checkpoints, error handling, and tool/time/history budgets as later calls. Initialization emits tool events at step `0`, consumes one tool call, and consumes no planning step or model call. Its actual snapshot is available to the first planner request. A missing `tab_open` tool fails before planning, and an exhausted initialization budget cannot silently start the planner. A resumed run cannot add or change the saved initialization URL, and an attempted open is never replayed automatically.
 
+For several known pages, use `initialActions` in the SDK or `--initial-actions ./initial-actions.json` in the CLI. The file is a regular UTF-8 JSON array, at most 64 KiB, with 1–20 trusted navigation entries:
+
+```json
+[
+  {"url":"https://example.com/first","newTab":true},
+  {"url":"https://example.com/second","newTab":true},
+  {"url":"https://example.com/details"}
+]
+```
+
+The first entry opens one owned session. Later entries with `newTab: true` open a tab in that session; otherwise they navigate its active tab. Every URL must be absolute HTTP(S) without embedded credentials. This sequence is mutually exclusive with `--start-url` and `--direct-open-task-url`. It runs before the first model request, using the same MCP tools and call budget, and every attempted action is persisted separately. A failed action stops the sequence and leaves its result for the planner. An unknown outcome requires trusted reconciliation; the action is never automatically replayed. A resume after a confirmed successful action continues only the remaining entries in the restored session. The current pre-model action format covers navigation and new tabs; it is not an arbitrary Browser Use action list.
+
 For form verification, `kind: "value"` reads the exact live value of an observed input, textarea or select; `kind: "text"` reads visible page text and excludes those raw control values. After a form submission, a field-value check and a separate visible receipt/status check can be combined as `tab_act.post_checks`. A text check for the just-entered value is meaningful only when the page actually echoes it outside the control. The MCP tool schemas and Agent instructions expose these scopes; the runtime still evaluates every requested check as written and never silently removes a failed assertion. Application-specific completion policies should check any stronger business requirement.
 
 `--popup-policy stay|follow-single` is a browser option available to both stdio MCP and `run`; `stay` is the default. The library equivalent is `createServer({ popupPolicy: "follow-single" })`. Following considers a unique new popup from the acted-on owned page during a bounded observation window. After a switch, the action returns a fresh snapshot and `replan_required: true`; remaining actions and later tools in that decision are skipped. `ok: true` can describe the completed action while `batch_complete: false` identifies skipped actions. Plan from the new snapshot and still verify the business outcome. Popup association within this window does not establish that an asynchronous business operation has completed; a later observation or bounded verification may be needed.

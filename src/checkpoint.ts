@@ -2,7 +2,7 @@ import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
 import type { AgentMessage, AgentPartial, AgentToolCall, AgentToolExecutionIdentity } from "./agent.js";
 
-export const AGENT_CHECKPOINT_VERSION = 5 as const;
+export const AGENT_CHECKPOINT_VERSION = 6 as const;
 
 export const executionIdentitySchema = z.object({ registryHash: z.string().regex(/^[a-f0-9]{64}$/), contextHash: z.string().regex(/^[a-f0-9]{64}$/) }).strict();
 
@@ -34,6 +34,28 @@ const initializationSchema = z.discriminatedUnion("state", [
   z.object({ url: startUrlSchema, state: z.literal("not_started") }).strict(),
   z.object({ url: startUrlSchema, state: z.literal("attempted"), toolCallId: z.string().min(1).max(200) }).strict(),
 ]);
+
+const initialNavigationSchema = z.object({ url: startUrlSchema, newTab: z.boolean().optional() }).strict();
+const initialActionsSchema = z.object({
+  actions: z.array(initialNavigationSchema).min(1).max(20),
+  attempts: z.array(z.object({
+    toolCallId: z.string().min(1).max(200),
+    state: z.enum(["attempted", "succeeded", "failed"]),
+    sessionId: z.string().min(1).max(160).optional(),
+  }).strict()).max(20),
+}).strict();
+export type InitialNavigationAction = z.infer<typeof initialNavigationSchema>;
+
+/** A trusted, bounded sequence of model-free navigations in one owned session. */
+export function normalizeInitialActions(value: unknown): InitialNavigationAction[] {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 20) throw new Error("initialActions must contain 1–20 navigation actions.");
+  return value.map((item, index) => {
+    if (typeof item !== "object" || item === null || Array.isArray(item)) throw new Error(`initialActions[${index}] must contain an HTTP(S) url and optional boolean newTab.`);
+    const action = item as Record<string, unknown>;
+    if (Object.keys(action).some(key => key !== "url" && key !== "newTab") || typeof action.url !== "string" || action.newTab !== undefined && typeof action.newTab !== "boolean") throw new Error(`initialActions[${index}] must contain an HTTP(S) url and optional boolean newTab.`);
+    return { url: normalizeStartUrl(action.url), ...(action.newTab === true ? { newTab: true } : {}) };
+  });
+}
 
 const callSchema = z.object({ id: z.string().min(1).max(200), name: z.string().min(1).max(200), arguments: z.record(z.unknown()) }).strict();
 const messageSchema = z.union([
@@ -79,11 +101,15 @@ const partialSchema = z.object({
   evidence: z.array(z.object({ toolCallId: z.string().min(1).max(200), sessionId: z.string().min(1).max(160), checks: z.array(z.record(z.unknown())).min(1).max(100) }).strict()).min(1).max(100),
 }).strict();
 export const PARTIAL_HISTORY_PREFIX = "Executor checked partial: ";
-const checkpointSchema = versionFourCheckpointSchema.extend({
-  schemaVersion: z.literal(AGENT_CHECKPOINT_VERSION),
+const versionFiveCheckpointSchema = versionFourCheckpointSchema.extend({
+  schemaVersion: z.literal(5),
   partialSchemaHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
   requiresPartialPolicy: z.boolean().optional(),
   partials: z.array(partialSchema).max(100),
+}).strict();
+const checkpointSchema = versionFiveCheckpointSchema.extend({
+  schemaVersion: z.literal(AGENT_CHECKPOINT_VERSION),
+  initialActions: initialActionsSchema.optional(),
 }).strict();
 
 export interface AgentCheckpoint {
@@ -102,6 +128,8 @@ export interface AgentCheckpoint {
   executionIdentity?: AgentToolExecutionIdentity;
   /** An attempted initializer is never automatically replayed, even after reconciliation. */
   initialization?: z.infer<typeof initializationSchema>;
+  /** Each attempted pre-model navigation is retained; none is automatically replayed. */
+  initialActions?: z.infer<typeof initialActionsSchema>;
   phase: "planning" | "before_tool" | "after_tool" | "decision" | "terminal";
   createdAt: string;
   nextCallSequence: number;
@@ -145,11 +173,17 @@ export function parseAgentCheckpoint(value: unknown, options: { maxBytes?: numbe
   if (raw?.schemaVersion === 4) {
     const legacy = versionFourCheckpointSchema.safeParse(raw);
     if (!legacy.success) throw new Error("Invalid version 4 agent checkpoint.");
-    raw = { ...legacy.data, schemaVersion: AGENT_CHECKPOINT_VERSION, partials: [] };
+    raw = { ...legacy.data, schemaVersion: 5, partials: [] };
+  }
+  if (raw?.schemaVersion === 5) {
+    const legacy = versionFiveCheckpointSchema.safeParse(raw);
+    if (!legacy.success) throw new Error("Invalid version 5 agent checkpoint.");
+    raw = { ...legacy.data, schemaVersion: AGENT_CHECKPOINT_VERSION };
   }
   const parsed = checkpointSchema.safeParse(raw);
   if (!parsed.success) throw new Error("Invalid or unsupported agent checkpoint.");
   const checkpoint = parsed.data as AgentCheckpoint;
+  if (checkpoint.initialization && checkpoint.initialActions) throw new Error("Checkpoint cannot combine startUrl and initialActions.");
   if (checkpoint.partials.length && !checkpoint.partialSchemaHash) throw new Error("Checkpoint partials require their original schema hash.");
   if (checkpoint.requiresPartialPolicy && !checkpoint.partialSchemaHash) throw new Error("Checkpoint partial policy requires its original schema hash.");
   if (Buffer.byteLength(JSON.stringify(checkpoint.partials)) > 2 * 1024 * 1024) throw new Error("Checkpoint partial results exceed the size limit.");
@@ -157,7 +191,7 @@ export function parseAgentCheckpoint(value: unknown, options: { maxBytes?: numbe
   const publicationNotes = checkpoint.history.flatMap(message => message.role === "assistant" && message.content.startsWith(PARTIAL_HISTORY_PREFIX) ? [message.content] : []);
   if (publicationNotes.length !== checkpoint.partials.length || checkpoint.partials.some(partial => !publicationNotes.includes(PARTIAL_HISTORY_PREFIX + JSON.stringify(partial)))) throw new Error("Checkpoint partial results do not match their retained publication history.");
   if (checkpoint.steps > checkpoint.limits.maxSteps || checkpoint.toolCalls > checkpoint.limits.maxToolCalls) throw new Error("Checkpoint counters exceed their recorded budgets.");
-  const initialCalls = checkpoint.initialization?.state === "attempted" ? 1 : 0;
+  const initialCalls = checkpoint.initialization?.state === "attempted" ? 1 : checkpoint.initialActions?.attempts.length ?? 0;
   if (checkpoint.toolCalls > checkpoint.steps * 20 + initialCalls || checkpoint.plannerCalls > checkpoint.steps * 7 || checkpoint.nextCallSequence > checkpoint.steps * 20 + initialCalls + 1) throw new Error("Checkpoint counters are inconsistent.");
   if (checkpoint.history[0].role !== "system" || checkpoint.history[1].role !== "user" || checkpoint.history[1].content !== checkpoint.task) throw new Error("Checkpoint is missing its original task boundary.");
   const ids = new Map<string, AgentToolCall>();
@@ -194,6 +228,28 @@ export function parseAgentCheckpoint(value: unknown, options: { maxBytes?: numbe
     const initial = ids.get(initialization.toolCallId);
     const firstGroup = checkpoint.history.find(message => message.role === "assistant" && message.toolCalls);
     if (initialization.toolCallId !== `${checkpoint.runId}_call_1` || !initial || initial.name !== "tab_open" || initial.arguments.url !== initialization.url || Object.keys(initial.arguments).length !== 1 || firstGroup?.role !== "assistant" || firstGroup.toolCalls?.length !== 1 || firstGroup.toolCalls[0].id !== initial.id) throw new Error("Initializer must identify the first, standalone tab_open call with the saved URL.");
+  }
+  if (checkpoint.initialActions) {
+    const { actions, attempts } = checkpoint.initialActions;
+    if (!attempts.length && (checkpoint.steps || checkpoint.toolCalls || checkpoint.plannerCalls || checkpoint.nextCallSequence !== 1 || ids.size || checkpoint.pendingTool || checkpoint.ambiguousCalls.length)) throw new Error("Unstarted initialActions cannot have execution history or consumed counters.");
+    if (attempts.length > actions.length || attempts.some((attempt, index) => index < attempts.length - 1 && attempt.state !== "succeeded")) throw new Error("Initial actions contain an impossible attempt sequence.");
+    const groups = checkpoint.history.filter(message => message.role === "assistant" && message.toolCalls);
+    for (const [index, attempt] of attempts.entries()) {
+      const call = ids.get(attempt.toolCallId);
+      const group = groups[index];
+      const action = actions[index];
+      const expectedName = index === 0 ? "tab_open" : action.newTab ? "tab_tabs" : "tab_navigate";
+      const validArguments = index === 0
+        ? call?.arguments.url === action.url && Object.keys(call.arguments).length === 1
+        : call?.arguments.url === action.url && call.arguments.action === (action.newTab ? "new" : "goto") && typeof call.arguments.session_id === "string" && !!call.arguments.session_id && Object.keys(call.arguments).length === 3;
+      if (attempt.toolCallId !== `${checkpoint.runId}_call_${index + 1}` || !call || call.name !== expectedName || !validArguments || group?.role !== "assistant" || group.toolCalls?.length !== 1 || group.toolCalls[0].id !== call.id) throw new Error("Initial action history does not match its saved navigation manifest.");
+      const result = checkpoint.history.find(message => message.role === "tool" && message.toolCallId === call.id);
+      const data = result?.role === "tool" ? result.result.structuredContent : undefined;
+      if (attempt.state === "succeeded") {
+        if (result?.role !== "tool" || result.result.isError === true || data?.ok !== true || data.session_id !== attempt.sessionId || !attempt.sessionId) throw new Error("Successful initial action lacks a matching browser receipt.");
+      } else if (attempt.sessionId !== undefined || result?.role !== "tool" || attempt.state === "failed" && result.result.isError !== true && data?.ok !== false || attempt.state === "attempted" && result.result.isError !== true && data?.ok === true) throw new Error("An unsettled initial action cannot claim success or a session.");
+    }
+    if (attempts.length < actions.length && attempts.at(-1)?.state === "succeeded" && checkpoint.plannerCalls > 0) throw new Error("The planner cannot run before the trusted initial action sequence completes.");
   }
   const ambiguousIds = new Set<string>();
   for (const call of [...checkpoint.ambiguousCalls, ...(checkpoint.pendingTool ? [checkpoint.pendingTool.call] : [])]) {

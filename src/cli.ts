@@ -13,7 +13,7 @@ import { createServer, SERVER_VERSION } from "./server.js";
 import { connectAgentTools, createOpenAICompatiblePlanner, runAgent, type AgentModelUsage } from "./agent.js";
 import { createCodexPlanner, type CodexReasoningEffort } from "./codex.js";
 import { createAnthropicPlanner, createOllamaPlanner } from "./providers.js";
-import { normalizeStartUrl, uniqueTaskStartUrl, parseAgentCheckpoint, type AgentCheckpoint } from "./checkpoint.js";
+import { normalizeInitialActions, normalizeStartUrl, uniqueTaskStartUrl, parseAgentCheckpoint, type AgentCheckpoint, type InitialNavigationAction } from "./checkpoint.js";
 import { compileNavigationPolicy, type NavigationPolicy } from "./navigation-policy.js";
 import { loadSecretConfig } from "./secret-config.js";
 import { compileFinalOutput } from "./final-output.js";
@@ -74,6 +74,7 @@ Options / 选项:
 Agent run options / 任务执行选项:
   --task <text>             Requested task / 任务描述
   --start-url <url>         Open this explicit URL once before planning / 首次规划前打开指定网址
+  --initial-actions <file>  JSON array of trusted URLs; newTab opens another tab before planning
   --direct-open-task-url    Open one unambiguous URL in the task before planning
   --model <id>              Model supporting tools / 支持工具的模型
   --provider <name>         openai-compatible (default), codex, anthropic, ollama
@@ -116,7 +117,7 @@ const CHANNELS = new Set(["chromium", "chrome", "chrome-beta", "chrome-dev", "ch
 
 type RunProvider = "openai-compatible" | "codex" | "anthropic" | "ollama";
 interface RunOptions {
-  task?: string; startUrl?: string; directOpenTaskUrl?: boolean; provider: RunProvider; model: string; endpoint?: string; apiKey?: string;
+  task?: string; startUrl?: string; directOpenTaskUrl?: boolean; initialActions?: InitialNavigationAction[]; provider: RunProvider; model: string; endpoint?: string; apiKey?: string;
   codexCommand?: string; reasoningEffort?: CodexReasoningEffort; maxOutputTokens?: number;
   maxSteps?: number; maxToolCalls?: number; timeoutMs?: number; checkpointPath?: string; resumePath?: string; reconciled?: string;
   finalOutputSchema?: ExtractionSchema;
@@ -176,9 +177,31 @@ function loadOutputSchema(path: string, flag = "--output-schema"): ExtractionSch
   }
 }
 
+function loadInitialActions(path: string): InitialNavigationAction[] {
+  let descriptor: number | undefined;
+  try {
+    descriptor = openSync(path, constants.O_RDONLY | constants.O_NONBLOCK);
+    const metadata = fstatSync(descriptor);
+    if (!metadata.isFile() || metadata.size > 64 * 1024) throw new Error();
+    const buffer = Buffer.alloc(64 * 1024 + 1);
+    let length = 0;
+    while (length < buffer.length) {
+      const count = readSync(descriptor, buffer, length, buffer.length - length, null);
+      if (!count) break;
+      length += count;
+    }
+    if (length > 64 * 1024) throw new Error();
+    return normalizeInitialActions(JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(buffer.subarray(0, length))));
+  } catch {
+    throw new Error("--initial-actions must reference a readable regular UTF-8 JSON file of at most 64 KiB with 1–20 HTTP(S) navigation actions.");
+  } finally {
+    if (descriptor !== undefined) closeSync(descriptor);
+  }
+}
+
 function parseOptions(): { command: string; options: BrowserOptions; run?: RunOptions } {
   const { values, positionals } = parseArgs({
-    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, "capture-network": { type: "boolean" }, "record-video": { type: "boolean" }, "record-har": { type: "boolean" }, "har-content": { type: "string" }, "har-mode": { type: "string" }, "record-trace": { type: "boolean" }, "device-preset": { type: "string" }, viewport: { type: "string" }, "no-viewport": { type: "boolean" }, "window-size": { type: "string" }, "window-position": { type: "string" }, screen: { type: "string" }, "device-scale-factor": { type: "string" }, "user-agent": { type: "string" }, locale: { type: "string" }, timezone: { type: "string" }, mobile: { type: "boolean" }, touch: { type: "boolean" }, permissions: { type: "string" }, "proxy-server": { type: "string" }, "proxy-bypass": { type: "string" }, "proxy-username": { type: "string" }, "proxy-password-env": { type: "string" }, "page-script": { type: "boolean" }, "profile-dir": { type: "string" }, "profile-id": { type: "string" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "direct-open-task-url": { type: "boolean" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, "secret-config": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "planner-retries": { type: "string" }, "planner-retry-delay-ms": { type: "string" }, "fallback-provider": { type: "string" }, "fallback-model": { type: "string" }, "fallback-endpoint": { type: "string" }, "fallback-api-key-env": { type: "string" }, "fallback-codex-command": { type: "string" }, "fallback-reasoning-effort": { type: "string" }, "fallback-max-output-tokens": { type: "string" }, "extraction-provider": { type: "string" }, "extraction-model": { type: "string" }, "extraction-endpoint": { type: "string" }, "extraction-api-key-env": { type: "string" }, "extraction-codex-command": { type: "string" }, "extraction-reasoning-effort": { type: "string" }, "extraction-max-output-tokens": { type: "string" }, "available-file": { type: "string", multiple: true }, "storage-state-file": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "output-schema": { type: "string" }, "partial-schema": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
+    options: { headless: { type: "boolean" }, headed: { type: "boolean" }, "capture-network": { type: "boolean" }, "record-video": { type: "boolean" }, "record-har": { type: "boolean" }, "har-content": { type: "string" }, "har-mode": { type: "string" }, "record-trace": { type: "boolean" }, "device-preset": { type: "string" }, viewport: { type: "string" }, "no-viewport": { type: "boolean" }, "window-size": { type: "string" }, "window-position": { type: "string" }, screen: { type: "string" }, "device-scale-factor": { type: "string" }, "user-agent": { type: "string" }, locale: { type: "string" }, timezone: { type: "string" }, mobile: { type: "boolean" }, touch: { type: "boolean" }, permissions: { type: "string" }, "proxy-server": { type: "string" }, "proxy-bypass": { type: "string" }, "proxy-username": { type: "string" }, "proxy-password-env": { type: "string" }, "page-script": { type: "boolean" }, "profile-dir": { type: "string" }, "profile-id": { type: "string" }, channel: { type: "string" }, "executable-path": { type: "string" }, "cdp-url": { type: "string" }, "timeout-ms": { type: "string" }, help: { type: "boolean", short: "h" }, version: { type: "boolean", short: "v" }, task: { type: "string" }, "start-url": { type: "string" }, "initial-actions": { type: "string" }, "direct-open-task-url": { type: "boolean" }, "popup-policy": { type: "string" }, "navigation-policy": { type: "string" }, "secret-config": { type: "string" }, model: { type: "string" }, provider: { type: "string" }, endpoint: { type: "string" }, "api-key-env": { type: "string" }, "codex-command": { type: "string" }, "reasoning-effort": { type: "string" }, "max-output-tokens": { type: "string" }, "planner-retries": { type: "string" }, "planner-retry-delay-ms": { type: "string" }, "fallback-provider": { type: "string" }, "fallback-model": { type: "string" }, "fallback-endpoint": { type: "string" }, "fallback-api-key-env": { type: "string" }, "fallback-codex-command": { type: "string" }, "fallback-reasoning-effort": { type: "string" }, "fallback-max-output-tokens": { type: "string" }, "extraction-provider": { type: "string" }, "extraction-model": { type: "string" }, "extraction-endpoint": { type: "string" }, "extraction-api-key-env": { type: "string" }, "extraction-codex-command": { type: "string" }, "extraction-reasoning-effort": { type: "string" }, "extraction-max-output-tokens": { type: "string" }, "available-file": { type: "string", multiple: true }, "storage-state-file": { type: "string" }, "max-steps": { type: "string" }, "max-calls": { type: "string" }, "output-schema": { type: "string" }, "partial-schema": { type: "string" }, "run-timeout-ms": { type: "string" }, checkpoint: { type: "string" }, resume: { type: "string" }, reconciled: { type: "string" } },
     allowPositionals: true, strict: true,
   });
   if (values.help) return { command: "help", options: {} };
@@ -269,8 +292,9 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
   let popupPolicy: BrowserOptions["popupPolicy"];
   if (values["popup-policy"] !== undefined && values["popup-policy"] !== "stay" && values["popup-policy"] !== "follow-single") throw new Error("--popup-policy must be stay or follow-single.");
   popupPolicy = values["popup-policy"];
-  const runKeys = ["task", "start-url", "direct-open-task-url", "model", "provider", "endpoint", "api-key-env", "codex-command", "reasoning-effort", "max-output-tokens", "planner-retries", "planner-retry-delay-ms", "fallback-provider", "fallback-model", "fallback-endpoint", "fallback-api-key-env", "fallback-codex-command", "fallback-reasoning-effort", "fallback-max-output-tokens", "extraction-provider", "extraction-model", "extraction-endpoint", "extraction-api-key-env", "extraction-codex-command", "extraction-reasoning-effort", "extraction-max-output-tokens", "max-steps", "max-calls", "output-schema", "partial-schema", "run-timeout-ms", "checkpoint", "resume", "reconciled"] as const;
+  const runKeys = ["task", "start-url", "initial-actions", "direct-open-task-url", "model", "provider", "endpoint", "api-key-env", "codex-command", "reasoning-effort", "max-output-tokens", "planner-retries", "planner-retry-delay-ms", "fallback-provider", "fallback-model", "fallback-endpoint", "fallback-api-key-env", "fallback-codex-command", "fallback-reasoning-effort", "fallback-max-output-tokens", "extraction-provider", "extraction-model", "extraction-endpoint", "extraction-api-key-env", "extraction-codex-command", "extraction-reasoning-effort", "extraction-max-output-tokens", "max-steps", "max-calls", "output-schema", "partial-schema", "run-timeout-ms", "checkpoint", "resume", "reconciled"] as const;
   if (positionals[0] === "run") {
+    if (values["initial-actions"] !== undefined && (values["start-url"] !== undefined || values["direct-open-task-url"])) throw new Error("--initial-actions cannot be combined with --start-url or --direct-open-task-url.");
     const provider = (values.provider ?? "openai-compatible") as RunProvider;
     if (!PROVIDERS.has(provider)) throw new Error("--provider must be openai-compatible, codex, anthropic, or ollama.");
     if ((!values.task?.trim() && !values.resume) || !values.model?.trim() || (provider === "openai-compatible" && !values.endpoint?.trim())) {
@@ -332,7 +356,7 @@ function parseOptions(): { command: string; options: BrowserOptions; run?: RunOp
       if (!Number.isInteger(value) || value < 1 || value > max) throw new Error(`--${key} must be an integer from 1 to ${max}.`);
       return value;
     };
-    run = { task: values.task, startUrl: values["start-url"] === undefined ? undefined : normalizeStartUrl(values["start-url"]), directOpenTaskUrl: values["direct-open-task-url"], provider, model: values.model, endpoint: values.endpoint, apiKey: provider === "codex" ? undefined : process.env[envName] || undefined, codexCommand: values["codex-command"], reasoningEffort, maxOutputTokens, plannerRetries, plannerRetryDelayMs, fallback, extraction, maxSteps: limit("max-steps", 30, 1000), maxToolCalls: limit("max-calls", 100, 10000), ...(values["output-schema"] !== undefined ? { finalOutputSchema: loadOutputSchema(values["output-schema"]) } : {}), ...(values["partial-schema"] !== undefined ? { partialOutputSchema: loadOutputSchema(values["partial-schema"], "--partial-schema") } : {}), timeoutMs: limit("run-timeout-ms", 300000, 86400000), checkpointPath: values.checkpoint ? resolve(values.checkpoint) : undefined, resumePath: values.resume ? resolve(values.resume) : undefined, reconciled: values.reconciled };
+    run = { task: values.task, startUrl: values["start-url"] === undefined ? undefined : normalizeStartUrl(values["start-url"]), initialActions: values["initial-actions"] === undefined ? undefined : loadInitialActions(values["initial-actions"]), directOpenTaskUrl: values["direct-open-task-url"], provider, model: values.model, endpoint: values.endpoint, apiKey: provider === "codex" ? undefined : process.env[envName] || undefined, codexCommand: values["codex-command"], reasoningEffort, maxOutputTokens, plannerRetries, plannerRetryDelayMs, fallback, extraction, maxSteps: limit("max-steps", 30, 1000), maxToolCalls: limit("max-calls", 100, 10000), ...(values["output-schema"] !== undefined ? { finalOutputSchema: loadOutputSchema(values["output-schema"]) } : {}), ...(values["partial-schema"] !== undefined ? { partialOutputSchema: loadOutputSchema(values["partial-schema"], "--partial-schema") } : {}), timeoutMs: limit("run-timeout-ms", 300000, 86400000), checkpointPath: values.checkpoint ? resolve(values.checkpoint) : undefined, resumePath: values.resume ? resolve(values.resume) : undefined, reconciled: values.reconciled };
   } else if (runKeys.some(key => values[key] !== undefined)) throw new Error("Agent options require the run command.");
   return { command: positionals[0] ?? "stdio", options: { headless: !values.headed, channel, executablePath: executablePath ? resolve(executablePath) : undefined, cdpUrl, profileDir: values["profile-dir"] !== undefined ? resolve(values["profile-dir"]) : undefined, expectedProfileId: values["profile-id"], devicePreset, viewport, noViewport: values["no-viewport"], windowSize, windowPosition, screen, deviceScaleFactor, userAgent: values["user-agent"], locale: values.locale, timezoneId: values.timezone, isMobile: values.mobile, hasTouch: values.touch, permissions, proxy, timeoutMs, popupPolicy, navigationPolicy, secrets, availableFilePaths: availableFilePaths ?? [], storageStateFile, captureNetwork: values["capture-network"] ?? false, recordVideo: values["record-video"] ?? false, recordHar: values["record-har"] ?? false, recordHarContent: values["har-content"] as BrowserOptions['recordHarContent'], recordHarMode: values["har-mode"] as BrowserOptions['recordHarMode'], recordTrace: values["record-trace"] ?? false, allowPageScript: values["page-script"] ?? false }, run };
 }
@@ -442,6 +466,7 @@ async function main(): Promise<void> {
     if (saved && saved.agent.partialSchemaHash !== (run.partialOutputSchema === undefined ? undefined : compileFinalOutput(run.partialOutputSchema).hash)) throw new Error("A resumed run must supply its original --partial-schema file before browser restoration.");
     const requestedStartUrl = run.startUrl ?? (run.directOpenTaskUrl ? uniqueTaskStartUrl(run.task ?? saved?.agent.task ?? "") : undefined);
     if (saved && requestedStartUrl !== undefined && requestedStartUrl !== saved.agent.initialization?.url) throw new Error("A resumed run cannot add or change its saved startUrl.");
+    if (saved && run.initialActions && JSON.stringify(run.initialActions) !== JSON.stringify(saved.agent.initialActions?.actions)) throw new Error("A resumed run cannot add or change its saved initialActions.");
     if (saved?.agent.executionIdentity) throw new Error("This checkpoint requires its application's bound tool registry. Resume it through the SDK with the original context and tool contracts; the CLI cannot restore these handlers.");
     if (saved && options.popupPolicy !== undefined && options.popupPolicy !== (saved.browser.popupPolicy ?? "stay")) throw new Error("A resumed run must retain its saved popup policy.");
     if (saved?.agent.requiresCompletionPolicy) throw new Error("This checkpoint requires its application validateCompletion policy. Resume through the library with that policy; the CLI cannot restore executable application code.");
@@ -516,14 +541,14 @@ async function main(): Promise<void> {
       }
       let workspace: BrowserWorkspace = await engine.exportWorkspace();
       const checkpointPath = run.checkpointPath ?? run.resumePath;
-      const result = await runAgent({ task: run.task ?? saved!.agent.task, startUrl: run.startUrl, directOpenTaskUrl: run.directOpenTaskUrl, planner, tools: extractionPlanner ? createModelExtractionToolClient(connection.tools, extractionPlanner) : connection.tools, maxSteps: run.maxSteps, maxToolCalls: run.maxToolCalls, timeoutMs: run.timeoutMs, finalOutputSchema: run.finalOutputSchema, partialOutputSchema: run.partialOutputSchema, signal: controller.signal,
+      const result = await runAgent({ task: run.task ?? saved!.agent.task, startUrl: run.startUrl, initialActions: run.initialActions, directOpenTaskUrl: run.directOpenTaskUrl, planner, tools: extractionPlanner ? createModelExtractionToolClient(connection.tools, extractionPlanner) : connection.tools, maxSteps: run.maxSteps, maxToolCalls: run.maxToolCalls, timeoutMs: run.timeoutMs, finalOutputSchema: run.finalOutputSchema, partialOutputSchema: run.partialOutputSchema, signal: controller.signal,
         ...((run.plannerRetries !== undefined || fallbackPlanner) ? { plannerRecovery: { maxRetries: run.plannerRetries ?? 0, retryDelayMs: run.plannerRetryDelayMs, fallback: fallbackPlanner, stickyFallback: !!fallbackPlanner } } : {}),
         resume: saved?.agent, resumeSessionMap: restored?.sessionMap,
         resumeFeedback: restored ? `Browser contexts were recreated from the saved workspace. A session marked requires_reauthentication did not restore its login state or original URLs: use an address authorized by the user task and log in again with the available secret aliases before continuing. Other sessions restored their saved cookies/localStorage/IndexedDB and URLs. DOM, form drafts and sessionStorage were not restored. Old refs are invalid. Observe every needed tab before acting. Reauthentication does not reconcile unknown earlier writes. Restored sessions: ${JSON.stringify(restored.snapshots.map(snapshot => ({ session_id: snapshot.session_id, tab_id: snapshot.tab_id, tabs: snapshot.tabs, url: snapshot.url, requires_reauthentication: snapshot.requires_reauthentication === true })))}` : undefined,
         reconciliation: run.reconciled ? { resolvedCallIds: uncertain, note: run.reconciled } : undefined,
         onCheckpoint: checkpointPath ? async checkpoint => {
           const persistenceStart = performance.now();
-          if ((checkpoint.phase === "decision" || checkpoint.phase === "terminal") && !checkpoint.pendingTool && !checkpoint.ambiguousCalls.length) workspace = await engine.exportWorkspace();
+          if ((checkpoint.phase === "decision" || checkpoint.phase === "terminal" || checkpoint.phase === "after_tool" && checkpoint.initialActions?.attempts.at(-1)?.state === "succeeded") && !checkpoint.pendingTool && !checkpoint.ambiguousCalls.length) workspace = await engine.exportWorkspace();
           await saveRunCheckpoint(checkpointPath, { version: 1, savedAt: new Date().toISOString(), agent: { ...checkpoint, elapsedMs: Math.round(checkpoint.elapsedMs + performance.now() - persistenceStart) }, browser: workspace });
         } : undefined,
         onEvent: event => { if (event.type === "planning") process.stderr.write(`Tablaze: planning step ${event.step}\n`); },

@@ -59,7 +59,7 @@ The optional [`tab_network` journal](NETWORK.md) appears only with `--capture-ne
 
 `tab_pdf` prints the whole active tab to a local PDF artifact, rather than the selected child frame. It accepts A4/Letter, landscape and background options and returns the path, size, SHA-256, URL and tab identity. Output is limited to 50 MiB. Exceeding the configured action timeout closes the owned tab and returns `PDF_TIMEOUT`; print layout can differ from the screenshot.
 
-[`tab_extract_structured`](https://github.com/SweetDianDian/tablaze/blob/main/docs/EXTRACTION.md) applies an explicit field map and JSON Schema to the observed frame. Citations identify the frame URL, selector, match index and raw observed value. Limits are 30 fields, 20 matches per field and 100 elements in total; type, schema, hidden-field and truncation failures are explicit. The separate provider-independent extraction API checks source-bound quotes for every populated leaf. Schema conformance and quote presence establish provenance, not the truth of a source or the correctness of every interpretation.
+[`tab_extract_structured`](EXTRACTION.md) applies an explicit field map and JSON Schema to the observed frame. Citations identify the frame URL, selector, match index and raw observed value. Limits are 30 fields, 20 matches per field and 100 elements in total; type, schema, hidden-field and truncation failures are explicit. The separate provider-independent extraction API checks source-bound quotes for every populated leaf. Schema conformance and quote presence establish provenance, not the truth of a source or the correctness of every interpretation.
 
 Snapshots omit password/hidden input values, and value checks reject those inputs. Other values, page text, URLs, extracted content, screenshots and PDFs can contain private information. See [security boundaries and reporting](SECURITY.md).
 
@@ -154,7 +154,7 @@ CDP 清理只关闭自有页面并断开连接，不主动关闭无关标签页�
 
 `tab_pdf` 将整个活动标签页打印为本地 PDF，不只输出选中的子 frame。可选 A4/Letter、横向及背景，返回路径、大小、SHA-256、URL 和标签页身份。产物上限 50 MiB；超过配置的单步超时会关闭自有标签页并返回 `PDF_TIMEOUT`。打印布局可能与截图不同。
 
-[`tab_extract_structured`](https://github.com/SweetDianDian/tablaze/blob/main/docs/EXTRACTION.md) 对已观察的 frame 应用显式字段映射与 JSON Schema。引用包含 frame URL、选择器、匹配序号和实际读取的原始值。最多 30 个字段、每字段 20 个匹配、总计 100 个元素；类型、schema、隐藏字段和截断错误均显式返回。独立于模型厂商的提取 API 为每个已填充叶值检查绑定来源中的引用文字。schema 合法与引用存在能说明来源，不能证明来源真实或所有解释正确。
+[`tab_extract_structured`](EXTRACTION.md) 对已观察的 frame 应用显式字段映射与 JSON Schema。引用包含 frame URL、选择器、匹配序号和实际读取的原始值。最多 30 个字段、每字段 20 个匹配、总计 100 个元素；类型、schema、隐藏字段和截断错误均显式返回。独立于模型厂商的提取 API 为每个已填充叶值检查绑定来源中的引用文字。schema 合法与引用存在能说明来源，不能证明来源真实或所有解释正确。
 
 快照省略 password/hidden input 的值，字段值检查拒绝这些输入。其他字段、页面文字、URL、提取内容、截图和 PDF 仍可能包含私人信息，具体见[安全边界与报告方式](SECURITY.md)。
 

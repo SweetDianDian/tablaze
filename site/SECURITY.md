@@ -20,9 +20,9 @@ Other input values, page text, accessible names, URLs (including their query par
 
 快照省略 password/hidden input 的值，值验收拒绝这些输入；错误会移除 Playwright 调用日志并处理部分输入值和端点，CDP 连接错误省略配置地址。这些是具体防护，不是全面的数据防泄漏系统。其他字段值、文字、无障碍名称、带查询参数的 URL、验收证据、截图和 PDF 仍可能含私人信息；工具响应会进入 MCP 客户端。显式引用的隐藏无障碍标签可能构成名称。[定向凭据](https://github.com/SweetDianDian/tablaze/blob/main/docs/SECRETS.md)会遮盖已知文字形式，填写后默认阻止二进制产物；但网页脚本仍可用无法识别的方式转换或发送收到的值。MCP 服务不调用模型或要求模型 API key；可选 Agent 运行器使用独立、显式配置的模型连接。
 
-[`tab_extract_structured` and the source extraction API](https://github.com/SweetDianDian/tablaze/blob/main/docs/EXTRACTION.md) validate schema and provenance within their documented limits. DOM evidence records the actual frame URL, selector and raw value; model extraction validates exact quotes in the supplied sources for each populated leaf. These checks do not authenticate a website, establish that its statements are true, or make page instructions trusted application policy.
+[`tab_extract_structured` and the source extraction API](EXTRACTION.md) validate schema and provenance within their documented limits. DOM evidence records the actual frame URL, selector and raw value; model extraction validates exact quotes in the supplied sources for each populated leaf. These checks do not authenticate a website, establish that its statements are true, or make page instructions trusted application policy.
 
-[`tab_extract_structured` 与来源提取 API](https://github.com/SweetDianDian/tablaze/blob/main/docs/EXTRACTION.md)在文档规定的范围内检查 schema 与来源。DOM 证据记录实际 frame URL、选择器和原始值；模型提取为每个已填充叶值检查给定来源中的精确引用。这不验证网站身份、不证明网站陈述真实，也不将页面指令变为可信的应用策略。
+[`tab_extract_structured` 与来源提取 API](EXTRACTION.md)在文档规定的范围内检查 schema 与来源。DOM 证据记录实际 frame URL、选择器和原始值；模型提取为每个已填充叶值检查给定来源中的精确引用。这不验证网站身份、不证明网站陈述真实，也不将页面指令变为可信的应用策略。
 
 ## Actions and cancellation / 操作与取消
 

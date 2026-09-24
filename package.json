@@ -8,7 +8,8 @@
     "node": ">=20"
   },
   "bin": {
-    "tablaze": "dist/cli.js"
+    "tablaze": "dist/cli.js",
+    "tablaze-extract": "dist/extract-cli.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

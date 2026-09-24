@@ -306,7 +306,7 @@ Before an action opens a native dialog, call `tab_dialog` with action `accept` o
 {"session_id":"<session_id>","format":"A4","landscape":false}
 ```
 
-`tab_extract_structured` reads a named field plan and validates its output against JSON Schema draft-07. It returns a source URL, selector, match index, and raw quote for every extracted value. Plans support text, attributes, current non-sensitive form values, typed scalars, and arrays; limits are 30 fields, 20 matches per field, and 100 matches total. Missing required fields, unsafe values, type failures, and truncated evidence produce errors. See the [schema extraction examples and provenance limits](https://github.com/SweetDianDian/tablaze/blob/main/docs/EXTRACTION.md); a quotation's presence is not proof of a claim's truth.
+`tab_extract_structured` reads a named field plan and validates its output against JSON Schema draft-07. It returns a source URL, selector, match index, and raw quote for every extracted value. Plans support text, attributes, current non-sensitive form values, typed scalars, and arrays; limits are 30 fields, 20 matches per field, and 100 matches total. Missing required fields, unsafe values, type failures, and truncated evidence produce errors. See the [schema extraction examples and provenance limits](EXTRACTION.md); a quotation's presence is not proof of a claim's truth.
 
 ## Choose a planner for `run`
 

@@ -314,7 +314,7 @@ Tablaze 跟踪自己创建的页面及其弹出页面；清理时只关闭这些
 {"session_id":"<session_id>","format":"A4","landscape":false}
 ```
 
-`tab_extract_structured` 按命名字段计划读取内容，并用 JSON Schema draft-07 校验输出。每个值附带来源 URL、选择器、匹配序号和转换前原文。支持文字、属性、当前非敏感表单值、带类型的标量和数组；最多 30 个字段，每字段 20 个匹配，总计 100 个。缺少必填字段、敏感值、类型不符或证据截断都会报错。完整示例和依据边界见[结构化提取指南](https://github.com/SweetDianDian/tablaze/blob/main/docs/EXTRACTION.md)；引用原文存在不等于已经证明事实真实。
+`tab_extract_structured` 按命名字段计划读取内容，并用 JSON Schema draft-07 校验输出。每个值附带来源 URL、选择器、匹配序号和转换前原文。支持文字、属性、当前非敏感表单值、带类型的标量和数组；最多 30 个字段，每字段 20 个匹配，总计 100 个。缺少必填字段、敏感值、类型不符或证据截断都会报错。完整示例和依据边界见[结构化提取指南](EXTRACTION.md)；引用原文存在不等于已经证明事实真实。
 
 ## 为 `run` 选择规划器
 

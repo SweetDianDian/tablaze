@@ -169,7 +169,7 @@ SDK 调用方可用 `createAgentControl()` 在安全边界暂停、加入可信�
 | `tab_extract_structured` | 按 JSON Schema 提取类型化字段，返回 DOM 来源证据。 |
 | `tab_pdf` | 导出私有 PDF 文件，返回来源 URL 和 SHA-256。 |
 
-当前开发分支增加定向/视口快照、统一 Shadow DOM 读取、拖拽、容器滚动、文件流程、多标签页、[结构化提取](docs/EXTRACTION.md)和可断点恢复的[模型驱动 Agent](docs/AGENT.md)。新增能力尚未发布到 npm，已验收范围见[开发状态](docs/DEVELOPMENT_STATUS.md)。[Browser Use 对照与未完成验收](docs/BROWSER_USE_COMPARISON.md)明确记录差距，不宣称已超过对方。
+当前开发分支增加定向/视口快照、统一 Shadow DOM 读取、拖拽、容器滚动、文件流程、多标签页、[结构化提取](docs/EXTRACTION.md)和可断点恢复的[模型驱动 Agent](docs/AGENT.md)。`extractWithPlanner` 与 `tablaze-extract` 可为调用方提供的来源文本单独选模型，并检查 Schema 和逐字段原文引用；尚未接入 Agent 的页面任务流程。新增能力尚未发布到 npm，见[一次真实 Codex 提取抽样](docs/MODEL_EXTRACTION_20260924.md)及[开发状态](docs/DEVELOPMENT_STATUS.md)。[Browser Use 对照与未完成验收](docs/BROWSER_USE_COMPARISON.md)明确记录差距，不宣称已超过对方。
 
 ## 深入了解
 

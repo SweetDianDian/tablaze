@@ -1,0 +1,38 @@
+{
+  "data": {
+    "city": "Lisbon",
+    "price": 25
+  },
+  "citations": [
+    {
+      "pointer": "/city",
+      "sourceId": "offer",
+      "quote": "City: Lisbon.",
+      "url": "https://example.test/offer",
+      "start": 0,
+      "end": 13
+    },
+    {
+      "pointer": "/price",
+      "sourceId": "offer",
+      "quote": "City: Lisbon. Price: 25 EUR.",
+      "url": "https://example.test/offer",
+      "start": 0,
+      "end": 28
+    }
+  ],
+  "schema_validated": true,
+  "provenance": "source-quote-presence",
+  "model_usage": [
+    {
+      "step": 1,
+      "model": "gpt-6-astra",
+      "latencyMs": 14756.56,
+      "promptTokens": 9377,
+      "completionTokens": 86,
+      "cachedPromptTokens": 0,
+      "cacheCreationPromptTokens": 0,
+      "reasoningTokens": 0
+    }
+  ]
+}

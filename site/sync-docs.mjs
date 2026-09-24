@@ -34,6 +34,7 @@ const publicGuides = new Map([
   ['docs/CODEX_NEW_SURFACE_20260924.md', 'CODEX_NEW_SURFACE_20260924.md'],
   ['docs/CODEX_READONLY_LISTBOX_20260924.md', 'CODEX_READONLY_LISTBOX_20260924.md'],
   ['docs/CODEX_DIRECT_TASK_URL_20260924.md', 'CODEX_DIRECT_TASK_URL_20260924.md'],
+  ['docs/CODEX_CHECK_DOMAINS_IFRAME_20260924.md', 'CODEX_CHECK_DOMAINS_IFRAME_20260924.md'],
   ['docs/AGENT_LONG_HISTORY_20260924.md', 'AGENT_LONG_HISTORY_20260924.md'],
   ['docs/RECORDING.md', 'RECORDING.md'],
   ['docs/RUNTIME.md', 'RUNTIME.md'],
@@ -96,4 +97,5 @@ await cp(join(root, 'docs/evidence/canvas-initial-vision-20260924'), join(site, 
 await cp(join(root, 'docs/evidence/new-surface-20260924'), join(site, 'evidence/new-surface-20260924'), { recursive: true, force: true });
 await cp(join(root, 'docs/evidence/readonly-listbox-20260924'), join(site, 'evidence/readonly-listbox-20260924'), { recursive: true, force: true });
 await cp(join(root, 'docs/evidence/direct-task-url-20260924'), join(site, 'evidence/direct-task-url-20260924'), { recursive: true, force: true });
+await cp(join(root, 'docs/evidence/check-domains-iframe-20260924'), join(site, 'evidence/check-domains-iframe-20260924'), { recursive: true, force: true });
 console.log('Synchronized public guides, comparison reports, and their fixed evidence files. Historical benchmark.json is unchanged.');
